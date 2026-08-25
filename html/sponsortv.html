@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <title>Sponsor TV</title>
+  <style>
+    @font-face {
+      font-family: 'Anton';
+      src: url('/fonts/Anton-Regular.ttf') format('truetype');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'General Sans';
+      src: url('/fonts/GeneralSans-Medium.otf') format('opentype');
+      font-weight: 500; font-style: normal;
+    }
+    @font-face {
+      font-family: 'General Sans';
+      src: url('/fonts/GeneralSans-Semibold.otf') format('opentype');
+      font-weight: 600; font-style: normal;
+    }
+    @font-face {
+      font-family: 'General Sans';
+      src: url('/fonts/GeneralSans-Bold.otf') format('opentype');
+      font-weight: 700; font-style: normal;
+    }
+
+    html, body {
+      margin: 0; padding: 0;
+      width: 1920px; height: 1080px;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    /* Permanently on — no show/hide, so no scene wrapper/transition needed. */
+    #scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      overflow: hidden;
+    }
+
+    #bg-video {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+    }
+
+    /* ── Schedule block — the ONE box the dashboard Edit tab can
+       drag/resize. Everything inside is rendered at its native 858x712
+       size into #stv-inner, which is scaled (via JS, see stvApplyScale)
+       to fill whatever box the Edit tab sets on #stv-content — so
+       dragging/resizing this single box moves and scales the whole
+       schedule as one group, same philosophy as mplfs.html's Credit Reel
+       viewport. ── */
+    #stv-content {
+      position: absolute;
+      left: 531px; top: 184px;
+      width: 858px; height: 712px;
+      overflow: hidden;
+    }
+    /* Flex-centers #stv-matches within the native box on both axes, so 2
+       matches (Day 1/3) sit centered same as 3 matches (Day 2) instead of
+       stacking from the top and leaving a visual gap at the bottom. */
+    #stv-inner {
+      position: absolute;
+      left: 0; top: 0;
+      width: 858px; height: 712px;
+      transform-origin: top left;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #stv-matches {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: 'General Sans', sans-serif;
+    }
+
+    /* Match rows — same native 858x232 asset + layout as Today's Schedule
+       (html/ENTVC.html and html/mplfs.html's .tsm-* classes). */
+    .tsm-row { position: relative; width: 858px; height: 232px; }
+    .tsm-row > img.tsm-bg { position: absolute; left: 0; top: 0; width: 858px; height: 232px; }
+    .tsm-label, .tsm-time, .tsm-bo {
+      position: absolute; top: 0; height: 48px;
+      display: flex; align-items: center;
+      font-weight: 700; font-size: 26px; color: #0a0a0a;
+      text-transform: uppercase; white-space: nowrap;
+    }
+    .tsm-label { left: 22px; }
+    .tsm-time  { left: 0; width: 100%; justify-content: center; }
+    .tsm-bo    { right: 22px; }
+    .tsm-slot {
+      position: absolute; top: 48px; height: 184px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .tsm-tri {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400; font-size: 46px;
+      color: #fff; text-transform: uppercase; white-space: nowrap;
+    }
+    .tsm-tri-l  { left: 0;     width: 141px; }
+    .tsm-tri-r  { right: 0;    width: 141px; }
+    .tsm-logo-l { left: 141px; width: 196px; }
+    .tsm-logo-r { left: 521px; width: 196px; }
+    .tsm-logo-l img, .tsm-logo-r img { width: 116px; height: 102px; object-fit: contain; }
+    .tsm-center { left: 337px; width: 184px; }
+    .tsm-center img.tsm-vs { width: 107px; height: 59px; }
+    .tsm-score { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+    .tsm-score .tsm-score-l   { font-weight: 700; font-size: 48px; color: #1656d5; }
+    .tsm-score .tsm-score-div { width: 50px; height: 4px; background: #0a0a0a; margin: 4px 0; }
+    .tsm-score .tsm-score-r   { font-weight: 700; font-size: 48px; color: #d92027; }
+  </style>
+</head>
+<body>
+  <div id="scene">
+    <video id="bg-video" src="/assets/bgloopwaves.webm" autoplay loop muted playsinline></video>
+    <div id="stv-content">
+      <div id="stv-inner">
+        <div id="stv-matches"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function buildUrl(path) { return window.location.origin + path; }
+
+    const WS_ASSET     = '/assets/Waiting Screen/';
+    const WS_TVC_ASSET = '/assets/Waiting Screen TVC/';
+    const TS_ASSET      = "/assets/Today's Schedule/";
+
+    /* Placeholder fallback — only used until the Match Board has real
+       todayMatches data (same shape/values as Today's Schedule's). */
+    const TS_MATCHES = [
+      { label: 'MATCH 1', time: '14:30 GMT +8', bo: 'B03', star: false,
+        left: { tri: 'ONIC' }, right: { tri: 'ONIC' } },
+      { label: 'MATCH 2', time: '16:30 GMT +8', bo: 'B03', star: false,
+        left: { tri: 'ONIC' }, right: { tri: 'ONIC' } },
+      { label: 'MATCH 3', time: '18:30 GMT +8', bo: 'B03', star: false,
+        left: { tri: 'ONIC' }, right: { tri: 'ONIC' } },
+    ];
+
+    /* Match Board state → match rows — ported verbatim from Today's
+       Schedule (html/ENTVC.html / html/mplfs.html's msToMatchRows). */
+    function msToMatchRows(state) {
+      if (!state || !Array.isArray(state.todayMatches) || !state.todayMatches.length) return null;
+      const bo  = (state.series || 'BO3').toUpperCase();
+      const hId = state.home ? state.home.teamId : null;
+      const aId = state.away ? state.away.teamId : null;
+      const isDay2 = (state.day || 1) === 2;
+      return state.todayMatches.slice(0, isDay2 ? 3 : 2).map((m, i) => {
+        let s1 = m.score1 || 0, s2 = m.score2 || 0;
+        const liveStarted = !!(state.home && state.away && ((state.home.score || 0) || (state.away.score || 0)));
+        if (liveStarted && hId && aId && m.team1Id && m.team2Id) {
+          if      (m.team1Id === hId && m.team2Id === aId) { s1 = state.home.score || 0; s2 = state.away.score || 0; }
+          else if (m.team1Id === aId && m.team2Id === hId) { s1 = state.away.score || 0; s2 = state.home.score || 0; }
+        }
+        return {
+          label: 'MATCH ' + (i + 1),
+          time:  m.time || '',
+          bo,
+          star:  !!m.star,
+          left:  { tri: m.team1Short || '', logo: m.team1Short ? '/logos/' + encodeURIComponent(m.team1Short) + '.png' : null },
+          right: { tri: m.team2Short || '', logo: m.team2Short ? '/logos/' + encodeURIComponent(m.team2Short) + '.png' : null },
+          score: (s1 === 0 && s2 === 0) ? null : { l: s1, r: s2 },
+        };
+      });
+    }
+
+    /* Guards against rebuilding on every 3s poll tick when nothing actually
+       changed — innerHTML rebuild destroys and recreates every <img>, which
+       (combined with cache-bust.js's ?v= busting + /logos/'s no-store
+       Cache-Control) forces a real network re-fetch of every team logo each
+       time. Invisible over localhost's near-zero latency, but a visible
+       flicker once vMix on another PC is pulling those images over the LAN
+       every cycle. Same "unchanged — don't disturb" pattern as mplfs.html's
+       populateWsHosts/populateWsCasters. */
+    let stvLastKey = null;
+    function buildStvMatches(state) {
+      const root = document.getElementById('stv-matches');
+      const rows = msToMatchRows(state) || TS_MATCHES;
+      const key = JSON.stringify(rows);
+      if (key === stvLastKey) return;
+      stvLastKey = key;
+      const logo = (m, side) =>
+        `<div class="tsm-slot tsm-logo-${side}"><img src="${(m[side === 'l' ? 'left' : 'right'].logo) || (WS_ASSET + 'Null_Icon.png')}" ` +
+        `onerror="this.onerror=null;this.src='${WS_ASSET}Null_Icon.png'" alt=""></div>`;
+      root.innerHTML = rows.map(m => {
+        const center = m.score
+          ? `<div class="tsm-score"><span class="tsm-score-l">${m.score.l}</span><span class="tsm-score-div"></span><span class="tsm-score-r">${m.score.r}</span></div>`
+          : `<img class="tsm-vs" src="${WS_TVC_ASSET}SCORES/vs.png" alt="VS">`;
+        return `<div class="tsm-row"><img class="tsm-bg" src="${TS_ASSET}${m.star ? 'StarMatch_Match_Box' : 'Regular_Match_Box'}.png" alt="">` +
+          `<span class="tsm-label">${m.label}</span>` +
+          `<span class="tsm-time">${m.time}</span>` +
+          `<span class="tsm-bo">${m.bo}</span>` +
+          `<div class="tsm-slot tsm-tri tsm-tri-l">${m.left.tri}</div>` +
+          logo(m, 'l') +
+          `<div class="tsm-slot tsm-center">${center}</div>` +
+          logo(m, 'r') +
+          `<div class="tsm-slot tsm-tri tsm-tri-r">${m.right.tri}</div></div>`;
+      }).join('');
+    }
+    buildStvMatches();
+
+    /* ── Proportional scale — lets the dashboard Edit tab's single
+       #stv-content box control both position AND size of the whole
+       schedule as one group. Content renders at its native 858x712 size
+       into #stv-inner; whenever #stv-content's box changes (via the Edit
+       tab's drag/resize, which sets literal left/top/width/height),
+       #stv-inner is scaled to exactly fill it. ── */
+    const STV_NATIVE_W = 858, STV_NATIVE_H = 712;
+    const stvContent = document.getElementById('stv-content');
+    const stvInner   = document.getElementById('stv-inner');
+    function stvApplyScale() {
+      const w = stvContent.clientWidth, h = stvContent.clientHeight;
+      stvInner.style.transform = `scale(${w / STV_NATIVE_W}, ${h / STV_NATIVE_H})`;
+    }
+    new ResizeObserver(stvApplyScale).observe(stvContent);
+    stvApplyScale();
+
+    /* Permanently on, no SSE — Match Board state is picked up by plain
+       polling instead (same 3s-interval pattern as Draft.html's
+       pollMatchState), so the schedule stays current without a live
+       connection. */
+    function refreshFromMatchState() {
+      fetch(buildUrl('/match/state'), { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(ms => { if (ms) buildStvMatches(ms); })
+        .catch(() => {});
+    }
+    refreshFromMatchState();
+    setInterval(refreshFromMatchState, 3000);
+
+    /* ── Load saved position/size overrides from the dashboard Edit tab ── */
+    (function loadStvOverrides() {
+      fetch('/api/overlay-styles?file=sponsortv')
+        .then(r => r.json())
+        .then(styles => {
+          if (!styles || !Object.keys(styles).length) return;
+          const css = Object.keys(styles).map(sel => {
+            const props = styles[sel];
+            const decls = Object.keys(props).map(prop => {
+              const cssProp = prop === 'fontSize' ? 'font-size' : prop;
+              return cssProp + ':' + props[prop] + ' !important';
+            }).join(';');
+            return sel + '{' + decls + '}';
+          }).join('\n');
+          const style = document.createElement('style');
+          style.id = 'sponsortv-overrides';
+          style.textContent = css;
+          document.head.appendChild(style);
+        })
+        .catch(() => {});
+    })();
+  </script>
+</body>
+</html>

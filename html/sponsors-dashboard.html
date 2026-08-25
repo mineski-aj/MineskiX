@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <title>Sponsors Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* ── Login ── */
+    #login-wrap {
+      width: 320px;
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 80px;
+    }
+    #login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+    #login-wrap p  { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    /* ── App ── */
+    #app { display: none; width: 100%; max-width: 1200px; flex-direction: column; gap: 10px; height: 100%; }
+    #app.visible { display: flex; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+    #save-status { font-size: 12px; color: #555; }
+
+    #scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Panels ── */
+    .panel { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; }
+    .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #444; margin-bottom: 14px; }
+    .panel-hint { font-size: 11px; color: #555; margin: -8px 0 12px; }
+
+    /* ── Inputs ── */
+    input[type="text"], input[type="number"] {
+      background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px;
+      color: #e0e0f0; font-size: 13px; padding: 7px 10px; outline: none; transition: border-color .2s;
+    }
+    input:focus { border-color: #5566cc; }
+    input[type="number"] { width: 64px; text-align: center; }
+
+    /* ── Buttons ── */
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(.85); }
+    .btn:disabled { opacity: .3; cursor: default; filter: none; }
+    .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
+    .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
+    .btn-save   { background: #143a24; border-color: #1e5a36; color: #44cc88; font-weight: 600; padding: 8px 22px; }
+    .btn-save.attn { background: #3a2a10; border-color: #7a5a20; color: #ffbb44; }
+    .btn-add-cat { background: #1a2030; border-color: #2a3050; color: #88aaff; }
+    .btn-danger { background: #2a1218; border-color: #5a2030; color: #ff6677; font-size: 12px; padding: 5px 10px; }
+    .btn-order  { background: #14141e; border-color: #2a2a3a; color: #889; font-size: 11px; padding: 3px 8px; line-height: 16px; }
+    .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
+
+    /* ── Bench (unassigned logos) ── */
+    #bench-zone {
+      display: flex; flex-wrap: wrap; gap: 10px; min-height: 76px;
+      border: 1px dashed #2a2a3a; border-radius: 8px; padding: 10px;
+      transition: border-color .15s, background .15s;
+    }
+    #bench-zone.drag-over { border-color: #5566cc; background: #12121e; }
+    #bench-empty { font-size: 12px; color: #444; padding: 8px; }
+
+    /* ── Sponsor chip ── */
+    .sponsor-chip {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      width: 84px; padding: 8px 6px 6px;
+      background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 8px;
+      cursor: grab; user-select: none;
+    }
+    .sponsor-chip:active { cursor: grabbing; }
+    .sponsor-chip.dragging { opacity: .35; }
+    .sponsor-chip img { width: 60px; height: 40px; object-fit: contain; }
+    .sponsor-chip .chip-label {
+      font-size: 9px; color: #778; text-align: center; line-height: 1.2;
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .chip-remove {
+      position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+      border-radius: 50%; background: #2a1218; border: 1px solid #5a2030; color: #ff6677;
+      font-size: 11px; line-height: 16px; text-align: center; cursor: pointer; padding: 0;
+    }
+    .chip-ingame-toggle {
+      position: absolute; top: -6px; left: -6px; width: 18px; height: 18px;
+      border-radius: 50%; font-size: 10px; line-height: 16px; text-align: center;
+      cursor: pointer; padding: 0;
+      background: #14141e; border: 1px solid #2a2a3a; color: #444;
+    }
+    .chip-ingame-toggle.active {
+      background: #3a2a10; border-color: #7a5a20; color: #ffbb44;
+    }
+    .chip-drop-marker { width: 3px; align-self: stretch; background: #5566cc; border-radius: 2px; }
+
+    /* ── Category card ── */
+    .cat-card { border: 1px solid #1e1e2e; border-radius: 10px; overflow: hidden; }
+    .cat-hdr {
+      display: flex; align-items: center; gap: 10px;
+      background: #12121a; padding: 10px 12px; border-bottom: 1px solid #1e1e2e;
+    }
+    .cat-order { display: flex; flex-direction: column; gap: 2px; }
+    .cat-index { font-size: 10px; color: #444; width: 18px; text-align: center; flex-shrink: 0; }
+    .cat-name-input { flex: 1; font-weight: 600; font-size: 14px; }
+    .cat-duration-wrap { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #667; white-space: nowrap; }
+    .cat-body {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      min-height: 76px; padding: 12px; transition: background .15s;
+    }
+    .cat-body.drag-over { background: #12121e; }
+    .cat-body-empty { font-size: 12px; color: #444; }
+
+    #categories-list { display: flex; flex-direction: column; gap: 12px; }
+
+    #actions-row {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 12px; border-top: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    #dirty-hint { font-size: 12px; color: #ffbb44; }
+
+    /* ── Toast ── */
+    #saved-toast {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 999;
+    }
+    #saved-toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="saved-toast">Changes Saved</div>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <h2>Sponsors Dashboard</h2>
+  <p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" style="width:100%">
+  <div class="err" id="login-err"></div>
+  <button class="btn btn-login" id="login-btn">Unlock</button>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <h1>Sponsors Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="save-status"></span>
+      <button class="btn btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div id="scroll">
+    <div class="panel">
+      <div class="panel-title">Unassigned Logos</div>
+      <div class="panel-hint">Files found in <code>/sponsors</code> that aren't in a category yet. Drag one down into a category to add it.</div>
+      <div id="bench-zone"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Categories — shown in this order, each looping at its own duration</div>
+      <div class="panel-hint">Drag logos between categories or back up to Unassigned. Use ▲▼ to reorder categories — this is the order every overlay's sponsor loop plays in. The 🎮 badge on a logo toggles whether it's hidden from the always-on in-game scoreboard's sponsor loop only — every other loop (Waiting Lobby, Waiting Screen TVC, Schedule, Draft, Credit Reel) still shows it.</div>
+      <div id="categories-list"></div>
+      <button class="btn btn-add-cat" id="add-cat-btn" style="margin-top:12px;">+ Add Category</button>
+    </div>
+  </div>
+
+  <div id="actions-row">
+    <button class="btn btn-save" id="save-btn">Save Changes</button>
+    <span id="dirty-hint"></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var token   = sessionStorage.getItem('match_token') || '';
+  var config  = { categories: [], hiddenInIngame: [] };
+  var files   = [];   /* every logo file found in /sponsors */
+  var dirty   = false;
+  var dragFile = null; /* filename currently being dragged, or null */
+
+  /* ── AUTH ── */
+  function showApp()   { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('app').classList.add('visible'); }
+  function showLogin() { document.getElementById('login-wrap').style.display = ''; document.getElementById('app').classList.remove('visible'); }
+
+  if (token) tryAuth(token);
+
+  document.getElementById('login-btn').addEventListener('click', function () { tryAuth(document.getElementById('pw-input').value.trim()); });
+  document.getElementById('pw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+  document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
+
+  function tryAuth(pw) {
+    /* Same dashboard password as Match Board / Standings / Roster — /match/auth
+       just verifies it, no sponsors-specific auth endpoint needed. */
+    fetch('/match/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) {
+        if (r.ok) {
+          token = pw;
+          sessionStorage.setItem('match_token', token);
+          document.getElementById('login-err').textContent = '';
+          loadConfig().then(showApp);
+        } else {
+          document.getElementById('login-err').textContent = 'Incorrect password.';
+        }
+      }).catch(function () { document.getElementById('login-err').textContent = 'Cannot reach server.'; });
+  }
+
+  /* ── LOAD ── */
+  function loadConfig() {
+    return fetch('/api/sponsors-config', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        config = { categories: data.categories || [], hiddenInIngame: data.hiddenInIngame || [] };
+        files  = data.availableFiles || [];
+        render();
+      })
+      .catch(function () { console.warn('Could not load sponsors-config'); });
+  }
+
+  /* ── DIRTY / SAVE ── */
+  function setDirty(v) {
+    dirty = v;
+    document.getElementById('save-btn').classList.toggle('attn', v);
+    document.getElementById('save-btn').textContent = v ? 'Save Changes •' : 'Save Changes';
+    document.getElementById('dirty-hint').textContent = v ? 'Unsaved changes' : '';
+  }
+
+  var _toastTimer = null;
+  function showSavedToast() {
+    var t = document.getElementById('saved-toast');
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  function save() {
+    fetch('/api/sponsors-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, data: config }),
+    }).then(function (r) {
+      document.getElementById('save-status').textContent = r.ok ? '' : 'Save failed';
+      if (r.ok) { showSavedToast(); setDirty(false); }
+      if (r.status === 401) { token = ''; sessionStorage.removeItem('match_token'); showLogin(); }
+    }).catch(function () { document.getElementById('save-status').textContent = 'Cannot reach server.'; });
+  }
+  document.getElementById('save-btn').addEventListener('click', save);
+
+  /* ── HELPERS ── */
+  function logoUrl(file) { return '/sponsors/' + encodeURIComponent(file); }
+  function newCatId() { return 'cat_' + Date.now().toString(36) + Math.floor(Math.random() * 1000); }
+  function assignedFiles() {
+    var s = {};
+    config.categories.forEach(function (c) { (c.logos || []).forEach(function (f) { s[f] = true; }); });
+    return s;
+  }
+  function removeFromEverywhere(file) {
+    config.categories.forEach(function (c) {
+      var i = c.logos.indexOf(file);
+      if (i !== -1) c.logos.splice(i, 1);
+    });
+  }
+  function moveTo(file, catId, beforeIndex) {
+    removeFromEverywhere(file);
+    if (catId != null) {
+      var cat = config.categories.filter(function (c) { return c.id === catId; })[0];
+      if (cat) {
+        var idx = (beforeIndex == null || beforeIndex > cat.logos.length) ? cat.logos.length : beforeIndex;
+        cat.logos.splice(idx, 0, file);
+      }
+    }
+    setDirty(true);
+    render();
+  }
+
+  function isHiddenInIngame(file) { return config.hiddenInIngame.indexOf(file) !== -1; }
+  function toggleIngame(file) {
+    var i = config.hiddenInIngame.indexOf(file);
+    if (i === -1) config.hiddenInIngame.push(file);
+    else config.hiddenInIngame.splice(i, 1);
+    setDirty(true);
+    render();
+  }
+
+  /* ── DRAG HELPERS ── */
+  function makeChip(file) {
+    var chip = document.createElement('div');
+    chip.className = 'sponsor-chip';
+    chip.draggable = true;
+
+    var img = document.createElement('img');
+    img.src = logoUrl(file);
+    img.alt = file;
+    img.onerror = function () { img.style.opacity = '.25'; };
+    chip.appendChild(img);
+
+    var label = document.createElement('div');
+    label.className = 'chip-label';
+    label.textContent = file.replace(/\.[^.]+$/, '');
+    label.title = file;
+    chip.appendChild(label);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.className = 'chip-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.title = 'Move to Unassigned';
+    removeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      moveTo(file, null, null);
+    });
+    chip.appendChild(removeBtn);
+
+    var hiddenInIngame = isHiddenInIngame(file);
+    var ingameBtn = document.createElement('button');
+    ingameBtn.className = 'chip-ingame-toggle' + (hiddenInIngame ? ' active' : '');
+    ingameBtn.textContent = '🎮';
+    ingameBtn.title = hiddenInIngame
+      ? 'Hidden from the in-game scoreboard loop — click to show it there again'
+      : 'Shown in the in-game scoreboard loop — click to hide it from that loop only';
+    ingameBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      toggleIngame(file);
+    });
+    chip.appendChild(ingameBtn);
+
+    chip.addEventListener('dragstart', function (e) {
+      dragFile = file;
+      chip.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', file); // Firefox requires data to start a drag
+    });
+    chip.addEventListener('dragend', function () { chip.classList.remove('dragging'); });
+
+    // Dropping directly on a chip inserts the dragged logo right before it.
+    chip.addEventListener('dragover', function (e) { e.preventDefault(); e.stopPropagation(); });
+    chip.addEventListener('drop', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragFile || dragFile === file) return;
+      var parentZone = chip.closest('[data-cat-id]');
+      var catId = parentZone ? parentZone.dataset.catId : null;
+      if (catId === 'bench') catId = null;
+      var cat = catId != null ? config.categories.filter(function (c) { return c.id === catId; })[0] : null;
+      var idx = cat ? cat.logos.indexOf(file) : null;
+      moveTo(dragFile, catId, idx);
+      dragFile = null;
+    });
+
+    return chip;
+  }
+
+  function wireDropZone(zone, catId) {
+    zone.dataset.catId = catId == null ? 'bench' : catId;
+    zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', function () { zone.classList.remove('drag-over'); });
+    zone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (!dragFile) return;
+      moveTo(dragFile, catId, null);
+      dragFile = null;
+    });
+  }
+
+  /* ── RENDER ── */
+  function render() {
+    renderBench();
+    renderCategories();
+  }
+
+  function renderBench() {
+    var zone = document.getElementById('bench-zone');
+    zone.innerHTML = '';
+    wireDropZone(zone, null);
+    var assigned = assignedFiles();
+    var unassigned = files.filter(function (f) { return !assigned[f]; });
+    if (!unassigned.length) {
+      var empty = document.createElement('div');
+      empty.id = 'bench-empty';
+      empty.textContent = 'All logos are categorized.';
+      zone.appendChild(empty);
+      return;
+    }
+    unassigned.forEach(function (f) { zone.appendChild(makeChip(f)); });
+  }
+
+  function renderCategories() {
+    var root = document.getElementById('categories-list');
+    root.innerHTML = '';
+    config.categories.forEach(function (cat, index) {
+      root.appendChild(renderCategoryCard(cat, index));
+    });
+  }
+
+  function renderCategoryCard(cat, index) {
+    var card = document.createElement('div');
+    card.className = 'cat-card';
+
+    var hdr = document.createElement('div');
+    hdr.className = 'cat-hdr';
+
+    var idxLabel = document.createElement('span');
+    idxLabel.className = 'cat-index';
+    idxLabel.textContent = '#' + (index + 1);
+    hdr.appendChild(idxLabel);
+
+    var orderCol = document.createElement('div');
+    orderCol.className = 'cat-order';
+    var upBtn = document.createElement('button');
+    upBtn.className = 'btn btn-order';
+    upBtn.textContent = '▲';
+    upBtn.disabled = index === 0;
+    upBtn.addEventListener('click', function () { moveCategory(index, -1); });
+    var downBtn = document.createElement('button');
+    downBtn.className = 'btn btn-order';
+    downBtn.textContent = '▼';
+    downBtn.disabled = index === config.categories.length - 1;
+    downBtn.addEventListener('click', function () { moveCategory(index, 1); });
+    orderCol.appendChild(upBtn);
+    orderCol.appendChild(downBtn);
+    hdr.appendChild(orderCol);
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'cat-name-input';
+    nameInput.value = cat.name || '';
+    nameInput.addEventListener('change', function () { cat.name = nameInput.value.trim(); setDirty(true); });
+    hdr.appendChild(nameInput);
+
+    var durWrap = document.createElement('div');
+    durWrap.className = 'cat-duration-wrap';
+    var durInput = document.createElement('input');
+    durInput.type = 'number';
+    durInput.min = '0.5';
+    durInput.step = '0.5';
+    durInput.value = cat.duration != null ? cat.duration : 3;
+    durInput.addEventListener('change', function () {
+      var v = parseFloat(durInput.value);
+      cat.duration = (isFinite(v) && v > 0) ? v : 3;
+      durInput.value = cat.duration;
+      setDirty(true);
+    });
+    durWrap.appendChild(durInput);
+    var durLabel = document.createElement('span');
+    durLabel.textContent = 'sec per logo';
+    durWrap.appendChild(durLabel);
+    hdr.appendChild(durWrap);
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-danger';
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', function () {
+      var n = (cat.logos || []).length;
+      if (!confirm('Delete "' + (cat.name || 'this category') + '"?' + (n ? ' Its ' + n + ' logo(s) will become unassigned.' : ''))) return;
+      config.categories.splice(index, 1);
+      setDirty(true);
+      render();
+    });
+    hdr.appendChild(delBtn);
+
+    card.appendChild(hdr);
+
+    var body = document.createElement('div');
+    body.className = 'cat-body';
+    wireDropZone(body, cat.id);
+    var logos = cat.logos || [];
+    if (!logos.length) {
+      var empty = document.createElement('div');
+      empty.className = 'cat-body-empty';
+      empty.textContent = 'Drag logos here.';
+      body.appendChild(empty);
+    } else {
+      logos.forEach(function (f) { body.appendChild(makeChip(f)); });
+    }
+    card.appendChild(body);
+
+    return card;
+  }
+
+  function moveCategory(index, dir) {
+    var j = index + dir;
+    if (j < 0 || j >= config.categories.length) return;
+    var tmp = config.categories[index];
+    config.categories[index] = config.categories[j];
+    config.categories[j] = tmp;
+    setDirty(true);
+    render();
+  }
+
+  document.getElementById('add-cat-btn').addEventListener('click', function () {
+    config.categories.push({ id: newCatId(), name: 'New Category', duration: 3, logos: [] });
+    setDirty(true);
+    render();
+  });
+})();
+</script>
+</body>
+</html>

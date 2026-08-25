@@ -1,0 +1,5 @@
+{
+  "game_api": "http://localhost:5001/api/gamedata",
+  "main_api": "https://theapi.dpdns.org/api/main/",
+  "dashboard_password": "1234"
+}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <script src="js/relay-client.js"></script>
+  <title>Standings Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* ── Login ── */
+    #login-wrap {
+      width: 320px;
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 80px;
+    }
+    #login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+    #login-wrap p  { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    /* ── App ── */
+    #app { display: none; width: 100%; max-width: 1200px; flex-direction: column; gap: 10px; height: 100%; }
+    #app.visible { display: flex; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+    #sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; display: inline-block; margin-right: 6px; transition: background .3s; }
+    #sync-dot.ok  { background: #00cc88; box-shadow: 0 0 5px #00cc88aa; }
+    #sync-dot.err { background: #ff4455; box-shadow: 0 0 5px #ff4455aa; }
+    #sync-label { font-size: 12px; color: #555; }
+
+    /* ── Sub-tabs ── */
+    #subtabs { display: flex; gap: 6px; flex-shrink: 0; }
+    .subtab-btn {
+      background: #16161f; border: 1px solid #222232; border-radius: 8px 8px 0 0;
+      color: #666; font-size: 13px; font-weight: 600; padding: 8px 18px; cursor: pointer;
+      transition: color .15s, background .15s;
+    }
+    .subtab-btn:hover { color: #99a; }
+    .subtab-btn.active { background: #1c1c28; color: #fff; border-color: #2e2e44; }
+    .subpage { display: none; flex: 1; min-height: 0; overflow-y: auto; }
+    .subpage.active { display: block; }
+
+    /* ── Panels ── */
+    .panel { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; }
+    .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #444; margin-bottom: 14px; }
+
+    /* ── Inputs / selects ── */
+    input[type="text"], input[type="number"], input[type="password"], select {
+      width: 100%; background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px;
+      color: #e0e0f0; font-size: 13px; padding: 7px 10px; outline: none; transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: #5566cc; }
+    input[type="number"] { text-align: center; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    /* ── Buttons ── */
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(.85); }
+    .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
+    .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
+    .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
+
+    /* ── Standings table ── */
+    .st-grid {
+      display: grid;
+      grid-template-columns: 36px 52px 40px 92px 150px 84px 92px 92px 84px;
+      gap: 8px;
+      align-items: center;
+    }
+    .st-hdr {
+      font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #555;
+      padding: 0 0 8px; border-bottom: 1px solid #1e1e2e; margin-bottom: 8px;
+      text-align: center;
+    }
+    .st-hdr > div { text-align: center; }
+    .st-row-e { padding: 5px 0; }
+    .st-rank {
+      font-size: 15px; font-weight: 700; color: #aabbff; text-align: center;
+      background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px; padding: 6px 0;
+    }
+    .st-reorder { display: flex; flex-direction: column; gap: 3px; }
+    .st-reorder button {
+      background: #1a2030; border: 1px solid #2a3050; border-radius: 4px;
+      color: #88aaff; font-size: 9px; line-height: 1; padding: 4px 0; cursor: pointer;
+      transition: filter .15s;
+    }
+    .st-reorder button:hover { filter: brightness(1.35); }
+    .st-reorder button:disabled { opacity: .25; cursor: default; filter: none; }
+    .st-logo-cell { display: flex; align-items: center; justify-content: center; height: 34px; }
+    .st-logo-cell img { max-width: 32px; max-height: 32px; }
+    .st-tri-input { text-transform: uppercase; font-weight: 700; text-align: center; }
+
+    /* ── Table actions ── */
+    #st-actions {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid #1e1e2e;
+    }
+    .btn-save { background: #143a24; border-color: #1e5a36; color: #44cc88; font-weight: 600; padding: 8px 22px; }
+    .btn-save.attn { background: #3a2a10; border-color: #7a5a20; color: #ffbb44; }
+    .btn-sort { background: #1a2030; border-color: #2a3050; color: #88aaff; padding: 8px 18px; }
+    #dirty-hint { font-size: 12px; color: #ffbb44; }
+
+    /* ── Playoffs placeholder ── */
+    #playoffs-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; padding: 80px 20px; text-align: center;
+    }
+    #playoffs-empty .big { font-size: 15px; font-weight: 600; color: #667; }
+    #playoffs-empty .sub { font-size: 12px; color: #444; }
+
+    /* ── Toast ── */
+    #saved-toast {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 999;
+    }
+    #saved-toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="saved-toast">Changes Saved</div>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <h2>Standings Dashboard</h2>
+  <p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+  <div class="err" id="login-err"></div>
+  <button class="btn btn-login" id="login-btn">Unlock</button>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <h1>Standings Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="sync-dot"></span>
+      <span id="sync-label">connecting…</span>
+      <button class="btn btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <nav id="subtabs">
+    <button class="subtab-btn active" data-tab="regular">Regular Season Standings</button>
+    <button class="subtab-btn" data-tab="playoffs">Playoffs Bracket</button>
+  </nav>
+
+  <!-- Regular Season Standings -->
+  <div id="tab-regular" class="subpage active">
+    <div class="panel">
+      <div class="panel-title">Regular Season Standings — drives the MPL Full Screen Standings overlay. Rank, trend, and match/game stats are pulled live from the Standings API (see Settings); only Playoffs status is set here.</div>
+      <div class="st-grid st-hdr">
+        <div>#</div><div>Trend</div><div></div><div>Tricode</div><div>Status</div>
+        <div>Match Pt</div><div>Match W/L</div><div>Game W/L</div><div>Net Game</div>
+      </div>
+      <div id="st-rows"></div>
+      <div id="st-actions">
+        <span id="dirty-hint"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Playoffs Bracket -->
+  <div id="tab-playoffs" class="subpage">
+    <div class="panel">
+      <div class="panel-title">Playoffs Bracket</div>
+      <div id="playoffs-empty">
+        <div class="big">No bracket placements yet</div>
+        <div class="sub">This tab will hold the Playoffs Bracket controls once placements are available.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var token = sessionStorage.getItem('match_token') || '';
+  var teams = [];
+
+  /* ── AUTH ── */
+  function showApp()   { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('app').classList.add('visible'); }
+  function showLogin() { document.getElementById('login-wrap').style.display = ''; document.getElementById('app').classList.remove('visible'); }
+
+  if (token) tryAuth(token);
+
+  document.getElementById('login-btn').addEventListener('click', function () { tryAuth(document.getElementById('pw-input').value.trim()); });
+  document.getElementById('pw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+  document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
+
+  function tryAuth(pw) {
+    fetch('/standings/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) {
+        if (r.ok) {
+          token = pw;
+          sessionStorage.setItem('match_token', token);
+          document.getElementById('login-err').textContent = '';
+          showApp();
+          connectSSE();
+        } else {
+          document.getElementById('login-err').textContent = 'Incorrect password.';
+        }
+      }).catch(function () { document.getElementById('login-err').textContent = 'Cannot reach server.'; });
+  }
+
+  /* ── SUB-TABS ── */
+  document.querySelectorAll('.subtab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.subtab-btn').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.subpage').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ── SSE (relayed via the parent dashboard — see html/js/relay-client.js) ── */
+  function connectSSE() {
+    connectRelay('standings', applyState, setSyncStatus);
+  }
+  function setSyncStatus(ok) {
+    document.getElementById('sync-dot').className     = ok ? 'ok' : 'err';
+    document.getElementById('sync-label').textContent = ok ? 'Synced' : 'Disconnected';
+  }
+
+  /* Rank/trend/stats are now driven entirely by the Standings API poll (see
+     lib/pollers.js's pollStandings()) — only the Status (secured/eliminated)
+     select below is still operator-editable, and it saves itself on change
+     instead of needing a Save button, so there's no "unsaved edits" state
+     that could clobber an incoming SSE update mid-edit like the old
+     full-table editor had to guard against. */
+  function applyState(s) {
+    if (isEditing()) return;
+    if (s && Array.isArray(s.teams) && s.teams.length) teams = s.teams;
+    renderTable();
+  }
+
+  function isEditing() {
+    var a = document.activeElement;
+    return a && a.closest && a.closest('#st-rows') && a.tagName === 'SELECT';
+  }
+
+  /* ── PUSH (status-only) ── */
+  var _toastTimer = null;
+  function showSavedToast() {
+    var t = document.getElementById('saved-toast');
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  function push() {
+    fetch('/standings/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, teams: teams }),
+    }).then(function (r) {
+      setSyncStatus(r.ok);
+      if (r.ok) showSavedToast();
+      if (r.status === 401) { token = ''; sessionStorage.removeItem('match_token'); showLogin(); }
+    }).catch(function () { setSyncStatus(false); });
+  }
+
+  /* ── TABLE ── */
+  function logoUrl(tri) { return '/logos/' + encodeURIComponent((tri || '').toUpperCase()) + '.png'; }
+  var TREND_LABEL = { up: '▲', down: '▼', neutral: '—' };
+
+  function renderTable() {
+    var root = document.getElementById('st-rows');
+    root.innerHTML = '';
+    teams.forEach(function (t, i) {
+      var row = document.createElement('div');
+      row.className = 'st-grid st-row-e';
+
+      var rank = document.createElement('div');
+      rank.className = 'st-rank';
+      rank.textContent = i + 1;
+      row.appendChild(rank);
+
+      var trend = document.createElement('div');
+      trend.style.textAlign = 'center';
+      trend.style.fontSize = '15px';
+      trend.style.color = t.move === 'up' ? '#44cc88' : (t.move === 'down' ? '#ff6677' : '#555');
+      trend.textContent = TREND_LABEL[t.move] || TREND_LABEL.neutral;
+      row.appendChild(trend);
+
+      var lc = document.createElement('div');
+      lc.className = 'st-logo-cell';
+      var img = document.createElement('img');
+      img.src = logoUrl(t.tri);
+      img.onerror = function () { img.style.display = 'none'; };
+      lc.appendChild(img);
+      row.appendChild(lc);
+
+      var tri = document.createElement('div');
+      tri.style.textAlign = 'center';
+      tri.style.fontWeight = '700';
+      tri.textContent = t.tri || '';
+      row.appendChild(tri);
+
+      var st = document.createElement('select');
+      [['', 'None'], ['secured', 'Playoffs Bound'], ['eliminated', 'Eliminated']].forEach(function (o) {
+        var opt = document.createElement('option');
+        opt.value = o[0]; opt.textContent = o[1];
+        st.appendChild(opt);
+      });
+      st.value = t.status || '';
+      st.addEventListener('change', function () { t.status = st.value || null; push(); });
+      row.appendChild(st);
+
+      function stat(key, fallback) {
+        var div = document.createElement('div');
+        div.style.textAlign = 'center';
+        div.textContent = (t[key] != null) ? t[key] : fallback;
+        return div;
+      }
+      row.appendChild(stat('mp', 0));
+      row.appendChild(stat('mwl', '0-0'));
+      row.appendChild(stat('gwl', '0-0'));
+      row.appendChild(stat('ngw', 0));
+
+      root.appendChild(row);
+    });
+  }
+})();
+</script>
+</body>
+</html>

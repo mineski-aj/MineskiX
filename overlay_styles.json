@@ -1,0 +1,1766 @@
+{
+  "mploverlay_v7": {
+    "#scoreboard-gametime": {
+      "top": "-1px",
+      "fontSize": "25px"
+    },
+    "#scoreboard-kills-c1": {
+      "left": "846px",
+      "top": "14px",
+      "fontSize": "53px"
+    },
+    "#scoreboard-kills-c2": {
+      "left": "1074px",
+      "top": "14px",
+      "fontSize": "53px"
+    },
+    "#scoreboard-tricode-c1": {
+      "left": "576.941px",
+      "top": "60.351px",
+      "fontSize": "29px"
+    },
+    "#scoreboard-tricode-c2": {
+      "left": "1346.336px",
+      "top": "60.356px",
+      "fontSize": "29px"
+    },
+    "#scoreboard-turtle-c1": {
+      "left": "542.09px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-lord-c1": {
+      "left": "605.59px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-tower-c1": {
+      "left": "668.59px",
+      "top": "19px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-gold-c1": {
+      "left": "734.779px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#sb-goldlead-c1": {
+      "left": "715px",
+      "top": "60px",
+      "fontSize": "18px"
+    },
+    "#scoreboard-turtle-c2": {
+      "left": "1369.09px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-lord-c2": {
+      "left": "1309.09px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-tower-c2": {
+      "left": "1245.59px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#scoreboard-gold-c2": {
+      "left": "1166.983px",
+      "top": "18px",
+      "fontSize": "19px"
+    },
+    "#sb-goldlead-c2": {
+      "left": "1209px",
+      "top": "60px",
+      "fontSize": "18px"
+    },
+    "#sb-score-c1": {
+      "left": "746.9px",
+      "top": "40px"
+    },
+    "#sb-score-c2": {
+      "left": "1130.4px",
+      "top": "40px"
+    },
+    "#sb-sponsor-loop": {
+      "left": "1689px",
+      "top": "-2px"
+    },
+    "#sb-logo-c1": {
+      "left": "424px",
+      "top": "5px"
+    },
+    "#sb-logo-c2": {
+      "left": "1431px",
+      "top": "5px"
+    },
+    ".sidecheck-header": {
+      "fontSize": "24px"
+    },
+    ".sidecheck-stat-text": {
+      "fontSize": "19px"
+    },
+    ".sidecheck-name": {
+      "left": "82px",
+      "top": "8px",
+      "fontSize": "14px"
+    },
+    ".sidecheck-role-icon": {
+      "width": "13px",
+      "height": "13px"
+    },
+    "#sb-mi-patch": {
+      "left": "1508px",
+      "top": "107px",
+      "width": "176px",
+      "height": "23px",
+      "fontSize": "13px"
+    },
+    "#sb-mi-casters": {
+      "left": "1665px",
+      "top": "108px",
+      "width": "279px",
+      "height": "19px",
+      "fontSize": "13px"
+    },
+    "#kill-event-sponsor-logo-clip": {
+      "left": "866px",
+      "top": "750px",
+      "width": "282px",
+      "height": "115.2px"
+    }
+  },
+  "mplfs": {
+    ".lu-title": {
+      "left": "660px",
+      "top": "31px",
+      "width": "600px",
+      "height": "96px"
+    },
+    ".lu-player-1": {
+      "left": "-76px",
+      "top": "180px",
+      "width": "700px",
+      "height": "700px"
+    },
+    ".lu-player-2": {
+      "left": "263px",
+      "top": "141px",
+      "width": "700px",
+      "height": "700px"
+    },
+    ".lu-player-3": {
+      "left": "505px",
+      "top": "110px",
+      "width": "900px",
+      "height": "900px"
+    },
+    ".lu-player-4": {
+      "left": "1042px",
+      "top": "141px",
+      "width": "700px",
+      "height": "700px"
+    },
+    ".lu-player-5": {
+      "left": "1335px",
+      "top": "198px",
+      "width": "700px",
+      "height": "700px"
+    },
+    ".lu-nametag-1": {
+      "left": "90px",
+      "top": "704px",
+      "width": "300px",
+      "height": "54px"
+    },
+    ".lu-nametag-2": {
+      "left": "475px",
+      "top": "733px",
+      "width": "300px",
+      "height": "54px"
+    },
+    ".lu-nametag-3": {
+      "left": "810px",
+      "top": "770px",
+      "width": "300px",
+      "height": "54px"
+    },
+    ".lu-nametag-4": {
+      "left": "1196px",
+      "top": "733px",
+      "width": "300px",
+      "height": "54px"
+    },
+    ".lu-nametag-5": {
+      "left": "1563px",
+      "top": "692px",
+      "width": "300px",
+      "height": "54px"
+    },
+    ".lu-teambar-logo": {
+      "left": "880px",
+      "top": "837px",
+      "width": "160px",
+      "height": "160px"
+    },
+    ".lu-teambar-season": {
+      "left": "470px",
+      "top": "891px",
+      "width": "480px",
+      "height": "40px"
+    },
+    ".lu-teambar-match": {
+      "left": "925px",
+      "top": "888px",
+      "width": "480px",
+      "height": "40px"
+    },
+    "#wl-header": {
+      "left": "40px",
+      "top": "80px",
+      "width": "967px",
+      "height": "150px"
+    },
+    "#wl-match": {
+      "left": "40px",
+      "top": "390px"
+    },
+    "#wl-sponsor": {
+      "left": "270px",
+      "top": "651px"
+    },
+    "#wl-timer": {
+      "left": "297px",
+      "top": "810px"
+    },
+    ".wl-player-blue": {
+      "left": "603px",
+      "top": "89px",
+      "width": "1100px",
+      "height": "1100px"
+    },
+    ".wl-player-red": {
+      "left": "1136px",
+      "top": "42px",
+      "width": "1100px",
+      "height": "1100px"
+    },
+    ".wl-namebox-blue": {
+      "left": "860px",
+      "top": "830px"
+    },
+    ".wl-namebox-red": {
+      "left": "1580px",
+      "top": "715px"
+    },
+    ".ws-casters-slot-left": {
+      "left": "-174px",
+      "top": "37px",
+      "width": "354px",
+      "height": "464px"
+    },
+    ".ws-casters-slot-middle": {
+      "left": "135px",
+      "top": "27px",
+      "width": "320px",
+      "height": "478px"
+    },
+    ".ws-casters-slot-right": {
+      "left": "334px",
+      "top": "35px",
+      "width": "354px",
+      "height": "464px"
+    },
+    ".ws-hosts-slot-left": {
+      "left": "-11px",
+      "top": "17px",
+      "width": "300px",
+      "height": "464px"
+    },
+    ".ws-hosts-slot-right": {
+      "left": "264px",
+      "top": "14px",
+      "width": "300px",
+      "height": "464px"
+    },
+    ".hl-player-photo-wrap": {
+      "left": "962px",
+      "top": "56px",
+      "width": "1150px",
+      "height": "1150px"
+    },
+    "#hl-plaque": {
+      "left": "1393px",
+      "top": "777px",
+      "width": "462px",
+      "height": "174px"
+    },
+    ".hl-logo": {
+      "left": "11px",
+      "top": "3px",
+      "width": "49px",
+      "height": "49px"
+    },
+    ".hl-role": {
+      "left": "77px",
+      "top": "5px",
+      "width": "45px",
+      "height": "45px"
+    },
+    ".hl-hero": {
+      "left": "1px",
+      "top": "55px",
+      "width": "460px",
+      "height": "118px"
+    },
+    ".hl-hero-name": {
+      "left": "10px",
+      "top": "83px",
+      "fontSize": "22px"
+    },
+    "#hl-title": {
+      "left": "52px",
+      "top": "95px",
+      "width": "641px",
+      "height": "94px",
+      "fontSize": "103px"
+    },
+    ".hl-name": {
+      "left": "157px",
+      "top": "5px",
+      "width": "298px",
+      "height": "43px"
+    },
+    "#mv-box-bg": {
+      "left": "969px",
+      "top": "115px",
+      "width": "867px",
+      "height": "470px"
+    },
+    "#mv-hero-img": {
+      "left": "-260px",
+      "top": "-47px",
+      "width": "889px",
+      "height": "889px"
+    },
+    "#mv-photo": {
+      "left": "-199px",
+      "top": "0px",
+      "width": "1424px",
+      "height": "1424px"
+    },
+    "#mv-ofthegame": {
+      "left": "1132px",
+      "top": "547px",
+      "width": "304px",
+      "height": "57px",
+      "fontSize": "50px"
+    },
+    "#mv-matchbox": {
+      "left": "1391px",
+      "top": "543px",
+      "width": "224px",
+      "height": "57px"
+    },
+    "#mv-spell-title": {
+      "left": "1029px",
+      "top": "672px",
+      "width": "62px",
+      "height": "24px"
+    },
+    "#mv-spell": {
+      "left": "1029px",
+      "top": "707px",
+      "width": "62px",
+      "height": "62px"
+    },
+    "#mv-emblem-title": {
+      "left": "1142px",
+      "top": "672px",
+      "width": "212px",
+      "height": "24px"
+    },
+    "#mv-rune-main": {
+      "left": "1142px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-rune-1": {
+      "left": "1207px",
+      "top": "718px",
+      "width": "38px",
+      "height": "38px"
+    },
+    "#mv-rune-2": {
+      "left": "1250px",
+      "top": "718px",
+      "width": "38px",
+      "height": "38px"
+    },
+    "#mv-rune-3": {
+      "left": "1296px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-items-title": {
+      "left": "1404px",
+      "top": "672px",
+      "width": "380px",
+      "height": "24px"
+    },
+    "#mv-item-0": {
+      "left": "1404px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-item-1": {
+      "left": "1468px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-item-2": {
+      "left": "1533px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-item-3": {
+      "left": "1597px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-item-4": {
+      "left": "1662px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-item-5": {
+      "left": "1726px",
+      "top": "708px",
+      "width": "58px",
+      "height": "58px"
+    },
+    "#mv-backer": {
+      "left": "77px",
+      "top": "810px",
+      "width": "1762px",
+      "height": "164px"
+    },
+    ".mv-logo": {
+      "left": "16px",
+      "top": "22px",
+      "width": "120px",
+      "height": "120px"
+    },
+    ".mv-role": {
+      "left": "196px",
+      "top": "48px",
+      "width": "68px",
+      "height": "68px"
+    },
+    "#mv-name": {
+      "left": "279px",
+      "top": "48px",
+      "width": "342px",
+      "height": "67px",
+      "fontSize": "52px"
+    },
+    "#mv-kda-label": {
+      "left": "843px",
+      "top": "22px",
+      "width": "299px",
+      "height": "22px"
+    },
+    "#mv-kda": {
+      "left": "840px",
+      "top": "72px",
+      "width": "299px",
+      "height": "67px",
+      "fontSize": "64px"
+    },
+    "#mv-gpm-label": {
+      "left": "1265px",
+      "top": "22px",
+      "width": "134px",
+      "height": "22px"
+    },
+    "#mv-gpm": {
+      "left": "1265px",
+      "top": "74px",
+      "width": "134px",
+      "height": "67px",
+      "fontSize": "64px"
+    },
+    "#mv-kp-label": {
+      "left": "1555px",
+      "top": "22px",
+      "width": "204px",
+      "height": "22px"
+    },
+    "#mv-kp": {
+      "left": "1551px",
+      "top": "70px",
+      "width": "204px",
+      "height": "67px",
+      "fontSize": "64px"
+    },
+    "#credits-viewport": {
+      "left": "1371px",
+      "top": "69px",
+      "width": "600px",
+      "height": "900px"
+    },
+    "#ts-header": {
+      "left": "170px",
+      "top": "98px",
+      "width": "858px"
+    },
+    "#ts-matches": {
+      "left": "170px",
+      "top": "255px",
+      "width": "858px"
+    },
+    "#ts-sponsor": {
+      "left": "432px",
+      "top": "785px",
+      "width": "340px",
+      "height": "94px"
+    },
+    "#tw-header": {
+      "left": "170px",
+      "top": "98px",
+      "width": "858px"
+    },
+    "#tw-matches": {
+      "left": "170px",
+      "top": "255px",
+      "width": "858px"
+    },
+    "#tw-sponsor": {
+      "left": "1067px",
+      "top": "96px",
+      "width": "340px",
+      "height": "94px"
+    },
+    "#tw-title": {
+      "fontSize": "105px"
+    },
+    "#tw-season": {
+      "fontSize": "30px"
+    },
+    "#tw-week": {
+      "fontSize": "20px"
+    },
+    "#ts-title": {
+      "fontSize": "105px"
+    },
+    "#ts-season": {
+      "fontSize": "30px"
+    },
+    "#ts-week": {
+      "fontSize": "20px"
+    },
+    "#st-header": {
+      "left": "524px",
+      "top": "163px"
+    },
+    "#st-colheader": {
+      "left": "64px",
+      "top": "331px",
+      "width": "1803px",
+      "height": "27px"
+    },
+    ".st-l0": {
+      "left": "104px",
+      "top": "0px",
+      "width": "80px",
+      "height": "27px"
+    },
+    ".st-lteam": {
+      "left": "294px",
+      "top": "0px",
+      "height": "27px"
+    },
+    ".st-l1": {
+      "left": "768px",
+      "top": "0px",
+      "width": "260px",
+      "height": "27px"
+    },
+    ".st-l2": {
+      "left": "1035px",
+      "top": "0px",
+      "width": "260px",
+      "height": "27px"
+    },
+    ".st-l3": {
+      "left": "1303px",
+      "top": "0px",
+      "width": "260px",
+      "height": "27px"
+    },
+    ".st-l4": {
+      "left": "1555px",
+      "top": "0px",
+      "width": "260px",
+      "height": "27px"
+    },
+    "#st-rows": {
+      "left": "-55px",
+      "top": "18px",
+      "width": "1920px",
+      "height": "1080px"
+    },
+    ".ws-hosts-slot-middle": {
+      "left": "125px",
+      "top": "0px",
+      "width": "320px",
+      "height": "478px"
+    },
+    ".ws-encasters-slot-left": {
+      "left": "-139px",
+      "top": "34px",
+      "width": "354px",
+      "height": "464px"
+    },
+    ".ws-encasters-slot-middle": {
+      "left": "124px",
+      "top": "23px",
+      "width": "320px",
+      "height": "478px"
+    },
+    ".ws-encasters-slot-right": {
+      "left": "406px",
+      "top": "26px",
+      "width": "354px",
+      "height": "464px"
+    },
+    "#ft-mpl-logo": {
+      "left": "823px",
+      "top": "5px",
+      "width": "270px",
+      "height": "270px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-hero": {
+      "left": "0px",
+      "top": "0px",
+      "width": "69px",
+      "height": "85px"
+    },
+    ".cp-mirrored .cp-hero": {
+      "left": "661px",
+      "top": "0px",
+      "width": "69px",
+      "height": "85px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-photo": {
+      "left": "69px",
+      "top": "0px",
+      "width": "128px",
+      "height": "85px"
+    },
+    ".cp-mirrored .cp-photo": {
+      "left": "533px",
+      "top": "0px",
+      "width": "128px",
+      "height": "85px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-spell": {
+      "left": "3px",
+      "top": "60px",
+      "width": "22px",
+      "height": "22px"
+    },
+    ".cp-mirrored .cp-spell": {
+      "left": "705px",
+      "top": "60px",
+      "width": "22px",
+      "height": "22px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-level": {
+      "left": "3px",
+      "top": "88px",
+      "width": "63px",
+      "height": "17px",
+      "fontSize": "15px"
+    },
+    ".cp-mirrored .cp-level": {
+      "left": "664px",
+      "top": "88px",
+      "width": "63px",
+      "height": "17px",
+      "fontSize": "15px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-role": {
+      "left": "73px",
+      "top": "89px",
+      "width": "15px",
+      "height": "15px"
+    },
+    ".cp-mirrored .cp-role": {
+      "left": "642px",
+      "top": "89px",
+      "width": "15px",
+      "height": "15px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-name": {
+      "left": "100px",
+      "top": "88px",
+      "width": "95px",
+      "height": "17px",
+      "fontSize": "15px"
+    },
+    ".cp-mirrored .cp-name": {
+      "left": "535px",
+      "top": "88px",
+      "width": "95px",
+      "height": "17px",
+      "fontSize": "15px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-rune-main": {
+      "left": "211px",
+      "top": "6px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-mirrored .cp-rune-main": {
+      "left": "499px",
+      "top": "6px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-rune-1": {
+      "left": "211px",
+      "top": "31px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-mirrored .cp-rune-1": {
+      "left": "499px",
+      "top": "31px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-rune-2": {
+      "left": "211px",
+      "top": "56px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-mirrored .cp-rune-2": {
+      "left": "499px",
+      "top": "56px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-rune-3": {
+      "left": "211px",
+      "top": "81px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-mirrored .cp-rune-3": {
+      "left": "499px",
+      "top": "81px",
+      "width": "20px",
+      "height": "20px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-stats": {
+      "left": "249px",
+      "top": "0px",
+      "width": "113px",
+      "height": "107px"
+    },
+    ".cp-mirrored .cp-stats": {
+      "left": "368px",
+      "top": "0px",
+      "width": "113px",
+      "height": "107px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-dmg-taken-label": {
+      "left": "372px",
+      "top": "10px",
+      "width": "187px",
+      "height": "14px",
+      "fontSize": "9px"
+    },
+    ".cp-mirrored .cp-dmg-taken-label": {
+      "left": "171px",
+      "top": "10px",
+      "width": "187px",
+      "height": "14px",
+      "fontSize": "9px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-dmg-taken": {
+      "left": "372px",
+      "top": "26px",
+      "width": "187px",
+      "height": "22px"
+    },
+    ".cp-mirrored .cp-dmg-taken": {
+      "left": "171px",
+      "top": "26px",
+      "width": "187px",
+      "height": "22px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-dmg-dealt-label": {
+      "left": "372px",
+      "top": "57px",
+      "width": "187px",
+      "height": "14px",
+      "fontSize": "9px"
+    },
+    ".cp-mirrored .cp-dmg-dealt-label": {
+      "left": "171px",
+      "top": "57px",
+      "width": "187px",
+      "height": "14px",
+      "fontSize": "9px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-dmg-dealt": {
+      "left": "372px",
+      "top": "73px",
+      "width": "187px",
+      "height": "22px"
+    },
+    ".cp-mirrored .cp-dmg-dealt": {
+      "left": "171px",
+      "top": "73px",
+      "width": "187px",
+      "height": "22px"
+    },
+    ".cp-row:not(.cp-mirrored) .cp-items": {
+      "left": "580px",
+      "top": "8px",
+      "width": "144px",
+      "height": "92px"
+    },
+    ".cp-mirrored .cp-items": {
+      "left": "6px",
+      "top": "8px",
+      "width": "144px",
+      "height": "92px"
+    },
+    ".cp-row-1": {
+      "left": "59px",
+      "top": "193px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-2": {
+      "left": "59px",
+      "top": "300px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-3": {
+      "left": "59px",
+      "top": "407px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-4": {
+      "left": "59px",
+      "top": "514px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-5": {
+      "left": "59px",
+      "top": "621px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-6": {
+      "left": "1131px",
+      "top": "193px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-7": {
+      "left": "1131px",
+      "top": "300px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-8": {
+      "left": "1131px",
+      "top": "407px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-9": {
+      "left": "1131px",
+      "top": "514px",
+      "width": "730px",
+      "height": "107px"
+    },
+    ".cp-row-10": {
+      "left": "1131px",
+      "top": "621px",
+      "width": "730px",
+      "height": "107px"
+    },
+    "#cmb-board": {
+      "left": "805px",
+      "top": "169px",
+      "width": "311px",
+      "height": "338px"
+    },
+    "#ckm-board": {
+      "left": "805px",
+      "top": "517px",
+      "width": "310px",
+      "height": "211px"
+    },
+    "#ckm-bounds": {
+      "left": "85px",
+      "top": "-21px",
+      "width": "245px",
+      "height": "251.1px"
+    },
+    "#cpg-board": {
+      "left": "59px",
+      "top": "745px",
+      "width": "1800px",
+      "height": "270px"
+    },
+    "#ts-matches.tsm-count-2": {
+      "left": "170px",
+      "top": "363px",
+      "width": "858px"
+    },
+    "#today-schedule-page.tsm-count-2 #ts-header": {
+      "left": "170px",
+      "top": "206px",
+      "width": "858px"
+    },
+    "#tw-matches.tsm-count-2": {
+      "left": "170px",
+      "top": "334px",
+      "width": "858px",
+      "height": "472px"
+    },
+    "#tomorrow-schedule-page.tsm-count-2 #tw-header": {
+      "left": "170px",
+      "top": "170px",
+      "width": "858px"
+    },
+    "#tomorrow-schedule-page.tsm-count-2 #tw-sponsor": {
+      "left": "437px",
+      "top": "927px",
+      "width": "340px",
+      "height": "94px"
+    },
+    ".wsm-band-label, .wsm-band-time, .wsm-band-bo": {
+      "fontSize": "23px"
+    },
+    ".wsm-tri": {
+      "fontSize": "34px"
+    },
+    ".wsm-score-l, .wsm-score-r": {
+      "fontSize": "32px"
+    },
+    "#tw-matches.tsm-count-3": {
+      "left": "220px",
+      "top": "229px",
+      "width": "810px",
+      "height": "672.2px"
+    },
+    "#tomorrow-schedule-page.tsm-count-3 #tw-header": {
+      "left": "191px",
+      "top": "77px",
+      "width": "858px"
+    },
+    "#tomorrow-schedule-page.tsm-count-3 #tw-sponsor": {
+      "left": "437px",
+      "top": "927px",
+      "width": "340px",
+      "height": "94px"
+    },
+    ".wlm-label, .wlm-time, .wlm-bo": {
+      "fontSize": "29px"
+    },
+    ".wlm-tri": {
+      "fontSize": "46px"
+    },
+    ".wlm-score-l, .wlm-score-r": {
+      "fontSize": "59px"
+    },
+    "#ws-timer-label-bg": {
+      "left": "-19.5px",
+      "top": "-15px",
+      "width": "196px",
+      "height": "81px"
+    },
+    "#wl-timer-label": {
+      "left": "50px",
+      "top": "-35px",
+      "width": "135px",
+      "height": "39.7px"
+    },
+    "#wl-timer-label-bg": {
+      "left": "-20.5px",
+      "top": "-12px",
+      "width": "179px",
+      "height": "69px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-hero": {
+      "left": "0px",
+      "top": "0px",
+      "width": "69px",
+      "height": "132px"
+    },
+    ".cp2-mirrored .cp2-hero": {
+      "left": "661px",
+      "top": "0px",
+      "width": "69px",
+      "height": "132px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-photo": {
+      "left": "69px",
+      "top": "0px",
+      "width": "138px",
+      "height": "132px"
+    },
+    ".cp2-mirrored .cp2-photo": {
+      "left": "523px",
+      "top": "0px",
+      "width": "138px",
+      "height": "132px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-spell": {
+      "left": "4px",
+      "top": "97px",
+      "width": "30px",
+      "height": "30px"
+    },
+    ".cp2-mirrored .cp2-spell": {
+      "left": "696px",
+      "top": "97px",
+      "width": "30px",
+      "height": "30px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-level": {
+      "left": "0px",
+      "top": "132px",
+      "width": "69px",
+      "height": "22px",
+      "fontSize": "15px"
+    },
+    ".cp2-mirrored .cp2-level": {
+      "left": "661px",
+      "top": "132px",
+      "width": "69px",
+      "height": "22px",
+      "fontSize": "15px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-role": {
+      "left": "71px",
+      "top": "134px",
+      "width": "19px",
+      "height": "19px"
+    },
+    ".cp2-mirrored .cp2-role": {
+      "left": "640px",
+      "top": "134px",
+      "width": "19px",
+      "height": "19px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-name": {
+      "left": "98px",
+      "top": "132px",
+      "width": "99px",
+      "height": "22px",
+      "fontSize": "12.4px"
+    },
+    ".cp2-mirrored .cp2-name": {
+      "left": "533px",
+      "top": "132px",
+      "width": "99px",
+      "height": "22px",
+      "fontSize": "12.4px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-rune-main": {
+      "left": "207px",
+      "top": "11px",
+      "width": "39px",
+      "height": "39px"
+    },
+    ".cp2-mirrored .cp2-rune-main": {
+      "left": "484px",
+      "top": "11px",
+      "width": "39px",
+      "height": "39px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-rune-1": {
+      "left": "252px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-mirrored .cp2-rune-1": {
+      "left": "450px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-rune-2": {
+      "left": "286px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-mirrored .cp2-rune-2": {
+      "left": "416px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-rune-3": {
+      "left": "320px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-mirrored .cp2-rune-3": {
+      "left": "382px",
+      "top": "17px",
+      "width": "28px",
+      "height": "28px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-kda-label": {
+      "left": "207px",
+      "top": "52px",
+      "width": "141px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-mirrored .cp2-kda-label": {
+      "left": "382px",
+      "top": "52px",
+      "width": "141px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-kda-value": {
+      "left": "207px",
+      "top": "68px",
+      "width": "141px",
+      "height": "28px",
+      "fontSize": "24.8px"
+    },
+    ".cp2-mirrored .cp2-kda-value": {
+      "left": "382px",
+      "top": "68px",
+      "width": "141px",
+      "height": "28px",
+      "fontSize": "24.8px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-gold-label": {
+      "left": "207px",
+      "top": "96px",
+      "width": "141px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-mirrored .cp2-gold-label": {
+      "left": "382px",
+      "top": "96px",
+      "width": "141px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-gold-value": {
+      "left": "207px",
+      "top": "112px",
+      "width": "141px",
+      "height": "28px",
+      "fontSize": "24.8px"
+    },
+    ".cp2-mirrored .cp2-gold-value": {
+      "left": "382px",
+      "top": "112px",
+      "width": "141px",
+      "height": "28px",
+      "fontSize": "24.8px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-dmg-taken-label": {
+      "left": "372px",
+      "top": "10px",
+      "width": "170px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-mirrored .cp2-dmg-taken-label": {
+      "left": "188px",
+      "top": "10px",
+      "width": "170px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-dmg-taken": {
+      "left": "372px",
+      "top": "26px",
+      "width": "170px",
+      "height": "34px"
+    },
+    ".cp2-mirrored .cp2-dmg-taken": {
+      "left": "188px",
+      "top": "26px",
+      "width": "170px",
+      "height": "34px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-dmg-dealt-label": {
+      "left": "549px",
+      "top": "10px",
+      "width": "170px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-mirrored .cp2-dmg-dealt-label": {
+      "left": "11px",
+      "top": "10px",
+      "width": "170px",
+      "height": "14px",
+      "fontSize": "12px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-dmg-dealt": {
+      "left": "549px",
+      "top": "26px",
+      "width": "170px",
+      "height": "34px"
+    },
+    ".cp2-mirrored .cp2-dmg-dealt": {
+      "left": "11px",
+      "top": "26px",
+      "width": "170px",
+      "height": "34px"
+    },
+    ".cp2-row:not(.cp2-mirrored) .cp2-items": {
+      "left": "372px",
+      "top": "81px",
+      "width": "348px",
+      "height": "53px"
+    },
+    ".cp2-mirrored .cp2-items": {
+      "left": "10px",
+      "top": "81px",
+      "width": "348px",
+      "height": "53px"
+    },
+    ".cp2-row-1": {
+      "left": "59px",
+      "top": "193px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-2": {
+      "left": "59px",
+      "top": "358px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-3": {
+      "left": "59px",
+      "top": "523px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-4": {
+      "left": "59px",
+      "top": "688px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-5": {
+      "left": "59px",
+      "top": "853px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-6": {
+      "left": "1131px",
+      "top": "193px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-7": {
+      "left": "1131px",
+      "top": "358px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-8": {
+      "left": "1131px",
+      "top": "523px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-9": {
+      "left": "1131px",
+      "top": "688px",
+      "width": "730px",
+      "height": "154px"
+    },
+    ".cp2-row-10": {
+      "left": "1131px",
+      "top": "853px",
+      "width": "730px",
+      "height": "154px"
+    },
+    "#ckm2-board": {
+      "left": "805px",
+      "top": "521px",
+      "width": "311px",
+      "height": "426px"
+    },
+    "#ckm2-bounds": {
+      "left": "-31px",
+      "top": "77px",
+      "width": "371px",
+      "height": "377px"
+    },
+    "#cp2-sponsor, #mdb-sponsor": {
+      "left": "805px",
+      "top": "957px",
+      "width": "310px",
+      "height": "85.7px"
+    },
+    "#waiting-screen-page.wsm-count-2 #ws-header": {
+      "left": "40px",
+      "top": "80px",
+      "width": "1028px",
+      "height": "150px"
+    },
+    "#ws-matches.wsm-count-2": {
+      "left": "40px",
+      "top": "332px",
+      "width": "571px"
+    },
+    "#waiting-screen-page.wsm-count-2 #ws-sponsor": {
+      "left": "40px",
+      "top": "280px",
+      "width": "571px",
+      "height": "600px"
+    },
+    "#wl-timer-label-img": {
+      "fontSize": "20px"
+    },
+    "#ws-timer-value": {
+      "left": "205px",
+      "top": "0px",
+      "fontSize": "130px"
+    },
+    "#mdb-map": {
+      "left": "814px",
+      "top": "870px",
+      "width": "294px",
+      "height": "69px"
+    },
+    "#p4k-card-1": {
+      "left": "100px",
+      "top": "373px",
+      "width": "416px",
+      "height": "509px"
+    },
+    "#p4k-card-2": {
+      "left": "527px",
+      "top": "373px",
+      "width": "416px",
+      "height": "509px"
+    },
+    "#p4k-card-3": {
+      "left": "954px",
+      "top": "373px",
+      "width": "416px",
+      "height": "509px"
+    },
+    "#p4k-card-4": {
+      "left": "1381px",
+      "top": "373px",
+      "width": "416px",
+      "height": "509px"
+    },
+    "#p4k-1-title": {
+      "left": "0px",
+      "top": "-51px",
+      "width": "416px",
+      "height": "48px",
+      "fontSize": "39.8px"
+    },
+    "#p4k-3-title": {
+      "left": "0px",
+      "top": "-51px",
+      "width": "416px",
+      "height": "48px",
+      "fontSize": "39.8px"
+    },
+    "#p4k-4-title": {
+      "left": "0px",
+      "top": "-51px",
+      "width": "416px",
+      "height": "48px",
+      "fontSize": "39.8px"
+    },
+    "#p4k-2-visatag": {
+      "left": "527px",
+      "top": "251px",
+      "width": "416px",
+      "height": "122px"
+    },
+    ".p4k-photo-box": {
+      "left": "0px",
+      "top": "0px",
+      "width": "416px",
+      "height": "416px"
+    },
+    ".p4k-crop": {
+      "left": "0px",
+      "top": "357px",
+      "width": "416px",
+      "height": "152px"
+    },
+    ".p4k-name-box": {
+      "left": "0px",
+      "top": "357px",
+      "width": "416px",
+      "height": "48px"
+    },
+    ".p4k-stat-box": {
+      "left": "25px",
+      "top": "405px",
+      "width": "123px",
+      "height": "104px"
+    },
+    ".p4k-value-box": {
+      "left": "165px",
+      "top": "404px",
+      "width": "251px",
+      "height": "105px"
+    },
+    ".wlm-logo-l": {
+      "left": "137px",
+      "top": "55px"
+    },
+    ".wlm-logo-r": {
+      "left": "470px",
+      "top": "55px"
+    },
+    "#ws-casters .ws-talent-namebar": {
+      "left": "0px",
+      "top": "539px",
+      "width": "571px",
+      "height": "61px"
+    },
+    ".ws-casters-slot-left-name": {
+      "left": "0px",
+      "top": "0px",
+      "width": "190px",
+      "height": "61px"
+    },
+    ".ws-casters-slot-middle-name": {
+      "left": "172px",
+      "top": "0px",
+      "width": "191px",
+      "height": "61px"
+    },
+    ".ws-casters-slot-right-name": {
+      "left": "360px",
+      "top": "0px",
+      "width": "190px",
+      "height": "61px"
+    }
+  },
+  "Draft": {
+    "#draft-map": {
+      "left": "758px",
+      "top": "711px",
+      "width": "403px",
+      "height": "69px"
+    },
+    "#draft-map-logo": {
+      "left": "10px",
+      "top": "0px",
+      "width": "71px",
+      "height": "71px"
+    },
+    "#draft-map-name": {
+      "left": "165px",
+      "top": "10px",
+      "width": "188px",
+      "height": "50px"
+    },
+    ".draft-map-name-text": {
+      "fontSize": "32px"
+    },
+    "#dr-blue-bg": {
+      "left": "0px",
+      "top": "562px",
+      "width": "398px",
+      "height": "218px"
+    },
+    "#dr-blue-title": {
+      "left": "7px",
+      "top": "0px",
+      "width": "384px",
+      "height": "44px"
+    },
+    ".dr-blue-title-text": {
+      "fontSize": "19px"
+    },
+    "#dr-blue-pick-1": {
+      "left": "7px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-blue-pick-2": {
+      "left": "84.5px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-blue-pick-3": {
+      "left": "162px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-blue-pick-4": {
+      "left": "239.5px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-blue-pick-5": {
+      "left": "317px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-blue-ban-1": {
+      "left": "8px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-blue-ban-2": {
+      "left": "85.5px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-blue-ban-3": {
+      "left": "163px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-blue-ban-4": {
+      "left": "240.5px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-blue-ban-5": {
+      "left": "318px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-red-bg": {
+      "left": "1522px",
+      "top": "562px",
+      "width": "398px",
+      "height": "218px"
+    },
+    "#dr-red-title": {
+      "left": "7px",
+      "top": "0px",
+      "width": "384px",
+      "height": "44px"
+    },
+    ".dr-red-title-text": {
+      "fontSize": "19px"
+    },
+    "#dr-red-pick-1": {
+      "left": "7px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-red-pick-2": {
+      "left": "84.5px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-red-pick-3": {
+      "left": "162px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-red-pick-4": {
+      "left": "239.5px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-red-pick-5": {
+      "left": "317px",
+      "top": "50px",
+      "width": "74px",
+      "height": "117px"
+    },
+    "#dr-red-ban-1": {
+      "left": "8px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-red-ban-2": {
+      "left": "85.5px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-red-ban-3": {
+      "left": "163px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-red-ban-4": {
+      "left": "240.5px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    },
+    "#dr-red-ban-5": {
+      "left": "318px",
+      "top": "172px",
+      "width": "73px",
+      "height": "39px"
+    }
+  },
+  "sponsortv": {
+    "#stv-content": {
+      "left": "441px",
+      "top": "114px",
+      "width": "1038px",
+      "height": "861.4px"
+    }
+  },
+  "mpltag": {
+    ".ms-sidebox": {
+      "left": "29px",
+      "top": "747px",
+      "width": "353px",
+      "height": "154px"
+    },
+    ".ms-title": {
+      "left": "15px",
+      "top": "5px",
+      "width": "176px",
+      "height": "22px",
+      "fontSize": "18px"
+    },
+    ".ms-toss-logo": {
+      "left": "17px",
+      "top": "41px",
+      "width": "103px",
+      "height": "103px"
+    },
+    ".ms-toss-tricode": {
+      "left": "174px",
+      "top": "41px",
+      "width": "166px",
+      "height": "103px",
+      "fontSize": "80px"
+    },
+    ".ms-mapbox-mask": {
+      "left": "29px",
+      "top": "898px",
+      "width": "353px",
+      "height": "123px"
+    },
+    ".ms-map-icon": {
+      "left": "10px",
+      "top": "27px",
+      "width": "64px",
+      "height": "64px"
+    },
+    ".ms-map-name": {
+      "left": "115px",
+      "top": "44px",
+      "width": "230px",
+      "height": "31px",
+      "fontSize": "32px"
+    },
+    ".ms-map-label": {
+      "left": "115px",
+      "top": "76px",
+      "width": "230px",
+      "height": "18px",
+      "fontSize": "17px"
+    },
+    ".ms-winbox-mask": {
+      "left": "30px",
+      "top": "1020px",
+      "width": "139px",
+      "height": "31px"
+    },
+    ".ms-win-text": {
+      "fontSize": "24px"
+    }
+  },
+  "DraftIndex": {
+    "#di-smart-logo-p2": {
+      "left": "874px",
+      "top": "301px",
+      "width": "172px",
+      "height": "63px"
+    },
+    "#di-blue-box": {
+      "left": "166px",
+      "top": "340px",
+      "width": "285px",
+      "height": "414px"
+    },
+    "#di-red-box": {
+      "left": "1429px",
+      "top": "342px",
+      "width": "285px",
+      "height": "414px"
+    },
+    "#di-bars-container": {
+      "left": "634px",
+      "top": "370px",
+      "width": "622px",
+      "height": "420px"
+    },
+    ".di-team-name span": {
+      "fontSize": "34px"
+    },
+    ".di-stat-label": {
+      "fontSize": "15px"
+    },
+    ".di-stat-value": {
+      "fontSize": "36px"
+    },
+    ".di-bar-label": {
+      "fontSize": "18px"
+    },
+    ".di-bar-num": {
+      "fontSize": "31px"
+    }
+  }
+}

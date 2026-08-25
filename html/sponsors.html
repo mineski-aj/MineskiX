@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <title>Sponsors Overlay</title>
+  <style>
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 700;
+      font-display: block;
+      src: local('GeneralSans-Bold'), local('General Sans Bold'), url('/fonts/GeneralSans-Bold.otf') format('opentype');
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    /* Positioning frame — same slot the Waiting Screen TVC's sponsor box
+       occupies (#ws-sponsor in mplfs.html/ENTVC.html), so this drops in at
+       an identical spot if composited over the same footage. */
+    #ws-sponsor { position: absolute; left: 40px; top: 280px; width: 571px; height: 600px; pointer-events: none; }
+    .wsm-sponsor {
+      position: absolute;
+      top: 620px; left: 115px;
+      width: 340px; height: 94px;
+    }
+    .wsm-sponsor > img { position: absolute; left: 0; top: 0; width: 340px; height: 94px; }
+
+    /* Draft/in-game style sponsor loop — a single image sliding in from the
+       left (decelerating into place) then out to the right (accelerating
+       away), matching Draft.html's #sponsor-loop and the Waiting TVC's
+       sponsor box. */
+    .ws-sponsor-loop { position: absolute; left: 140px; right: 8px; top: 8px; bottom: 8px; overflow: hidden; }
+    .ws-sponsor-loop img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      transform: translateX(-110%);
+    }
+    .ws-sponsor-loop img.spon-in {
+      transform: translateX(0);
+      transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
+    }
+    .ws-sponsor-loop img.spon-out {
+      transform: translateX(110%);
+      transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
+    }
+
+    /* Category label — white rectangle in the sponsor box's left slot,
+       showing which sponsor category (Official Sponsor, Partner in
+       Esports, etc.) the box is currently on. Same frame every scene with
+       a sponsor box uses (Waiting Screen TVC, Waiting Lobby, Today's/
+       Tomorrow's Schedule). */
+    .sponsor-cat-label {
+      position: absolute;
+      left: 4px; top: 4px;
+      width: 105px; height: 86px;
+      background-color: rgb(255, 255, 255);
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 15.5px;
+      line-height: 1.15;
+      color: #0a0a0a;
+      text-transform: uppercase;
+      word-break: break-word;
+    }
+
+    /* White backdrop box around the 2nd (in-game style) logo loop — 300x300,
+       centered on the loop below. Checked against the boxed sponsor bar
+       (.wsm-sponsor: left 115-455px) for collision: this box spans
+       620-920px, clear of it with a 165px gap, so no repositioning needed. */
+    .ig-sponsor-box { position: absolute; left: 620px; top: 518px; width: 300px; height: 300px; background: #fff; }
+
+    /* In-game style sponsor loop — the plain transparent, no-box, no-label
+       version used by mploverlay_v7's ingame scoreboard (#sb-sponsor-loop)
+       and Draft.html's #sponsor-loop, just a logo sliding in/out on its
+       own. Sits 200px to the right of the boxed sponsor bar above, same
+       vertical center, and centered inside .ig-sponsor-box above. */
+    .ig-sponsor-loop { position: absolute; left: 655px; top: 614px; width: 230px; height: 107px; overflow: hidden; }
+    .ig-sponsor-loop img {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      transform: translateX(-110%);
+    }
+    .ig-sponsor-loop img.spon-in {
+      transform: translateX(0);
+      transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
+    }
+    .ig-sponsor-loop img.spon-out {
+      transform: translateX(110%);
+      transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
+    }
+  </style>
+</head>
+<body>
+  <div id="ws-sponsor"></div>
+
+  <script>
+    const WS_TVC_ASSET = '/assets/Waiting Screen TVC/';
+
+    document.getElementById('ws-sponsor').innerHTML =
+      `<div class="wsm-sponsor"><img src="${WS_TVC_ASSET}Sponsor Box.png" alt="Official Sponsor">` +
+      `<div class="sponsor-cat-label" id="ws-sponsor-cat"></div>` +
+      `<div class="ws-sponsor-loop"><img id="ws-sponsor-img" src="" alt=""></div></div>` +
+      `<div class="ig-sponsor-box"></div>` +
+      `<div class="ig-sponsor-loop"><img id="ig-sponsor-img" src="" alt=""></div>`;
+
+    function fitSponsorCatLabel(el) {
+      if (!el) return;
+      const maxSize = 15.5, minSize = 8;
+      let size = maxSize;
+      el.style.fontSize = size + 'px';
+      while (el.scrollHeight > el.clientHeight && size > minSize) {
+        el.style.fontSize = (size -= 0.5) + 'px';
+      }
+    }
+    function updateSponsorCatLabel(labelId, category) {
+      const el = document.getElementById(labelId);
+      if (!el) return;
+      el.textContent = category || '';
+      fitSponsorCatLabel(el);
+    }
+
+    /* Same /api/sponsors source as every other sponsor loop, but with
+       ?ingame=1 — the flag overlay-scoreboard.js's sponsor loop uses to
+       drop any logo toggled "hide in in-game loop" on the dashboard's
+       Sponsors tab (currently JOYTIFY.png, see sponsors_config.json's
+       hiddenInIngame). Every other sponsor loop (Waiting Lobby, Waiting
+       Screen TVC itself, Today's/Tomorrow's Schedule, Draft, Credit Reel)
+       still shows it — only this page filters it out. */
+    let wsSponsors = [], wsSponsorIdx = 0, wsSponsorActive = false;
+    let wsSponsorInHandler = null, wsSponsorOutHandler = null, wsSponsorHoldTimer = null;
+
+    function startWsSponsorLoop() {
+      wsSponsorActive = true;
+      fetch('/api/sponsors?ingame=1').then(r => r.json()).then(list => {
+        if (!wsSponsorActive || !list || !list.length) return;
+        wsSponsors = list;
+        wsSponsorIdx = 0;
+        runWsSponsorLoop();
+      }).catch(() => {});
+    }
+
+    function runWsSponsorLoop() {
+      if (!wsSponsorActive) return;
+      const img = document.getElementById('ws-sponsor-img');
+      if (!img) return;
+      const s = wsSponsors[wsSponsorIdx];
+      img.className = '';
+      img.src = s.src;
+      updateSponsorCatLabel('ws-sponsor-cat', s.category);
+      void img.offsetWidth;
+      img.classList.add('spon-in');
+
+      wsSponsorInHandler = (ev) => {
+        if (ev.propertyName !== 'transform') return;
+        img.removeEventListener('transitionend', wsSponsorInHandler);
+        wsSponsorHoldTimer = setTimeout(() => {
+          if (!wsSponsorActive) return;
+          img.classList.remove('spon-in');
+          img.classList.add('spon-out');
+          wsSponsorOutHandler = (ev2) => {
+            if (ev2.propertyName !== 'transform') return;
+            img.removeEventListener('transitionend', wsSponsorOutHandler);
+            if (!wsSponsorActive) return;
+            wsSponsorIdx = (wsSponsorIdx + 1) % wsSponsors.length;
+            runWsSponsorLoop();
+          };
+          img.addEventListener('transitionend', wsSponsorOutHandler);
+        }, s.dur);
+      };
+      img.addEventListener('transitionend', wsSponsorInHandler);
+    }
+
+    startWsSponsorLoop();
+
+    /* In-game style loop, transparent/no-box — independent from the boxed
+       loop above (its own fetch, own index), same as how Draft.html's
+       #sponsor-loop and overlay-scoreboard.js's #sb-sponsor-loop each run
+       on their own. Still ?ingame=1, so Joytify is dropped here too. */
+    let igSponsors = [], igSponsorIdx = 0, igSponsorActive = false;
+    let igSponsorInHandler = null, igSponsorOutHandler = null, igSponsorHoldTimer = null;
+
+    function startIgSponsorLoop() {
+      igSponsorActive = true;
+      fetch('/api/sponsors?ingame=1').then(r => r.json()).then(list => {
+        if (!igSponsorActive || !list || !list.length) return;
+        igSponsors = list;
+        igSponsorIdx = 0;
+        runIgSponsorLoop();
+      }).catch(() => {});
+    }
+
+    function runIgSponsorLoop() {
+      if (!igSponsorActive) return;
+      const img = document.getElementById('ig-sponsor-img');
+      if (!img) return;
+      const s = igSponsors[igSponsorIdx];
+      img.className = '';
+      img.src = s.src;
+      void img.offsetWidth;
+      img.classList.add('spon-in');
+
+      igSponsorInHandler = (ev) => {
+        if (ev.propertyName !== 'transform') return;
+        img.removeEventListener('transitionend', igSponsorInHandler);
+        igSponsorHoldTimer = setTimeout(() => {
+          if (!igSponsorActive) return;
+          img.classList.remove('spon-in');
+          img.classList.add('spon-out');
+          igSponsorOutHandler = (ev2) => {
+            if (ev2.propertyName !== 'transform') return;
+            img.removeEventListener('transitionend', igSponsorOutHandler);
+            if (!igSponsorActive) return;
+            igSponsorIdx = (igSponsorIdx + 1) % igSponsors.length;
+            runIgSponsorLoop();
+          };
+          img.addEventListener('transitionend', igSponsorOutHandler);
+        }, s.dur);
+      };
+      img.addEventListener('transitionend', igSponsorInHandler);
+    }
+
+    startIgSponsorLoop();
+  </script>
+</body>
+</html>

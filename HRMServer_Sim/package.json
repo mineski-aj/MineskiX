@@ -1,0 +1,13 @@
+{
+  "name": "hrm-server-sim",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fake HRM server — generates synthetic BPM data on the same /readings contract as HRMServer, for testing overlay_server without real watches.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

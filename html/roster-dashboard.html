@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <title>Roster Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* ── Login ── */
+    #login-wrap {
+      width: 320px;
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 80px;
+    }
+    #login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+    #login-wrap p  { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    /* ── App ── */
+    #app { display: none; width: 100%; max-width: 1200px; flex-direction: column; gap: 10px; height: 100%; }
+    #app.visible { display: flex; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+    #save-status { font-size: 12px; color: #555; }
+
+    #teams-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Panels ── */
+    .panel { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; }
+    .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #444; margin-bottom: 14px; }
+
+    /* ── Inputs / selects ── */
+    input[type="text"], select {
+      background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px;
+      color: #e0e0f0; font-size: 13px; padding: 7px 10px; outline: none; transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: #5566cc; }
+
+    /* ── Buttons ── */
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(.85); }
+    .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
+    .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
+    .btn-save   { background: #143a24; border-color: #1e5a36; color: #44cc88; font-weight: 600; padding: 8px 22px; }
+    .btn-save.attn { background: #3a2a10; border-color: #7a5a20; color: #ffbb44; }
+    .btn-add-team { background: #1a2030; border-color: #2a3050; color: #88aaff; }
+    .btn-danger { background: #2a1218; border-color: #5a2030; color: #ff6677; font-size: 12px; padding: 5px 10px; }
+    .btn-ghost  { background: transparent; border: 1px dashed #2a2a3a; color: #667; font-size: 12px; padding: 6px 12px; }
+    .btn-ghost:hover { color: #99a; border-color: #445; }
+    .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
+
+    /* ── Team card ── */
+    .team-card { border-bottom: 1px solid #1e1e2e; padding-bottom: 12px; margin-bottom: 12px; }
+    .team-card:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .team-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .team-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; }
+    .team-name-input { flex: 1; font-weight: 600; font-size: 14px; }
+    .team-tag-input  { width: 90px; text-transform: uppercase; text-align: center; font-weight: 700; }
+    .team-id-badge   { font-size: 10px; color: #444; padding: 0 6px; white-space: nowrap; }
+
+    .field-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .field-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #555; width: 70px; flex-shrink: 0; }
+    .coach-input { flex: 1; }
+
+    .players-hdr { display: flex; gap: 10px; margin: 10px 0 6px; }
+    .players-hdr .field-label { width: auto; }
+    .player-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .player-ign-input { flex: 1; }
+    .player-role-select { width: 160px; }
+    .player-id-badge { font-size: 10px; color: #333; width: 70px; flex-shrink: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    #actions-row {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 12px; border-top: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    #dirty-hint { font-size: 12px; color: #ffbb44; }
+
+    /* ── Toast ── */
+    #saved-toast {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 999;
+    }
+    #saved-toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="saved-toast">Changes Saved</div>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <h2>Roster Dashboard</h2>
+  <p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" style="width:100%">
+  <div class="err" id="login-err"></div>
+  <button class="btn btn-login" id="login-btn">Unlock</button>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <h1>Roster Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="save-status"></span>
+      <button class="btn btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div id="teams-scroll">
+    <div class="panel">
+      <div class="panel-title">Team Rosters — edited here, read by Match Board's team pickers and lineup defaults</div>
+      <div id="teams-list"></div>
+      <button class="btn btn-add-team" id="add-team-btn" style="margin-top:4px;">+ Add Team</button>
+    </div>
+  </div>
+
+  <div id="actions-row">
+    <button class="btn btn-save" id="save-btn">Save Changes</button>
+    <span id="dirty-hint"></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var ROLES = ['EXP LANER', 'JUNGLER', 'MID LANER', 'ROAMER', 'GOLD LANER', 'MULTIROLE'];
+  var token  = sessionStorage.getItem('match_token') || '';
+  var roster = null; /* { talents, seatOrder, teams: {id:{name,tag,coach}}, players: {id:{ign,tag,teamId,role}} } */
+  var dirty  = false;
+
+  /* ── AUTH ── */
+  function showApp()   { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('app').classList.add('visible'); }
+  function showLogin() { document.getElementById('login-wrap').style.display = ''; document.getElementById('app').classList.remove('visible'); }
+
+  if (token) tryAuth(token);
+
+  document.getElementById('login-btn').addEventListener('click', function () { tryAuth(document.getElementById('pw-input').value.trim()); });
+  document.getElementById('pw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+  document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
+
+  function tryAuth(pw) {
+    /* Same dashboard password as Match Board / Standings — /match/auth
+       just verifies it, no roster-specific auth endpoint needed. */
+    fetch('/match/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) {
+        if (r.ok) {
+          token = pw;
+          sessionStorage.setItem('match_token', token);
+          document.getElementById('login-err').textContent = '';
+          loadRoster().then(showApp);
+        } else {
+          document.getElementById('login-err').textContent = 'Incorrect password.';
+        }
+      }).catch(function () { document.getElementById('login-err').textContent = 'Cannot reach server.'; });
+  }
+
+  /* ── LOAD ── */
+  function loadRoster() {
+    return fetch('/mainroster.json', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        roster = data;
+        if (!roster.teams)   roster.teams   = {};
+        if (!roster.players) roster.players = {};
+        Object.keys(roster.teams).forEach(function (id) {
+          if (roster.teams[id].coach == null) roster.teams[id].coach = '';
+        });
+        renderTeams();
+      })
+      .catch(function () { console.warn('Could not load mainroster.json'); });
+  }
+
+  /* ── DIRTY / SAVE ── */
+  function setDirty(v) {
+    dirty = v;
+    document.getElementById('save-btn').classList.toggle('attn', v);
+    document.getElementById('save-btn').textContent = v ? 'Save Changes •' : 'Save Changes';
+    document.getElementById('dirty-hint').textContent = v ? 'Unsaved changes' : '';
+  }
+
+  var _toastTimer = null;
+  function showSavedToast() {
+    var t = document.getElementById('saved-toast');
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  function save() {
+    fetch('/api/roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, data: roster }),
+    }).then(function (r) {
+      document.getElementById('save-status').textContent = r.ok ? '' : 'Save failed';
+      if (r.ok) { showSavedToast(); setDirty(false); }
+      if (r.status === 401) { token = ''; sessionStorage.removeItem('match_token'); showLogin(); }
+    }).catch(function () { document.getElementById('save-status').textContent = 'Cannot reach server.'; });
+  }
+  document.getElementById('save-btn').addEventListener('click', save);
+
+  /* ── HELPERS ── */
+  function logoUrl(tag) { return '/logos/' + encodeURIComponent((tag || '').toUpperCase()) + '.png'; }
+  function teamPlayers(teamId) {
+    return Object.keys(roster.players)
+      .filter(function (pid) { return String(roster.players[pid].teamId) === String(teamId); })
+      .map(function (pid) { return pid; });
+  }
+  function newLocalId() { return 'local' + Date.now() + Math.floor(Math.random() * 1000); }
+
+  /* ── RENDER ── */
+  function renderTeams() {
+    var root = document.getElementById('teams-list');
+    root.innerHTML = '';
+    var ids = Object.keys(roster.teams).sort(function (a, b) {
+      return (roster.teams[a].name || '').localeCompare(roster.teams[b].name || '');
+    });
+    ids.forEach(function (teamId) { root.appendChild(renderTeamCard(teamId)); });
+  }
+
+  function renderTeamCard(teamId) {
+    var team = roster.teams[teamId];
+    var card = document.createElement('div');
+    card.className = 'team-card';
+
+    var hdr = document.createElement('div');
+    hdr.className = 'team-hdr';
+
+    var logo = document.createElement('img');
+    logo.className = 'team-logo';
+    logo.src = logoUrl(team.tag);
+    logo.onerror = function () { logo.style.display = 'none'; };
+    hdr.appendChild(logo);
+
+    var nameInput = document.createElement('input');
+    nameInput.type = 'text'; nameInput.className = 'team-name-input';
+    nameInput.value = team.name || '';
+    nameInput.addEventListener('change', function () { team.name = nameInput.value.trim(); setDirty(true); });
+    hdr.appendChild(nameInput);
+
+    var tagInput = document.createElement('input');
+    tagInput.type = 'text'; tagInput.className = 'team-tag-input'; tagInput.maxLength = 6;
+    tagInput.value = team.tag || '';
+    tagInput.addEventListener('input', function () { logo.style.display = ''; logo.src = logoUrl(tagInput.value.trim()); });
+    tagInput.addEventListener('change', function () { team.tag = tagInput.value.trim().toUpperCase(); tagInput.value = team.tag; setDirty(true); });
+    hdr.appendChild(tagInput);
+
+    var idBadge = document.createElement('span');
+    idBadge.className = 'team-id-badge';
+    idBadge.textContent = 'ID ' + teamId;
+    hdr.appendChild(idBadge);
+
+    var delTeamBtn = document.createElement('button');
+    delTeamBtn.className = 'btn btn-danger';
+    delTeamBtn.textContent = 'Delete Team';
+    delTeamBtn.addEventListener('click', function () {
+      if (!confirm('Delete ' + (team.name || teamId) + ' and all its players?')) return;
+      teamPlayers(teamId).forEach(function (pid) { delete roster.players[pid]; });
+      delete roster.teams[teamId];
+      setDirty(true);
+      renderTeams();
+    });
+    hdr.appendChild(delTeamBtn);
+
+    card.appendChild(hdr);
+
+    var coachRow = document.createElement('div');
+    coachRow.className = 'field-row';
+    var coachLbl = document.createElement('span');
+    coachLbl.className = 'field-label';
+    coachLbl.textContent = 'Coach';
+    var coachInput = document.createElement('input');
+    coachInput.type = 'text'; coachInput.className = 'coach-input';
+    coachInput.placeholder = '(no coach set)';
+    coachInput.value = team.coach || '';
+    coachInput.addEventListener('change', function () { team.coach = coachInput.value.trim(); setDirty(true); });
+    coachRow.appendChild(coachLbl);
+    coachRow.appendChild(coachInput);
+    card.appendChild(coachRow);
+
+    var playersHdr = document.createElement('div');
+    playersHdr.className = 'players-hdr';
+    var pLbl = document.createElement('span');
+    pLbl.className = 'field-label';
+    pLbl.textContent = 'Players';
+    playersHdr.appendChild(pLbl);
+    card.appendChild(playersHdr);
+
+    teamPlayers(teamId).forEach(function (pid) { card.appendChild(renderPlayerRow(teamId, pid)); });
+
+    var addPlayerBtn = document.createElement('button');
+    addPlayerBtn.className = 'btn btn-ghost';
+    addPlayerBtn.textContent = '+ Add Player';
+    addPlayerBtn.addEventListener('click', function () {
+      var pid = newLocalId();
+      roster.players[pid] = { ign: '', tag: team.tag || '', teamId: teamId, role: ROLES[0] };
+      setDirty(true);
+      renderTeams();
+    });
+    card.appendChild(addPlayerBtn);
+
+    return card;
+  }
+
+  function renderPlayerRow(teamId, pid) {
+    var player = roster.players[pid];
+    var row = document.createElement('div');
+    row.className = 'player-row';
+
+    var ignInput = document.createElement('input');
+    ignInput.type = 'text'; ignInput.className = 'player-ign-input';
+    ignInput.placeholder = 'IGN';
+    ignInput.value = player.ign || '';
+    ignInput.addEventListener('change', function () { player.ign = ignInput.value.trim(); setDirty(true); });
+    row.appendChild(ignInput);
+
+    var roleSelect = document.createElement('select');
+    roleSelect.className = 'player-role-select';
+    ROLES.forEach(function (r) {
+      var opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      roleSelect.appendChild(opt);
+    });
+    roleSelect.value = ROLES.indexOf(player.role) !== -1 ? player.role : ROLES[0];
+    roleSelect.addEventListener('change', function () { player.role = roleSelect.value; setDirty(true); });
+    row.appendChild(roleSelect);
+
+    var idBadge = document.createElement('span');
+    idBadge.className = 'player-id-badge';
+    idBadge.title = pid;
+    idBadge.textContent = pid;
+    row.appendChild(idBadge);
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-danger';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', function () {
+      delete roster.players[pid];
+      setDirty(true);
+      renderTeams();
+    });
+    row.appendChild(delBtn);
+
+    return row;
+  }
+
+  document.getElementById('add-team-btn').addEventListener('click', function () {
+    var id = prompt('New team ID (matches the live game API\'s team_id — leave blank to make one up):', '');
+    if (id === null) return;
+    id = id.trim() || newLocalId();
+    if (roster.teams[id]) { alert('A team with that ID already exists.'); return; }
+    roster.teams[id] = { name: 'New Team', tag: 'NEW', coach: '' };
+    setDirty(true);
+    renderTeams();
+  });
+})();
+</script>
+</body>
+</html>

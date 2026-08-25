@@ -1,0 +1,1861 @@
+{
+		  "code": 0,
+		  "data":  {
+		    "banpick_paused": false,
+		    "battleid": "861165872615102452",
+		    "camp_list":  [
+		       {
+		        "ban_hero_list":  [
+		          55,
+		          16,
+		          27
+		        ],
+		        "blessing_gold": 0,
+		        "campid": 1,
+		        "enemy_area_get":  {
+		          "end_time": 961,
+		          "monster_gold": 341,
+		          "orange_buffer_num": 0,
+		          "purple_buffer_num": 0
+		        },
+		        "golddiffLeft":  {
+		          "image": "path/static/icons/gold.png",
+		          "value": "+5.48k"
+		        },
+		        "kill_lord": 1,
+		        "kill_lord_advantage":  {
+		          "begin_time": 867,
+		          "end_time": 961,
+		          "exp": 4942,
+		          "gold": 5999,
+		          "tower_hp": 36389
+		        },
+		        "kill_tortoise": 1,
+		        "kill_tower": 8,
+		        "score": 31,
+		        "seat_1":  {
+		          "assist_num": 17,
+		          "ban_heroid": 0,
+		          "ban_order": 0,
+		          "banning": false,
+		          "campid": 1,
+		          "control_time_ms": 64861,
+		          "cur_health_point": 2313,
+		          "cur_mana": 1330,
+		          "dead": false,
+		          "dead_num": 13,
+		          "dmg_dealt_gold": 2.57,
+		          "dmg_tkn_death": 10601.31,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/3562.png",
+		              "image_circle": "path/static/item/3562.png",
+		              "value": 3562
+		            },
+		             {
+		              "image_Square": "path/to/3109.png",
+		              "image_circle": "path/static/item/3109.png",
+		              "value": 3109
+		            },
+		             {
+		              "image_Square": "path/to/2107.png",
+		              "image_circle": "path/static/item/2107.png",
+		              "value": 2107
+		            },
+		             {
+		              "image_Square": "path/to/3206.png",
+		              "image_circle": "path/static/item/3206.png",
+		              "value": 3206
+		            },
+		             {
+		              "image_Square": "path/to/3203.png",
+		              "image_circle": "path/static/item/3203.png",
+		              "value": 3203
+		            },
+		             {
+		              "image_Square": "path/to/2203.png",
+		              "image_circle": "path/static/item/2203.png",
+		              "value": 2203
+		            }
+		          ],
+		          "exp": 15254,
+		          "exp_current_target": "33%",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 0,
+		            "goldk": "10.5k",
+		            "gpm": 655,
+		            "herodead": "10_False",
+		            "kda": "1/13/17",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "Exxhuman_False",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 10498,
+		          "goldDiffPlayer": 869,
+		          "gold_map":  {
+		            "1": 377,
+		            "2": 268,
+		            "3": 290,
+		            "4": 673,
+		            "5": 1494,
+		            "6": 2864,
+		            "9": 839
+		          },
+		          "gold_map_1": 377,
+		          "gold_map_2": 268,
+		          "gold_map_3": 290,
+		          "gold_map_4": 673,
+		          "gold_map_5": 1494,
+		          "gold_map_6": 2864,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 839,
+		          "gold_map_passive": 2333,
+		          "goldrate": "18.56%",
+		          "health_percent": 26,
+		          "hero_name":  [
+		            "Franco"
+		          ],
+		          "heroid": 10,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 29,
+		              "hit_percentage": 48,
+		              "hit_times": 14,
+		              "skill_name": "Iron Hook",
+		              "skillid": "1010"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 1.3846153846153846,
+		          "kill_num": 1,
+		          "last_emblem": [ ],
+		          "level": 14,
+		          "level_eta": "17:30",
+		          "level_percent": 33,
+		          "magic_defense": 107,
+		          "major_left_time": 0,
+		          "mana_percent": 74,
+		          "map_pos":  {
+		            "x": 45.328125,
+		            "y": -1.1181641
+		          },
+		          "max_health_point": 8813,
+		          "max_mana": 1800,
+		          "name": "Exxhuman",
+		          "physical_defense": 194,
+		          "pick_order": 8,
+		          "picking": false,
+		          "pos": 2,
+		          "rank_assist": 68,
+		          "rank_damage_tower": 1.97,
+		          "rank_dmg_dealt_gold": 39.06,
+		          "rank_dmg_dealt_tkn_death": 38.21,
+		          "rank_gold_map_1": 10,
+		          "rank_gold_map_2": 5,
+		          "rank_gold_map_3": 1,
+		          "rank_gold_map_4": 3,
+		          "rank_gold_map_5": 1,
+		          "rank_gold_map_6": 4,
+		          "rank_gpm": 68.44,
+		          "rank_kda": 24.08,
+		          "rank_kill": 4.35,
+		          "revive_left_time": 0,
+		          "revive_left_time_show": "",
+		          "roaming_type": "Encourage",
+		          "role": "exp_laner",
+		          "roleid": 637253786,
+		          "rune_id": 20008,
+		          "rune_map":  {
+		            "1": 811,
+		            "2": 121,
+		            "3": 831
+		          },
+		          "rune_map_1": 811,
+		          "rune_map_2": 121,
+		          "rune_map_3": 831,
+		          "skill_left_time": 78,
+		          "skillid": 20100,
+		          "team_id": 9811254,
+		          "team_name": "Keluarga Kentir",
+		          "team_simple_name": "KK",
+		          "total_damage": 27027,
+		          "total_damage_tower": 213,
+		          "total_heal": 11047,
+		          "total_heal_other": 0,
+		          "total_hurt": 137817,
+		          "ultimate_ready": "true",
+		          "xpm": 952,
+		          "zoneid": 8546
+		        },
+		        "seat_2":  {
+		          "assist_num": 6,
+		          "ban_heroid": 0,
+		          "ban_order": 0,
+		          "banning": false,
+		          "campid": 1,
+		          "control_time_ms": 22160,
+		          "cur_health_point": 0,
+		          "cur_mana": 0,
+		          "dead": true,
+		          "dead_num": 8,
+		          "dmg_dealt_gold": 4.66,
+		          "dmg_tkn_death": 12355,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            },
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            },
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            },
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            },
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            },
+		             {
+		              "image_Square": "path/to/2202.png",
+		              "image_circle": "path/static/item/2202.png",
+		              "value": 2202
+		            }
+		          ],
+		          "exp": 16680,
+		          "exp_current_target": "MAX-LEVEL",
+		          "extra_param":  {
+		            "double_kill": 1,
+		            "first_blood": 0,
+		            "goldk": "10.56k",
+		            "gpm": 659,
+		            "herodead": "26_True",
+		            "kda": "7/8/6",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "SuperAditTzy_True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 10562,
+		          "goldDiffPlayer": -1139,
+		          "gold_map":  {
+		            "1": 3025,
+		            "2": 49,
+		            "3": 290,
+		            "4": 620,
+		            "6": 2906
+		          },
+		          "gold_map_1": 3025,
+		          "gold_map_2": 49,
+		          "gold_map_3": 290,
+		          "gold_map_4": 620,
+		          "gold_map_5": 0,
+		          "gold_map_6": 2906,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "18.67%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Chou"
+		          ],
+		          "heroid": 26,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 1.625,
+		          "kill_num": 7,
+		          "last_emblem": [ ],
+		          "level": 15,
+		          "level_eta": "15:07",
+		          "level_percent": 100,
+		          "magic_defense": 67,
+		          "major_left_time": 0,
+		          "mana_percent": 0,
+		          "map_pos":  {
+		            "x": 24.832031,
+		            "y": 13.4765625
+		          },
+		          "max_health_point": 8808,
+		          "max_mana": 0,
+		          "name": "SuperAditTzy",
+		          "physical_defense": 86,
+		          "pick_order": 5,
+		          "picking": false,
+		          "pos": 1,
+		          "rank_assist": 24,
+		          "rank_damage_tower": 0.79,
+		          "rank_dmg_dealt_gold": 70.82,
+		          "rank_dmg_dealt_tkn_death": 44.53,
+		          "rank_gold_map_1": 3,
+		          "rank_gold_map_2": 7,
+		          "rank_gold_map_3": 1,
+		          "rank_gold_map_4": 6,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 3,
+		          "rank_gpm": 68.86,
+		          "rank_kda": 28.26,
+		          "rank_kill": 30.43,
+		          "revive_left_time": 7,
+		          "revive_left_time_show": 7,
+		          "roaming_type": "None",
+		          "role": "jungler",
+		          "roleid": 914923357,
+		          "rune_id": 20005,
+		          "rune_map":  {
+		            "1": 811,
+		            "2": 521,
+		            "3": 331
+		          },
+		          "rune_map_1": 811,
+		          "rune_map_2": 521,
+		          "rune_map_3": 331,
+		          "skill_left_time": 81,
+		          "skillid": 20100,
+		          "team_id": 0,
+		          "team_name": "",
+		          "team_simple_name": "",
+		          "total_damage": 49246,
+		          "total_damage_tower": 85,
+		          "total_heal": 29457,
+		          "total_heal_other": 0,
+		          "total_hurt": 98840,
+		          "ultimate_ready": "true",
+		          "xpm": 1102,
+		          "zoneid": 12627
+		        },
+		        "seat_3":  {
+		          "assist_num": 8,
+		          "ban_heroid": 55,
+		          "ban_order": 1,
+		          "banning": false,
+		          "campid": 1,
+		          "control_time_ms": 27240,
+		          "cur_health_point": 4217,
+		          "cur_mana": 1496,
+		          "dead": false,
+		          "dead_num": 5,
+		          "dmg_dealt_gold": 3.38,
+		          "dmg_tkn_death": 6694.2,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2304.png",
+		              "image_circle": "path/static/item/2304.png",
+		              "value": 2304
+		            },
+		             {
+		              "image_Square": "path/to/3105.png",
+		              "image_circle": "path/static/item/3105.png",
+		              "value": 3105
+		            },
+		             {
+		              "image_Square": "path/to/3101.png",
+		              "image_circle": "path/static/item/3101.png",
+		              "value": 3101
+		            },
+		             {
+		              "image_Square": "path/to/2112.png",
+		              "image_circle": "path/static/item/2112.png",
+		              "value": 2112
+		            },
+		             {
+		              "image_Square": "path/to/2101.png",
+		              "image_circle": "path/static/item/2101.png",
+		              "value": 2101
+		            },
+		             {
+		              "image_Square": "path/to/2101.png",
+		              "image_circle": "path/static/item/2101.png",
+		              "value": 2101
+		            }
+		          ],
+		          "exp": 14050,
+		          "exp_current_target": "74%",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 0,
+		            "goldk": "9.16k",
+		            "gpm": 572,
+		            "herodead": "5_False",
+		            "kda": "2/5/8",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "Mey`Crayyliè ✭_False",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 9158,
+		          "goldDiffPlayer": 949,
+		          "gold_map":  {
+		            "1": 2447,
+		            "2": 16,
+		            "3": 290,
+		            "4": 720,
+		            "6": 2013
+		          },
+		          "gold_map_1": 2447,
+		          "gold_map_2": 16,
+		          "gold_map_3": 290,
+		          "gold_map_4": 720,
+		          "gold_map_5": 0,
+		          "gold_map_6": 2013,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "16.19%",
+		          "health_percent": 93,
+		          "hero_name":  [
+		            "Nana"
+		          ],
+		          "heroid": 5,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 2,
+		          "kill_num": 2,
+		          "last_emblem": [ ],
+		          "level": 13,
+		          "level_eta": "18:59",
+		          "level_percent": 74,
+		          "magic_defense": 44,
+		          "major_left_time": 21,
+		          "mana_percent": 71,
+		          "map_pos":  {
+		            "x": 38.554688,
+		            "y": -6.765625
+		          },
+		          "max_health_point": 4540,
+		          "max_mana": 2100,
+		          "name": "Mey`Crayyliè ✭",
+		          "physical_defense": 65,
+		          "pick_order": 9,
+		          "picking": false,
+		          "pos": 3,
+		          "rank_assist": 32,
+		          "rank_damage_tower": 20.33,
+		          "rank_dmg_dealt_gold": 51.37,
+		          "rank_dmg_dealt_tkn_death": 24.13,
+		          "rank_gold_map_1": 6,
+		          "rank_gold_map_2": 8,
+		          "rank_gold_map_3": 1,
+		          "rank_gold_map_4": 2,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 8,
+		          "rank_gpm": 59.77,
+		          "rank_kda": 34.78,
+		          "rank_kill": 8.7,
+		          "revive_left_time": 0,
+		          "revive_left_time_show": "",
+		          "roaming_type": "None",
+		          "role": "mid_laner",
+		          "roleid": 1829903159,
+		          "rune_id": 20005,
+		          "rune_map":  {
+		            "1": 611,
+		            "2": 621,
+		            "3": 131
+		          },
+		          "rune_map_1": 611,
+		          "rune_map_2": 621,
+		          "rune_map_3": 131,
+		          "skill_left_time": 0,
+		          "skillid": 20140,
+		          "team_id": 11531537,
+		          "team_name": "Minamoto_Clan",
+		          "team_simple_name": "MC",
+		          "total_damage": 30912,
+		          "total_damage_tower": 2198,
+		          "total_heal": 3761,
+		          "total_heal_other": 0,
+		          "total_hurt": 33471,
+		          "ultimate_ready": "false",
+		          "xpm": 877,
+		          "zoneid": 1750
+		        },
+		        "seat_4":  {
+		          "assist_num": 8,
+		          "ban_heroid": 27,
+		          "ban_order": 12,
+		          "banning": false,
+		          "campid": 1,
+		          "control_time_ms": 9525,
+		          "cur_health_point": 1211,
+		          "cur_mana": 1609,
+		          "dead": false,
+		          "dead_num": 9,
+		          "dmg_dealt_gold": 4.8,
+		          "dmg_tkn_death": 6322.56,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2008.png",
+		              "image_circle": "path/static/item/2008.png",
+		              "value": 2008
+		            },
+		             {
+		              "image_Square": "path/to/2301.png",
+		              "image_circle": "path/static/item/2301.png",
+		              "value": 2301
+		            },
+		             {
+		              "image_Square": "path/to/3015.png",
+		              "image_circle": "path/static/item/3015.png",
+		              "value": 3015
+		            },
+		             {
+		              "image_Square": "path/to/2009.png",
+		              "image_circle": "path/static/item/2009.png",
+		              "value": 2009
+		            },
+		             {
+		              "image_Square": "path/to/2006.png",
+		              "image_circle": "path/static/item/2006.png",
+		              "value": 2006
+		            },
+		             {
+		              "image_Square": "path/to/2011.png",
+		              "image_circle": "path/static/item/2011.png",
+		              "value": 2011
+		            }
+		          ],
+		          "exp": 16956,
+		          "exp_current_target": "MAX-LEVEL",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 0,
+		            "goldk": "11.58k",
+		            "gpm": 723,
+		            "herodead": "31_False",
+		            "kda": "4/9/8",
+		            "kill_lord": 0,
+		            "kill_tortoise": 1,
+		            "legendary": 0,
+		            "namedead": "Sphynx._False",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 11582,
+		          "goldDiffPlayer": -1764,
+		          "gold_map":  {
+		            "1": 4099,
+		            "2": 368,
+		            "3": 290,
+		            "4": 641,
+		            "6": 2491
+		          },
+		          "gold_map_1": 4099,
+		          "gold_map_2": 368,
+		          "gold_map_3": 290,
+		          "gold_map_4": 641,
+		          "gold_map_5": 0,
+		          "gold_map_6": 2491,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "20.48%",
+		          "health_percent": 28,
+		          "hero_name":  [
+		            "Moskov"
+		          ],
+		          "heroid": 31,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 31,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Spear of Misery",
+		              "skillid": "3120"
+		            },
+		             {
+		              "cast_times": 10,
+		              "hit_percentage": 110,
+		              "hit_times": 11,
+		              "skill_name": "Spear of Destruction",
+		              "skillid": "3130"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 1.3333333333333333,
+		          "kill_num": 4,
+		          "last_emblem": [ ],
+		          "level": 15,
+		          "level_eta": "15:16",
+		          "level_percent": 100,
+		          "magic_defense": 48,
+		          "major_left_time": 11,
+		          "mana_percent": 85,
+		          "map_pos":  {
+		            "x": 44.117188,
+		            "y": -2.9365234
+		          },
+		          "max_health_point": 4340,
+		          "max_mana": 1900,
+		          "name": "Sphynx.",
+		          "physical_defense": 88,
+		          "pick_order": 15,
+		          "picking": false,
+		          "pos": 5,
+		          "rank_assist": 32,
+		          "rank_damage_tower": 100,
+		          "rank_dmg_dealt_gold": 72.95,
+		          "rank_dmg_dealt_tkn_death": 22.79,
+		          "rank_gold_map_1": 1,
+		          "rank_gold_map_2": 4,
+		          "rank_gold_map_3": 1,
+		          "rank_gold_map_4": 5,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 6,
+		          "rank_gpm": 75.55,
+		          "rank_kda": 23.19,
+		          "rank_kill": 17.39,
+		          "revive_left_time": 0,
+		          "revive_left_time_show": "",
+		          "roaming_type": "None",
+		          "role": "roamer",
+		          "roleid": 681451992,
+		          "rune_id": 20012,
+		          "rune_map":  {
+		            "1": 112,
+		            "2": 521,
+		            "3": 132
+		          },
+		          "rune_map_1": 112,
+		          "rune_map_2": 521,
+		          "rune_map_3": 132,
+		          "skill_left_time": 105,
+		          "skillid": 20100,
+		          "team_id": 0,
+		          "team_name": "",
+		          "team_simple_name": "",
+		          "total_damage": 55605,
+		          "total_damage_tower": 10812,
+		          "total_heal": 16450,
+		          "total_heal_other": 0,
+		          "total_hurt": 56903,
+		          "ultimate_ready": "false",
+		          "xpm": 1091,
+		          "zoneid": 8724
+		        },
+		        "seat_5":  {
+		          "assist_num": 6,
+		          "ban_heroid": 16,
+		          "ban_order": 3,
+		          "banning": false,
+		          "campid": 1,
+		          "control_time_ms": 7694,
+		          "cur_health_point": 2812,
+		          "cur_mana": 0,
+		          "dead": false,
+		          "dead_num": 4,
+		          "dmg_dealt_gold": 6.05,
+		          "dmg_tkn_death": 20913.75,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/3431.png",
+		              "image_circle": "path/static/item/3431.png",
+		              "value": 3431
+		            },
+		             {
+		              "image_Square": "path/to/3009.png",
+		              "image_circle": "path/static/item/3009.png",
+		              "value": 3009
+		            },
+		             {
+		              "image_Square": "path/to/2014.png",
+		              "image_circle": "path/static/item/2014.png",
+		              "value": 2014
+		            },
+		             {
+		              "image_Square": "path/to/2013.png",
+		              "image_circle": "path/static/item/2013.png",
+		              "value": 2013
+		            },
+		             {
+		              "image_Square": "path/to/2107.png",
+		              "image_circle": "path/static/item/2107.png",
+		              "value": 2107
+		            },
+		             {
+		              "image_Square": "path/to/3001.png",
+		              "image_circle": "path/static/item/3001.png",
+		              "value": 3001
+		            }
+		          ],
+		          "exp": 16670,
+		          "exp_current_target": "MAX-LEVEL",
+		          "extra_param":  {
+		            "double_kill": 4,
+		            "first_blood": 0,
+		            "goldk": "15.33k",
+		            "gpm": 957,
+		            "herodead": "126_False",
+		            "kda": "17/4/6",
+		            "kill_lord": 1,
+		            "kill_tortoise": 0,
+		            "legendary": 1,
+		            "namedead": "Sh1ro_False",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 3
+		          },
+		          "gold": 15329,
+		          "goldDiffPlayer": 7129,
+		          "gold_map":  {
+		            "1": 2387,
+		            "2": 2987,
+		            "3": 290,
+		            "4": 723,
+		            "6": 5249
+		          },
+		          "gold_map_1": 2387,
+		          "gold_map_2": 2987,
+		          "gold_map_3": 290,
+		          "gold_map_4": 723,
+		          "gold_map_5": 0,
+		          "gold_map_6": 5249,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "27.1%",
+		          "health_percent": 49,
+		          "hero_name":  [
+		            "Suyou"
+		          ],
+		          "heroid": 126,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 5.75,
+		          "kill_num": 17,
+		          "last_emblem": [ ],
+		          "level": 15,
+		          "level_eta": "11:40",
+		          "level_percent": 100,
+		          "magic_defense": 50,
+		          "major_left_time": 0,
+		          "mana_percent": 0,
+		          "map_pos":  {
+		            "x": 44.335938,
+		            "y": -1.175293
+		          },
+		          "max_health_point": 5708,
+		          "max_mana": 0,
+		          "name": "Sh1ro",
+		          "physical_defense": 72,
+		          "pick_order": 14,
+		          "picking": false,
+		          "pos": 4,
+		          "rank_assist": 24,
+		          "rank_damage_tower": 40.02,
+		          "rank_dmg_dealt_gold": 91.95,
+		          "rank_dmg_dealt_tkn_death": 75.38,
+		          "rank_gold_map_1": 7,
+		          "rank_gold_map_2": 1,
+		          "rank_gold_map_3": 1,
+		          "rank_gold_map_4": 1,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 1,
+		          "rank_gpm": 100,
+		          "rank_kda": 100,
+		          "rank_kill": 73.91,
+		          "revive_left_time": 0,
+		          "revive_left_time_show": "",
+		          "roaming_type": "None",
+		          "role": "gold_laner",
+		          "roleid": 80869521,
+		          "rune_id": 20005,
+		          "rune_map":  {
+		            "1": 111,
+		            "2": 122,
+		            "3": 131
+		          },
+		          "rune_map_1": 111,
+		          "rune_map_2": 122,
+		          "rune_map_3": 131,
+		          "skill_left_time": 1,
+		          "skillid": 20020,
+		          "team_id": 5399755,
+		          "team_name": "MIMO STORE",
+		          "team_simple_name": "MS",
+		          "total_damage": 92680,
+		          "total_damage_tower": 4327,
+		          "total_heal": 43104,
+		          "total_heal_other": 0,
+		          "total_hurt": 83655,
+		          "ultimate_ready": "true",
+		          "xpm": 1428,
+		          "zoneid": 2150
+		        },
+		        "team_id": 5399755,
+		        "team_name": "MIMO STORE",
+		        "team_simple_name": "MS",
+		        "team_total_damage_dealt": 255470,
+		        "team_total_damage_taken": 410686,
+		        "team_total_heal": 17635,
+		        "team_total_tower_damage": 17635,
+		        "total_money": 56566,
+		        "total_money_k": "56.57k"
+		      },
+		       {
+		        "ban_hero_list":  [
+		          42,
+		          17,
+		          40
+		        ],
+		        "blessing_gold": 0,
+		        "campid": 2,
+		        "enemy_area_get":  {
+		          "end_time": 961,
+		          "monster_gold": 857,
+		          "orange_buffer_num": 3,
+		          "purple_buffer_num": 2
+		        },
+		        "golddiffRight":  {
+		          "image": " ",
+		          "value": " "
+		        },
+		        "kill_lord": 1,
+		        "kill_lord_advantage":  {
+		          "begin_time": 669,
+		          "end_time": 789,
+		          "exp": 904,
+		          "gold": -233,
+		          "tower_hp": 8299
+		        },
+		        "kill_tortoise": 2,
+		        "kill_tower": 6,
+		        "score": 39,
+		        "seat_1":  {
+		          "assist_num": 25,
+		          "ban_heroid": 40,
+		          "ban_order": 11,
+		          "banning": false,
+		          "campid": 2,
+		          "control_time_ms": 43404,
+		          "cur_health_point": 0,
+		          "cur_mana": 1481,
+		          "dead": true,
+		          "dead_num": 7,
+		          "dmg_dealt_gold": 4.18,
+		          "dmg_tkn_death": 17376.29,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/3522.png",
+		              "image_circle": "path/static/item/3522.png",
+		              "value": 3522
+		            },
+		             {
+		              "image_Square": "path/to/3109.png",
+		              "image_circle": "path/static/item/3109.png",
+		              "value": 3109
+		            },
+		             {
+		              "image_Square": "path/to/3204.png",
+		              "image_circle": "path/static/item/3204.png",
+		              "value": 3204
+		            },
+		             {
+		              "image_Square": "path/to/3206.png",
+		              "image_circle": "path/static/item/3206.png",
+		              "value": 3206
+		            },
+		             {
+		              "image_Square": "path/to/3207.png",
+		              "image_circle": "path/static/item/3207.png",
+		              "value": 3207
+		            },
+		             {
+		              "image_Square": "path/to/2205.png",
+		              "image_circle": "path/static/item/2205.png",
+		              "value": 2205
+		            }
+		          ],
+		          "exp": 16135,
+		          "exp_current_target": "75%",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 1,
+		            "goldk": "9.63k",
+		            "gpm": 601,
+		            "herodead": "124_True",
+		            "kda": "4/7/25",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "elJuukurt 969_True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 9629,
+		          "goldDiffPlayer": -869,
+		          "gold_map":  {
+		            "1": 774,
+		            "2": 111,
+		            "3": 280,
+		            "4": 320,
+		            "5": 1488,
+		            "6": 2227,
+		            "9": 857
+		          },
+		          "gold_map_1": 774,
+		          "gold_map_2": 111,
+		          "gold_map_3": 280,
+		          "gold_map_4": 320,
+		          "gold_map_5": 1488,
+		          "gold_map_6": 2227,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 857,
+		          "gold_map_passive": 2345,
+		          "goldrate": "18.85%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Chip"
+		          ],
+		          "heroid": 124,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 4.142857142857143,
+		          "kill_num": 4,
+		          "last_emblem": [ ],
+		          "level": 14,
+		          "level_eta": "16:32",
+		          "level_percent": 75,
+		          "magic_defense": 155,
+		          "major_left_time": 0,
+		          "mana_percent": 82,
+		          "map_pos":  {
+		            "x": 31.484375,
+		            "y": 11.785156
+		          },
+		          "max_health_point": 8072,
+		          "max_mana": 1800,
+		          "name": "elJuukurt 969",
+		          "physical_defense": 197,
+		          "pick_order": 16,
+		          "picking": false,
+		          "pos": 10,
+		          "rank_assist": 100,
+		          "rank_damage_tower": 13.9,
+		          "rank_dmg_dealt_gold": 63.53,
+		          "rank_dmg_dealt_tkn_death": 62.63,
+		          "rank_gold_map_1": 9,
+		          "rank_gold_map_2": 6,
+		          "rank_gold_map_3": 6,
+		          "rank_gold_map_4": 10,
+		          "rank_gold_map_5": 2,
+		          "rank_gold_map_6": 7,
+		          "rank_gpm": 62.8,
+		          "rank_kda": 72.05,
+		          "rank_kill": 17.39,
+		          "revive_left_time": 14,
+		          "revive_left_time_show": 14,
+		          "roaming_type": "Encourage",
+		          "role": "exp_laner",
+		          "roleid": 344503589,
+		          "rune_id": 20003,
+		          "rune_map":  {
+		            "1": 611,
+		            "2": 121,
+		            "3": 331
+		          },
+		          "rune_map_1": 611,
+		          "rune_map_2": 121,
+		          "rune_map_3": 331,
+		          "skill_left_time": 0,
+		          "skillid": 20100,
+		          "team_id": 683446,
+		          "team_name": "WAHHHH",
+		          "team_simple_name": "WAH",
+		          "total_damage": 40296,
+		          "total_damage_tower": 1503,
+		          "total_heal": 31325,
+		          "total_heal_other": 0,
+		          "total_hurt": 121634,
+		          "ultimate_ready": "true",
+		          "xpm": 1007,
+		          "zoneid": 9362
+		        },
+		        "seat_2":  {
+		          "assist_num": 16,
+		          "ban_heroid": 17,
+		          "ban_order": 4,
+		          "banning": false,
+		          "campid": 2,
+		          "control_time_ms": 0,
+		          "cur_health_point": 0,
+		          "cur_mana": 1900,
+		          "dead": true,
+		          "dead_num": 7,
+		          "dmg_dealt_gold": 6.14,
+		          "dmg_tkn_death": 10257.86,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2308.png",
+		              "image_circle": "path/static/item/2308.png",
+		              "value": 2308
+		            },
+		             {
+		              "image_Square": "path/to/2006.png",
+		              "image_circle": "path/static/item/2006.png",
+		              "value": 2006
+		            },
+		             {
+		              "image_Square": "path/to/2008.png",
+		              "image_circle": "path/static/item/2008.png",
+		              "value": 2008
+		            },
+		             {
+		              "image_Square": "path/to/2009.png",
+		              "image_circle": "path/static/item/2009.png",
+		              "value": 2009
+		            },
+		             {
+		              "image_Square": "path/to/3015.png",
+		              "image_circle": "path/static/item/3015.png",
+		              "value": 3015
+		            },
+		             {
+		              "image_Square": "path/to/3012.png",
+		              "image_circle": "path/static/item/3012.png",
+		              "value": 3012
+		            }
+		          ],
+		          "exp": 16768,
+		          "exp_current_target": "MAX-LEVEL",
+		          "extra_param":  {
+		            "double_kill": 1,
+		            "first_blood": 0,
+		            "goldk": "11.7k",
+		            "gpm": 731,
+		            "herodead": "65_True",
+		            "kda": "8/7/16",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "K1enzy._True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 11701,
+		          "goldDiffPlayer": 1139,
+		          "gold_map":  {
+		            "1": 3759,
+		            "2": 890,
+		            "3": 280,
+		            "4": 660,
+		            "6": 2540
+		          },
+		          "gold_map_1": 3759,
+		          "gold_map_2": 890,
+		          "gold_map_3": 280,
+		          "gold_map_4": 660,
+		          "gold_map_5": 0,
+		          "gold_map_6": 2540,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "22.9%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Claude"
+		          ],
+		          "heroid": 65,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 3.4285714285714284,
+		          "kill_num": 8,
+		          "last_emblem": [ ],
+		          "level": 15,
+		          "level_eta": "14:36",
+		          "level_percent": 100,
+		          "magic_defense": 57,
+		          "major_left_time": 0,
+		          "mana_percent": 100,
+		          "map_pos":  {
+		            "x": 29.296875,
+		            "y": 13.865234
+		          },
+		          "max_health_point": 4200,
+		          "max_mana": 1900,
+		          "name": "K1enzy.",
+		          "physical_defense": 82,
+		          "pick_order": 13,
+		          "picking": false,
+		          "pos": 9,
+		          "rank_assist": 64,
+		          "rank_damage_tower": 48.98,
+		          "rank_dmg_dealt_gold": 93.31,
+		          "rank_dmg_dealt_tkn_death": 36.97,
+		          "rank_gold_map_1": 2,
+		          "rank_gold_map_2": 3,
+		          "rank_gold_map_3": 6,
+		          "rank_gold_map_4": 4,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 5,
+		          "rank_gpm": 76.38,
+		          "rank_kda": 59.63,
+		          "rank_kill": 34.78,
+		          "revive_left_time": 5,
+		          "revive_left_time_show": 5,
+		          "roaming_type": "None",
+		          "role": "jungler",
+		          "roleid": 47059915,
+		          "rune_id": 20007,
+		          "rune_map":  {
+		            "1": 112,
+		            "2": 521,
+		            "3": 132
+		          },
+		          "rune_map_1": 112,
+		          "rune_map_2": 521,
+		          "rune_map_3": 132,
+		          "skill_left_time": 5,
+		          "skillid": 20040,
+		          "team_id": 0,
+		          "team_name": "",
+		          "team_simple_name": "",
+		          "total_damage": 71832,
+		          "total_damage_tower": 5296,
+		          "total_heal": 31407,
+		          "total_heal_other": 0,
+		          "total_hurt": 71805,
+		          "ultimate_ready": "true",
+		          "xpm": 1140,
+		          "zoneid": 2079
+		        },
+		        "seat_3":  {
+		          "assist_num": 19,
+		          "ban_heroid": 0,
+		          "ban_order": 0,
+		          "banning": false,
+		          "campid": 2,
+		          "control_time_ms": 12000,
+		          "cur_health_point": 0,
+		          "cur_mana": 0,
+		          "dead": true,
+		          "dead_num": 4,
+		          "dmg_dealt_gold": 5.74,
+		          "dmg_tkn_death": 27743,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2303.png",
+		              "image_circle": "path/static/item/2303.png",
+		              "value": 2303
+		            },
+		             {
+		              "image_Square": "path/to/3208.png",
+		              "image_circle": "path/static/item/3208.png",
+		              "value": 3208
+		            },
+		             {
+		              "image_Square": "path/to/3204.png",
+		              "image_circle": "path/static/item/3204.png",
+		              "value": 3204
+		            },
+		             {
+		              "image_Square": "path/to/2208.png",
+		              "image_circle": "path/static/item/2208.png",
+		              "value": 2208
+		            },
+		             {
+		              "image_Square": "path/to/1101.png",
+		              "image_circle": "path/static/item/1101.png",
+		              "value": 1101
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            }
+		          ],
+		          "exp": 14516,
+		          "exp_current_target": "98%",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 0,
+		            "goldk": "8.21k",
+		            "gpm": 513,
+		            "herodead": "4_True",
+		            "kda": "1/4/19",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "A11TON_True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 8209,
+		          "goldDiffPlayer": -949,
+		          "gold_map":  {
+		            "1": 2474,
+		            "3": 280,
+		            "4": 442,
+		            "6": 1441
+		          },
+		          "gold_map_1": 2474,
+		          "gold_map_2": 0,
+		          "gold_map_3": 280,
+		          "gold_map_4": 442,
+		          "gold_map_5": 0,
+		          "gold_map_6": 1441,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "16.07%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Alice"
+		          ],
+		          "heroid": 4,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 5,
+		          "kill_num": 1,
+		          "last_emblem": [ ],
+		          "level": 13,
+		          "level_eta": "18:23",
+		          "level_percent": 98,
+		          "magic_defense": 73,
+		          "major_left_time": 0,
+		          "mana_percent": 0,
+		          "map_pos":  {
+		            "x": 37.773438,
+		            "y": 5.9521484
+		          },
+		          "max_health_point": 7911,
+		          "max_mana": 0,
+		          "name": "A11TON",
+		          "physical_defense": 123,
+		          "pick_order": 6,
+		          "picking": false,
+		          "pos": 6,
+		          "rank_assist": 76,
+		          "rank_damage_tower": 12.38,
+		          "rank_dmg_dealt_gold": 87.23,
+		          "rank_dmg_dealt_tkn_death": 100,
+		          "rank_gold_map_1": 5,
+		          "rank_gold_map_2": 10,
+		          "rank_gold_map_3": 6,
+		          "rank_gold_map_4": 8,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 9,
+		          "rank_gpm": 53.61,
+		          "rank_kda": 86.96,
+		          "rank_kill": 4.35,
+		          "revive_left_time": 10,
+		          "revive_left_time_show": 10,
+		          "roaming_type": "None",
+		          "role": "mid_laner",
+		          "roleid": 2077385917,
+		          "rune_id": 20003,
+		          "rune_map":  {
+		            "1": 311,
+		            "2": 721,
+		            "3": 731
+		          },
+		          "rune_map_1": 311,
+		          "rune_map_2": 721,
+		          "rune_map_3": 731,
+		          "skill_left_time": 86,
+		          "skillid": 20100,
+		          "team_id": 0,
+		          "team_name": "",
+		          "team_simple_name": "",
+		          "total_damage": 47112,
+		          "total_damage_tower": 1339,
+		          "total_heal": 53802,
+		          "total_heal_other": 0,
+		          "total_hurt": 110972,
+		          "ultimate_ready": "true",
+		          "xpm": 906,
+		          "zoneid": 19738
+		        },
+		        "seat_4":  {
+		          "assist_num": 7,
+		          "ban_heroid": 42,
+		          "ban_order": 0,
+		          "banning": false,
+		          "campid": 2,
+		          "control_time_ms": 0,
+		          "cur_health_point": 0,
+		          "cur_mana": 1530,
+		          "dead": true,
+		          "dead_num": 6,
+		          "dmg_dealt_gold": 5.44,
+		          "dmg_tkn_death": 9225.83,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2014.png",
+		              "image_circle": "path/static/item/2014.png",
+		              "value": 2014
+		            },
+		             {
+		              "image_Square": "path/to/2014.png",
+		              "image_circle": "path/static/item/2014.png",
+		              "value": 2014
+		            },
+		             {
+		              "image_Square": "path/to/2014.png",
+		              "image_circle": "path/static/item/2014.png",
+		              "value": 2014
+		            },
+		             {
+		              "image_Square": "path/to/2014.png",
+		              "image_circle": "path/static/item/2014.png",
+		              "value": 2014
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            },
+		             {
+		              "image_Square": "path/to/9999.png",
+		              "image_circle": "path/static/item/9999.png",
+		              "value": 9999
+		            }
+		          ],
+		          "exp": 16903,
+		          "exp_current_target": "MAX-LEVEL",
+		          "extra_param":  {
+		            "double_kill": 5,
+		            "first_blood": 0,
+		            "goldk": "13.35k",
+		            "gpm": 833,
+		            "herodead": "56_True",
+		            "kda": "23/6/7",
+		            "kill_lord": 1,
+		            "kill_tortoise": 2,
+		            "legendary": 1,
+		            "namedead": "Sekysss_True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 1
+		          },
+		          "gold": 13346,
+		          "goldDiffPlayer": 1764,
+		          "gold_map":  {
+		            "1": 1273,
+		            "2": 2932,
+		            "3": 280,
+		            "4": 420,
+		            "6": 4869
+		          },
+		          "gold_map_1": 1273,
+		          "gold_map_2": 2932,
+		          "gold_map_3": 280,
+		          "gold_map_4": 420,
+		          "gold_map_5": 0,
+		          "gold_map_6": 4869,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "26.13%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Gusion"
+		          ],
+		          "heroid": 56,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 5,
+		          "kill_num": 23,
+		          "last_emblem": [ ],
+		          "level": 15,
+		          "level_eta": "10:33",
+		          "level_percent": 100,
+		          "magic_defense": 50,
+		          "major_left_time": 0,
+		          "mana_percent": 81,
+		          "map_pos":  {
+		            "x": 33.585938,
+		            "y": 12.535156
+		          },
+		          "max_health_point": 5039,
+		          "max_mana": 1900,
+		          "name": "Sekysss",
+		          "physical_defense": 79,
+		          "pick_order": 7,
+		          "picking": false,
+		          "pos": 8,
+		          "rank_assist": 28,
+		          "rank_damage_tower": 0,
+		          "rank_dmg_dealt_gold": 82.67,
+		          "rank_dmg_dealt_tkn_death": 33.25,
+		          "rank_gold_map_1": 8,
+		          "rank_gold_map_2": 2,
+		          "rank_gold_map_3": 6,
+		          "rank_gold_map_4": 9,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 2,
+		          "rank_gpm": 87.04,
+		          "rank_kda": 86.96,
+		          "rank_kill": 100,
+		          "revive_left_time": 9,
+		          "revive_left_time_show": 9,
+		          "roaming_type": "None",
+		          "role": "roamer",
+		          "roleid": 575941712,
+		          "rune_id": 20005,
+		          "rune_map":  {
+		            "1": 511,
+		            "2": 122,
+		            "3": 131
+		          },
+		          "rune_map_1": 511,
+		          "rune_map_2": 122,
+		          "rune_map_3": 131,
+		          "skill_left_time": 0,
+		          "skillid": 20020,
+		          "team_id": 8969624,
+		          "team_name": "Nine Etérnity",
+		          "team_simple_name": "999",
+		          "total_damage": 72586,
+		          "total_damage_tower": 0,
+		          "total_heal": 39540,
+		          "total_heal_other": 0,
+		          "total_hurt": 55355,
+		          "ultimate_ready": "true",
+		          "xpm": 1579,
+		          "zoneid": 8301
+		        },
+		        "seat_5":  {
+		          "assist_num": 14,
+		          "ban_heroid": 0,
+		          "ban_order": 2,
+		          "banning": false,
+		          "campid": 2,
+		          "control_time_ms": 7000,
+		          "cur_health_point": 0,
+		          "cur_mana": 2021,
+		          "dead": true,
+		          "dead_num": 8,
+		          "dmg_dealt_gold": 6.58,
+		          "dmg_tkn_death": 5286.25,
+		          "emblem_list":  [
+		            1,
+		            2,
+		            3
+		          ],
+		          "equip_list":  [
+		             {
+		              "image_Square": "path/to/2304.png",
+		              "image_circle": "path/static/item/2304.png",
+		              "value": 2304
+		            },
+		             {
+		              "image_Square": "path/to/3110.png",
+		              "image_circle": "path/static/item/3110.png",
+		              "value": 3110
+		            },
+		             {
+		              "image_Square": "path/to/3111.png",
+		              "image_circle": "path/static/item/3111.png",
+		              "value": 3111
+		            },
+		             {
+		              "image_Square": "path/to/3105.png",
+		              "image_circle": "path/static/item/3105.png",
+		              "value": 3105
+		            },
+		             {
+		              "image_Square": "path/to/2101.png",
+		              "image_circle": "path/static/item/2101.png",
+		              "value": 2101
+		            },
+		             {
+		              "image_Square": "path/to/1101.png",
+		              "image_circle": "path/static/item/1101.png",
+		              "value": 1101
+		            }
+		          ],
+		          "exp": 14490,
+		          "exp_current_target": "96%",
+		          "extra_param":  {
+		            "double_kill": 0,
+		            "first_blood": 0,
+		            "goldk": "8.2k",
+		            "gpm": 512,
+		            "herodead": "52_True",
+		            "kda": "3/8/14",
+		            "kill_lord": 0,
+		            "kill_tortoise": 0,
+		            "legendary": 0,
+		            "namedead": "ucii anakk baik_True",
+		            "penta_kill": 0,
+		            "quadra_kill": 0,
+		            "steal": 0,
+		            "triple_kill": 0
+		          },
+		          "gold": 8200,
+		          "goldDiffPlayer": -7129,
+		          "gold_map":  {
+		            "1": 2565,
+		            "2": 12,
+		            "3": 280,
+		            "4": 454,
+		            "6": 1317
+		          },
+		          "gold_map_1": 2565,
+		          "gold_map_2": 12,
+		          "gold_map_3": 280,
+		          "gold_map_4": 454,
+		          "gold_map_5": 0,
+		          "gold_map_6": 1317,
+		          "gold_map_7": 0,
+		          "gold_map_8": 0,
+		          "gold_map_9": 0,
+		          "gold_map_passive": 0,
+		          "goldrate": "16.05%",
+		          "health_percent": 0,
+		          "hero_name":  [
+		            "Pharsa"
+		          ],
+		          "heroid": 52,
+		          "hit_rate":  [
+		             {
+		              "cast_times": 14,
+		              "hit_percentage": 64,
+		              "hit_times": 9,
+		              "skill_name": "Feathered Air Strike",
+		              "skillid": "5230"
+		            },
+		             {
+		              "cast_times": 0,
+		              "hit_percentage": 0,
+		              "hit_times": 0,
+		              "skill_name": "Unknown",
+		              "skillid": "0"
+		            }
+		          ],
+		          "judger": false,
+		          "kda_rate": 2.125,
+		          "kill_num": 3,
+		          "last_emblem": [ ],
+		          "level": 13,
+		          "level_eta": "18:25",
+		          "level_percent": 96,
+		          "magic_defense": 45,
+		          "major_left_time": 0,
+		          "mana_percent": 96,
+		          "map_pos":  {
+		            "x": 46.617188,
+		            "y": -2.6552734
+		          },
+		          "max_health_point": 4360,
+		          "max_mana": 2100,
+		          "name": "ucii anakk baik",
+		          "physical_defense": 64,
+		          "pick_order": 10,
+		          "picking": false,
+		          "pos": 7,
+		          "rank_assist": 56,
+		          "rank_damage_tower": 21.94,
+		          "rank_dmg_dealt_gold": 100,
+		          "rank_dmg_dealt_tkn_death": 19.05,
+		          "rank_gold_map_1": 4,
+		          "rank_gold_map_2": 9,
+		          "rank_gold_map_3": 6,
+		          "rank_gold_map_4": 7,
+		          "rank_gold_map_5": 3,
+		          "rank_gold_map_6": 10,
+		          "rank_gpm": 53.5,
+		          "rank_kda": 36.96,
+		          "rank_kill": 13.04,
+		          "revive_left_time": 27,
+		          "revive_left_time_show": 27,
+		          "roaming_type": "None",
+		          "role": "gold_laner",
+		          "roleid": 132658887,
+		          "rune_id": 20006,
+		          "rune_map":  {
+		            "1": 811,
+		            "2": 621,
+		            "3": 131
+		          },
+		          "rune_map_1": 811,
+		          "rune_map_2": 621,
+		          "rune_map_3": 131,
+		          "skill_left_time": 87,
+		          "skillid": 20100,
+		          "team_id": 5690530,
+		          "team_name": "Uπknown",
+		          "team_simple_name": "UK",
+		          "total_damage": 53965,
+		          "total_damage_tower": 2372,
+		          "total_heal": 4951,
+		          "total_heal_other": 0,
+		          "total_hurt": 42290,
+		          "ultimate_ready": "true",
+		          "xpm": 904,
+		          "zoneid": 2666
+		        },
+		        "team_id": 0,
+		        "team_name": "",
+		        "team_simple_name": "",
+		        "team_total_damage_dealt": 285791,
+		        "team_total_damage_taken": 402056,
+		        "team_total_heal": 10510,
+		        "team_total_tower_damage": 10510,
+		        "total_money": 51085,
+		        "total_money_k": "51.09k"
+		      },
+		       {
+		        "ban_hero_list": null,
+		        "campid": 5,
+		        "enemy_area_get":  {
+		          "end_time": 0,
+		          "monster_gold": 0,
+		          "orange_buffer_num": 0,
+		          "purple_buffer_num": 0
+		        },
+		        "kill_lord": 0,
+		        "kill_lord_advantage":  {
+		          "begin_time": 0,
+		          "end_time": 0,
+		          "exp": 0,
+		          "gold": 0,
+		          "tower_hp": 0
+		        },
+		        "kill_tortoise": 0,
+		        "kill_tower": 0,
+		        "score": 0,
+		        "team_id": 4945604,
+		        "team_name": "Goceng Pertamaa",
+		        "team_simple_name": "5K",
+		        "total_money": 0
+		      }
+		    ],
+		    "dataid": 3907,
+		    "game_patch": "2.1.61",
+		    "game_time": 961,
+		    "kill_lord_money_advantage": 3582,
+		    "lord_left_time": 81,
+		    "paused": false,
+		    "play_mode_id": 3,
+		    "roomname": "",
+		    "rune_2023": true,
+		    "start_time": "2026-04-22 19:54:32",
+		    "state": "end",
+		    "state_left_time": 0,
+		    "tortoise_left_time": 0,
+		    "win_camp": 1
+		  },
+		  "dataid": 3907,
+		  "message": "success"
+}

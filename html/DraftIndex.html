@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <script src="html/js/overlay-sse-shim.js"></script>
+  <title>Draft Index Overlay</title>
+  <style>
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 600;
+      font-display: block;
+      src: local('GeneralSans-Semibold'), local('GeneralSans-SemiBold'), local('General Sans Semibold'), url('/fonts/GeneralSans-Semibold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 700;
+      font-display: block;
+      src: local('GeneralSans-Bold'), local('General Sans Bold'), url('/fonts/GeneralSans-Bold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'Anton';
+      font-weight: 400;
+      font-display: block;
+      src: local('Anton'), local('Anton Regular'), url('/fonts/Anton-Regular.ttf') format('truetype');
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    /* ── Debug bar (backtick to toggle) — local-only testing, bypasses
+       the network entirely, same spirit as mplfs.html's debug card ── */
+    #di-debug-bar {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 30px;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      padding: 0 14px; gap: 10px;
+      z-index: 9999;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px; color: #bbb;
+    }
+    #di-debug-bar.open { display: flex; }
+    #di-debug-bar button {
+      height: 22px; padding: 0 10px;
+      background: #2a2a2a; border: 1px solid #555; border-radius: 3px;
+      color: #bbb; cursor: pointer; font-size: 12px;
+    }
+    #di-debug-bar button:hover { background: #383838; color: #fff; }
+
+    /* ── Root wrapper — whole overlay fades in/out as one; individual
+       phase containers underneath animate their own contents. Transparent
+       — this is a browser-source overlay composited over the live scene
+       in OBS, not a full-screen opaque card (indexguide.png/indexguide2.png
+       are just white-canvas design mockups, not the on-air background). ── */
+    #di-root {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+      background: transparent;
+    }
+
+    #di-phase1, #di-phase2 {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: none;
+    }
+
+    /* ── Phase 1 — Smart logo + DRAFT INDEX title lockup, mask-revealed
+       from the shared center seam (see indexguide.png) ── */
+    #di-smart-logo-p1 {
+      position: absolute;
+      left: 377px; top: 469px;
+      width: 424px; height: 154px;
+      object-fit: contain;
+    }
+    #di-title-text {
+      position: absolute;
+      left: 855px; top: 469px;
+      width: 700px; height: 154px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 145px;
+      line-height: 1;
+      color: #0a0a0a;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* ── Phase 2 — mini Smart badge + blue/red team panels + stat bars
+       (see indexguide2.png / indexguide3.png) ── */
+    #di-smart-logo-p2 {
+      position: absolute;
+      left: 874px; top: 301px;
+      width: 172px; height: 63px;
+      object-fit: contain;
+    }
+
+    .di-team-box {
+      position: absolute;
+      width: 285px; height: 414px;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+    }
+    #di-blue-box { left: 166px;  top: 340px; background-image: url('/assets/index/indexblue.png'); }
+    #di-red-box  { left: 1429px; top: 342px; background-image: url('/assets/index/indexred.png'); }
+
+    .di-team-logo {
+      position: absolute;
+      left: 61px; width: 164px; height: 164px;
+      object-fit: contain;
+    }
+    #di-blue-logo { top: 11px;  }
+    #di-red-logo  { top: 239px; }
+
+    .di-team-name {
+      position: absolute;
+      left: 0; width: 285px; height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #di-blue-name { top: 189px; }
+    #di-red-name  { top: 157px; }
+    .di-team-name span {
+      display: block;
+      max-width: 265px;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 34px;
+      line-height: 1;
+      color: #fff;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .di-stat-row {
+      position: absolute;
+      left: 0; width: 285px; height: 78.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+    #di-blue-counter { top: 257px;   }
+    #di-blue-lineup  { top: 335.5px; }
+    #di-red-counter  { top: 0;       }
+    #di-red-lineup   { top: 78.5px;  }
+    .di-stat-label {
+      font-family: 'General Sans', sans-serif;
+      font-weight: 600;
+      font-size: 12px;
+      line-height: 13px;
+      letter-spacing: 0.02em;
+      color: #222;
+      text-transform: uppercase;
+      text-align: left;
+    }
+    .di-stat-value {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 30px;
+      line-height: 1;
+      color: #0a0a0a;
+    }
+
+    /* ── Stat comparison bars — single editable viewport; the 7 rows
+       inside are generated from DI_BARS + the live API data, not
+       individually positioned (same philosophy as the Credit Reel
+       viewport in mplfs.html — only the box is drag/resize-able). ── */
+    #di-bars-container {
+      position: absolute;
+      left: 634px; top: 370px;
+      width: 622px; height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+    .di-bar-row {
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .di-bar-label {
+      font-family: 'General Sans', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: #111;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .di-bar-line {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 14px;
+    }
+    .di-bar-num {
+      width: 46px;
+      flex-shrink: 0;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 1;
+      color: #0a0a0a;
+    }
+    .di-bar-num-blue { text-align: right; }
+    .di-bar-num-red  { text-align: left;  }
+    .di-bar-track {
+      flex: 1 1 auto;
+      height: 18px;
+      border-radius: 9px;
+      overflow: hidden;
+      display: flex;
+      background: #e2e2e6;
+    }
+    .di-bar-seg {
+      height: 100%;
+      width: 50%;
+      transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .di-bar-seg-blue { background: #1E64FF; }
+    .di-bar-seg-red  { background: #FF3232; }
+  </style>
+</head>
+<body>
+
+<div id="di-debug-bar">
+  <span>Draft Index debug —</span>
+  <button onclick="showDraftIndexScene()">▶ SHOW</button>
+  <button onclick="hideDraftIndexScene()">■ HIDE</button>
+  <button onclick="diDebugJumpToPhase2()">⏭ JUMP TO PHASE 2</button>
+</div>
+
+<div id="di-root">
+
+  <div id="di-phase1">
+    <img id="di-smart-logo-p1" src="/assets/index/indexsmart.png" alt="">
+    <div id="di-title-text">DRAFT INDEX</div>
+  </div>
+
+  <div id="di-phase2">
+    <img id="di-smart-logo-p2" src="/assets/index/indexsmart.png" alt="">
+
+    <div id="di-blue-box" class="di-team-box">
+      <img id="di-blue-logo" class="di-team-logo" alt="">
+      <div id="di-blue-name" class="di-team-name"><span></span></div>
+      <div id="di-blue-counter" class="di-stat-row">
+        <div class="di-stat-label">COUNTER<br>INDEX</div>
+        <div class="di-stat-value">0.0</div>
+      </div>
+      <div id="di-blue-lineup" class="di-stat-row">
+        <div class="di-stat-label">LINE UP<br>RATING</div>
+        <div class="di-stat-value">0.0</div>
+      </div>
+    </div>
+
+    <div id="di-red-box" class="di-team-box">
+      <div id="di-red-counter" class="di-stat-row">
+        <div class="di-stat-label">COUNTER<br>INDEX</div>
+        <div class="di-stat-value">0.0</div>
+      </div>
+      <div id="di-red-lineup" class="di-stat-row">
+        <div class="di-stat-label">LINE UP<br>RATING</div>
+        <div class="di-stat-value">0.0</div>
+      </div>
+      <img id="di-red-logo" class="di-team-logo" alt="">
+      <div id="di-red-name" class="di-team-name"><span></span></div>
+    </div>
+
+    <div id="di-bars-container"></div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Constants ─────────────────────────────────────────────────
+     PHASE1_HOLD_MS is how long the title card stays up before the
+     scene cuts to the comparison (phase 2). REVEAL_MS is the
+     center-out mask reveal duration for the phase-1 lockup. */
+  var PHASE1_HOLD_MS = 1000;
+  var REVEAL_MS       = 800;
+  var EASE_OUT        = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+  /* Stat categories, in display order — key matches the Line-Up Rate
+     API's t1/t2 fields (see /api/lineuprate-url in Settings to repoint
+     the API; labels match indexguide3.png). */
+  var DI_BARS = [
+    { key: 'early_mid_ability',  label: 'Early to Mid Game Potential' },
+    { key: 'late_stage_ability', label: 'Late Game Potential'         },
+    { key: 'damage_ability',     label: 'Damage Potential'            },
+    { key: 'survival_ability',   label: 'Survival Potential'          },
+    { key: 'control_ability',    label: 'Crowd Control'               },
+    { key: 'push_ability',       label: 'Push Potential'              },
+    { key: 'team_coordination',  label: 'Team Coordination'           },
+  ];
+
+  var diRoot    = document.getElementById('di-root');
+  var diPhase1  = document.getElementById('di-phase1');
+  var diPhase2  = document.getElementById('di-phase2');
+  var diLogoP1  = document.getElementById('di-smart-logo-p1');
+  var diTitle   = document.getElementById('di-title-text');
+  var diLogoP2  = document.getElementById('di-smart-logo-p2');
+  var diBlueBox = document.getElementById('di-blue-box');
+  var diRedBox  = document.getElementById('di-red-box');
+  var diBarsContainer = document.getElementById('di-bars-container');
+
+  /* sceneToken guards against a stale setTimeout/fetch from a previous
+     SHOW still running after a HIDE (or another SHOW) supersedes it —
+     same pattern mplfs.html uses (activeFeature guard). */
+  var sceneToken = 0;
+
+  /* Every entrance/exit animation below uses fill:'forwards'/'both' so
+     its end state holds instead of snapping back to the CSS default —
+     but a held fill persists indefinitely and outranks any later plain
+     style write on the same property, so a stale animation from the
+     previous show/hide cycle silently overrides the next one (e.g.
+     HIDE's opacity:0 fill still winning over the next SHOW setting
+     display:block, leaving the whole scene invisible). Cancelling
+     every animation on these elements at the start of each entry point
+     clears that slate first. */
+  var DI_ANIMATED_ELS = [diRoot, diLogoP1, diTitle, diLogoP2, diBlueBox, diRedBox, diBarsContainer];
+  function diCancelAllAnimations() {
+    DI_ANIMATED_ELS.forEach(function (el) {
+      el.getAnimations().forEach(function (a) { a.cancel(); });
+    });
+  }
+
+  /* ── Build the 7 stat-bar rows once — content itself (labels/values)
+     comes from the API, only the container box is edit-tab draggable. */
+  var diBarEls = [];
+  function buildBarsRows() {
+    diBarsContainer.innerHTML = '';
+    diBarEls = DI_BARS.map(function (bar) {
+      var row = document.createElement('div');
+      row.className = 'di-bar-row';
+
+      var label = document.createElement('div');
+      label.className = 'di-bar-label';
+      label.textContent = bar.label;
+      row.appendChild(label);
+
+      var line = document.createElement('div');
+      line.className = 'di-bar-line';
+
+      var numBlue = document.createElement('div');
+      numBlue.className = 'di-bar-num di-bar-num-blue';
+      numBlue.textContent = '0.0';
+
+      var track = document.createElement('div');
+      track.className = 'di-bar-track';
+      var segBlue = document.createElement('div');
+      segBlue.className = 'di-bar-seg di-bar-seg-blue';
+      var segRed = document.createElement('div');
+      segRed.className = 'di-bar-seg di-bar-seg-red';
+      track.appendChild(segBlue);
+      track.appendChild(segRed);
+
+      var numRed = document.createElement('div');
+      numRed.className = 'di-bar-num di-bar-num-red';
+      numRed.textContent = '0.0';
+
+      line.appendChild(numBlue);
+      line.appendChild(track);
+      line.appendChild(numRed);
+      row.appendChild(line);
+      diBarsContainer.appendChild(row);
+
+      return { numBlue: numBlue, numRed: numRed, segBlue: segBlue, segRed: segRed, line: line };
+    });
+  }
+  buildBarsRows();
+
+  /* ── Number count-up (same easing/shape as Team Hexagon's thCountUp) */
+  function diFmt1(v) { return (Math.round(v * 10) / 10).toFixed(1); }
+  function diCountUp(el, to, durationMs) {
+    if (!el) return;
+    var start = performance.now();
+    function tick(now) {
+      var t = Math.min(1, (now - start) / durationMs);
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = diFmt1(to * eased);
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = diFmt1(to);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function diSetBar(i, blueVal, redVal, animate) {
+    var els = diBarEls[i];
+    if (!els) return;
+    var total = blueVal + redVal;
+    var bluePct = total > 0 ? (blueVal / total * 100) : 50;
+    var redPct  = 100 - bluePct;
+    els.segBlue.style.width = bluePct + '%';
+    els.segRed.style.width  = redPct + '%';
+    if (!animate) {
+      els.numBlue.textContent = diFmt1(blueVal);
+      els.numRed.textContent  = diFmt1(redVal);
+      return;
+    }
+    diCountUp(els.numBlue, blueVal, 700);
+    diCountUp(els.numRed,  redVal,  700);
+  }
+
+  /* ── Shrink-to-fit for team short codes (see CLAUDE.md font-fitting
+     convention) — short codes are usually 3-5 chars so this rarely
+     kicks in, but keeps a long/unexpected code from overflowing. ── */
+  function diFitTeamName(boxEl, textEl, maxSize, minSize) {
+    var size = maxSize;
+    textEl.style.fontSize = size + 'px';
+    while (textEl.scrollWidth > boxEl.clientWidth - 20 && size > minSize) {
+      textEl.style.fontSize = (--size) + 'px';
+    }
+  }
+
+  function diApplyTeamBox(prefix, teamObj, logoTricode) {
+    var nameBox  = document.getElementById('di-' + prefix + '-name');
+    var nameText = nameBox.querySelector('span');
+    var logoEl   = document.getElementById('di-' + prefix + '-logo');
+    var short    = (teamObj && teamObj.short) || '';
+    /* Name text and logo both follow the live game feed's own campid (see
+       diApplyPhase2Data/diResolveCamps), not the Match Board's home/away —
+       keeps the tricode label and the logo always matching. Falls back to
+       the Match Board short code only if the live feed has no tricode for
+       that camp yet. */
+    var logoTri = logoTricode || short;
+    nameText.textContent = logoTri;
+    diFitTeamName(nameBox, nameText, 34, 18);
+    logoEl.onerror = function () { logoEl.style.display = 'none'; };
+    logoEl.style.display = '';
+    logoEl.src = logoTri ? '/logos/' + encodeURIComponent(logoTri) + '.png' : '';
+  }
+
+  /* ── Data fetch ──────────────────────────────────────────────── */
+  /* Team logos: campid 1 = blue, campid 2 = red — same strict, live-feed-
+     based convention as mplfs.html's Final Team scene (updateFtTeamIdentity/
+     ftResolveCardCamps), independent of the Match Board's home/away call. */
+  function diFetchGameData() {
+    return fetch('/api/gamedata-proxy', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+  }
+  function diResolveCamps(gd) {
+    var camps = (gd && gd.data && gd.data.camp_list) || [];
+    var blueCamp = null, redCamp = null;
+    for (var i = 0; i < camps.length; i++) {
+      if (camps[i].campid === 1) blueCamp = camps[i];
+      if (camps[i].campid === 2) redCamp = camps[i];
+    }
+    return {
+      blue: (blueCamp && blueCamp.team_simple_name) || '',
+      red:  (redCamp  && redCamp.team_simple_name)  || ''
+    };
+  }
+  function diFetchMatchState() {
+    return fetch('/match/state', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+  }
+  function diFetchLineupRate() {
+    return fetch('/api/lineuprate-data', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+  }
+
+  /* Line-Up Rate's upstream (theapi.dpdns.org) has hung/errored for extended
+     periods before — the server route (/api/lineuprate-data) already times
+     out at 5s and resolves on its own, so this just waits for the real
+     data instead of racing a second, redundant client-side cap: no
+     artificial ceiling here means Phase 2 never reveals early with
+     blank/stale values, it waits for the actual fetch and reveals the
+     instant it resolves. */
+  function diFetchPhase2Data() {
+    return Promise.all([diFetchMatchState(), diFetchLineupRate(), diFetchGameData()]);
+  }
+
+  /* t1/t2 → blue/red: this codebase's universal convention is camp1 =
+     blue = home (see CLAUDE.md campid note), and unlike the Team Head
+     to Head API, the Line-Up Rate API doesn't return a tricode to
+     cross-check sides against — so t1 is taken as blue/home and t2 as
+     red/away directly. Revisit if a real match ever shows this
+     backwards against the live API's actual side convention. */
+  function diNum(v) { return typeof v === 'number' ? v : (parseFloat(v) || 0); }
+  function diNormalizeSides(lu) {
+    var d = (lu && lu.data) || {};
+    var t1 = d.t1 || {};
+    var t2 = d.t2 || {};
+    return { blue: t1, red: t2 };
+  }
+
+  function diApplyPhase2Data(ms, lu, animate, gd) {
+    var home = (ms && ms.home) || {};
+    var away = (ms && ms.away) || {};
+    var liveTri = diResolveCamps(gd);
+    diApplyTeamBox('blue', home, liveTri.blue);
+    diApplyTeamBox('red', away, liveTri.red);
+
+    var sides = diNormalizeSides(lu);
+    var blue = sides.blue, red = sides.red;
+
+    var blueCounter = document.querySelector('#di-blue-counter .di-stat-value');
+    var redCounter  = document.querySelector('#di-red-counter .di-stat-value');
+    var blueLineup  = document.querySelector('#di-blue-lineup .di-stat-value');
+    var redLineup   = document.querySelector('#di-red-lineup .di-stat-value');
+    if (animate) {
+      diCountUp(blueCounter, diNum(blue.counter_the_opponent), 700);
+      diCountUp(redCounter,  diNum(red.counter_the_opponent),  700);
+      diCountUp(blueLineup,  diNum(blue.lineup_rating), 700);
+      diCountUp(redLineup,   diNum(red.lineup_rating),  700);
+    } else {
+      blueCounter.textContent = diFmt1(diNum(blue.counter_the_opponent));
+      redCounter.textContent  = diFmt1(diNum(red.counter_the_opponent));
+      blueLineup.textContent  = diFmt1(diNum(blue.lineup_rating));
+      redLineup.textContent   = diFmt1(diNum(red.lineup_rating));
+    }
+
+    DI_BARS.forEach(function (bar, i) {
+      diSetBar(i, diNum(blue[bar.key]), diNum(red[bar.key]), animate);
+    });
+  }
+
+  /* ── Data-content opacity (logos/names/stat numbers/bar values) ──
+     Separate from diRevealPhase2()'s shell animation (box slide-in, mini
+     logo pop, bars container fade) on purpose — this scene is sponsored
+     and must always reveal on schedule, never delayed waiting on the
+     Line-Up Rate fetch (2-2.6s worst case). Content starts transparent
+     the moment phase 2 is entered and fades in separately the instant
+     real data actually lands, whenever that is relative to the shell
+     reveal — see diTransitionToPhase2(). Bar LABELS aren't included
+     here since they're static (from DI_BARS), not fetched. */
+  var DI_DATA_SELECTORS = [
+    '#di-blue-logo', '#di-red-logo',
+    '#di-blue-name', '#di-red-name',
+    '#di-blue-counter .di-stat-value', '#di-red-counter .di-stat-value',
+    '#di-blue-lineup .di-stat-value',  '#di-red-lineup .di-stat-value',
+  ];
+  function diSetDataOpacity(value, animate) {
+    DI_DATA_SELECTORS.forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (!el) return;
+      el.style.transition = animate ? 'opacity 300ms ease-out' : 'none';
+      el.style.opacity = String(value);
+    });
+    diBarEls.forEach(function (els) {
+      if (!els.line) return;
+      els.line.style.transition = animate ? 'opacity 300ms ease-out' : 'none';
+      els.line.style.opacity = String(value);
+    });
+  }
+
+  /* ── Phase 1 — mask reveal from the center seam, then ease out ── */
+  function diResetPhase1() {
+    diLogoP1.style.clipPath = 'inset(0 0 0 100%)';
+    diTitle.style.clipPath  = 'inset(0 100% 0 0)';
+  }
+  function diRevealPhase1() {
+    diLogoP1.animate(
+      [{ clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 0%)' }],
+      { duration: REVEAL_MS, easing: EASE_OUT, fill: 'forwards' }
+    );
+    diTitle.animate(
+      [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }],
+      { duration: REVEAL_MS, easing: EASE_OUT, fill: 'forwards' }
+    );
+  }
+  function diHidePhase1(durationMs) {
+    var kf = [
+      { opacity: 1, transform: 'scale(1)' },
+      { opacity: 0, transform: 'scale(0.85)' },
+    ];
+    diLogoP1.animate(kf, { duration: durationMs, easing: 'ease-in', fill: 'forwards' });
+    diTitle.animate(kf,  { duration: durationMs, easing: 'ease-in', fill: 'forwards' });
+  }
+
+  /* ── Phase 2 entrance — mini logo pops in, team panels slide in from
+     their respective sides, bars fade in and grow (staggered). ── */
+  function diRevealPhase2() {
+    diLogoP2.animate(
+      [{ opacity: 0, transform: 'scale(0.6)' }, { opacity: 1, transform: 'scale(1)' }],
+      { duration: 500, easing: EASE_OUT, fill: 'both' }
+    );
+    diBlueBox.animate(
+      [{ opacity: 0, transform: 'translateX(-140px)' }, { opacity: 1, transform: 'translateX(0)' }],
+      { duration: 650, easing: EASE_OUT, fill: 'both' }
+    );
+    diRedBox.animate(
+      [{ opacity: 0, transform: 'translateX(140px)' }, { opacity: 1, transform: 'translateX(0)' }],
+      { duration: 650, easing: EASE_OUT, fill: 'both' }
+    );
+    diBarsContainer.animate(
+      [{ opacity: 0 }, { opacity: 1 }],
+      { duration: 400, delay: 150, easing: 'ease-out', fill: 'both' }
+    );
+    diBarEls.forEach(function (els, i) {
+      els.segBlue.style.transitionDelay = (200 + i * 80) + 'ms';
+      els.segRed.style.transitionDelay  = (200 + i * 80) + 'ms';
+    });
+  }
+  function diResetPhase2Transition() {
+    diBarEls.forEach(function (els) {
+      els.segBlue.style.transitionDelay = '0ms';
+      els.segRed.style.transitionDelay  = '0ms';
+    });
+  }
+
+  /* ── Preload images before revealing (avoids a partially-drawn frame
+     — same helper shape as mplfs.html's preloadMedia). ── */
+  function diPreload(els, maxWaitMs) {
+    return Promise.all(Array.prototype.map.call(els, function (el) {
+      return new Promise(function (resolve) {
+        if (!el.getAttribute('src')) return resolve();
+        if (el.complete) return resolve();
+        el.addEventListener('load', resolve, { once: true });
+        el.addEventListener('error', resolve, { once: true });
+        setTimeout(resolve, maxWaitMs);
+      });
+    }));
+  }
+
+  /* ── Main sequence ─────────────────────────────────────────────
+     skipIntro=true restores an already-active scene straight into
+     its settled phase-2 state (e.g. a browser source reloading
+     mid-show) instead of replaying the title card from scratch. */
+  function showDraftIndexScene(skipIntro) {
+    var token = ++sceneToken;
+    diCancelAllAnimations();
+    diRoot.style.display = 'block';
+
+    if (skipIntro) {
+      diPhase1.style.display = 'none';
+      diPhase2.style.display = 'block';
+      diLogoP2.style.opacity = '1';
+      diLogoP2.style.transform = 'scale(1)';
+      diBlueBox.style.opacity = '1';
+      diBlueBox.style.transform = 'translateX(0)';
+      diRedBox.style.opacity = '1';
+      diRedBox.style.transform = 'translateX(0)';
+      diBarsContainer.style.opacity = '1';
+      diFetchPhase2Data().then(function (r) {
+        if (token !== sceneToken) return;
+        diApplyPhase2Data(r[0], r[1], false, r[2]);
+      });
+      return;
+    }
+
+    diPhase2.style.display = 'none';
+    diLogoP2.style.opacity = '0';
+    diBlueBox.style.opacity = '0';
+    diRedBox.style.opacity = '0';
+    diBarsContainer.style.opacity = '0';
+    diResetPhase2Transition();
+    DI_BARS.forEach(function (_, i) { diSetBar(i, 0, 0, false); });
+
+    diPhase1.style.display = 'block';
+    diResetPhase1();
+
+    /* Kick the data fetch off now, in parallel with the whole phase-1
+       title card, instead of waiting for the phase-2 cut — the Line-Up
+       Rate API alone can take 2-2.6s to answer, so this gives it as
+       much of a head start as the title card's runway allows. Same
+       shape as Team Hexagon's showTeamHexagon(), which starts its
+       /match/state fetch before the transition even begins. */
+    var dataPromise = diFetchPhase2Data();
+
+    diPreload([diLogoP1], 500).then(function () {
+      if (token !== sceneToken) return;
+      diRevealPhase1();
+
+      /* Hold phase 1 (the branded title card) until EITHER the normal
+         pacing time has elapsed OR the data fetch actually settles —
+         whichever is longer — instead of cutting to phase 2 on a fixed
+         timer and hoping the data is ready. The fetch started above (in
+         parallel with the whole title card) already gives it a head
+         start, so on the common/fast path this behaves exactly like the
+         old fixed timer. On a slow Line-Up Rate response, phase 1 (which
+         is itself sponsored, always-safe content) just stays up a bit
+         longer instead of cutting to an empty/incomplete phase 2 — this
+         is bounded by /api/lineuprate-data's own ~5s server-side
+         timeout (see diFetchLineupRate above), never indefinite. */
+      var minHold = new Promise(function (resolve) {
+        setTimeout(resolve, REVEAL_MS + PHASE1_HOLD_MS);
+      });
+      Promise.all([dataPromise, minHold]).then(function (results) {
+        if (token !== sceneToken) return;
+        diTransitionToPhase2(token, results[0]);
+      });
+    });
+  }
+
+  function diTransitionToPhase2(token, data) {
+    diHidePhase1(380);
+
+    setTimeout(function () {
+      if (token !== sceneToken) return;
+      diPhase1.style.display = 'none';
+      diPhase2.style.display = 'block';
+
+      /* Data already finished loading during phase 1's hold above, so
+         apply it and decide up front whether there's anything to show —
+         no more waiting once we get here. If every source failed, leave
+         the data content transparent so the shell (mini logo pop, box
+         slide-in, bars fade) still plays on schedule without showing
+         broken/zeroed placeholders. */
+      var gotData = !!(data[0] || data[1] || data[2]);
+      diApplyPhase2Data(data[0], data[1], true, data[2]);
+      diSetDataOpacity(gotData ? 1 : 0, false);
+
+      if (gotData) {
+        diPreload(diPhase2.querySelectorAll('img'), 900).then(function () {
+          if (token !== sceneToken) return;
+          diRevealPhase2();
+        });
+      } else {
+        diRevealPhase2();
+      }
+    }, 380);
+  }
+
+  function hideDraftIndexScene() {
+    sceneToken++; /* invalidate any in-flight show sequence */
+    diCancelAllAnimations();
+    var kf = [{ opacity: 1 }, { opacity: 0 }];
+    diRoot.animate(kf, { duration: 300, easing: 'ease-in', fill: 'forwards' });
+    setTimeout(function () {
+      diRoot.style.display = 'none';
+      diPhase1.style.display = 'none';
+      diPhase2.style.display = 'none';
+    }, 300);
+  }
+
+  /* ── Local debug helpers ──────────────────────────────────────── */
+  window.showDraftIndexScene = showDraftIndexScene;
+  window.hideDraftIndexScene = hideDraftIndexScene;
+  window.diDebugJumpToPhase2 = function () { showDraftIndexScene(true); };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '`') document.getElementById('di-debug-bar').classList.toggle('open');
+  });
+
+  /* ── Dashboard Edit-tab force-show (see EDIT_CONFIGS' draftindex_intro
+     / draftindex_compare in dashboard.html) — static, unanimated, no
+     network dependency for the intro; compare fetches live data once
+     so the drag targets sit at realistic widths. ── */
+  window.showDraftIndexIntroForEdit = function () {
+    sceneToken++;
+    diCancelAllAnimations();
+    diRoot.style.display = 'block';
+    diPhase1.style.display = 'block';
+    diPhase2.style.display = 'none';
+    diLogoP1.style.clipPath = 'inset(0 0 0 0%)';
+    diTitle.style.clipPath  = 'inset(0 0% 0 0)';
+  };
+  window.showDraftIndexCompareForEdit = function () {
+    var token = ++sceneToken;
+    diCancelAllAnimations();
+    diRoot.style.display = 'block';
+    diPhase1.style.display = 'none';
+    diPhase2.style.display = 'block';
+    diLogoP2.style.opacity = '1';
+    diLogoP2.style.transform = 'scale(1)';
+    diBlueBox.style.opacity = '1';
+    diBlueBox.style.transform = 'translateX(0)';
+    diRedBox.style.opacity = '1';
+    diRedBox.style.transform = 'translateX(0)';
+    diBarsContainer.style.opacity = '1';
+    diFetchPhase2Data().then(function (r) {
+      if (token !== sceneToken) return;
+      diApplyPhase2Data(r[0], r[1], false, r[2]);
+    });
+  };
+
+  /* ── Live control (SSE) ──────────────────────────────────────── */
+  // Backed by the shared SharedWorker (html/js/overlay-shared-worker.js) —
+  // this page opens zero real connections of its own now, so having
+  // several overlay browser sources/tabs open at once no longer eats into
+  // the browser's shared connection pool per page.
+  var es = createOverlaySSE();
+
+  /* Fired by routes/overlayStyles.js after any Edit-tab Save — force a
+     hard reload so new position/size overrides apply immediately (see
+     mplfs.html's connectSSE() for the identical pattern). */
+  es.addEventListener('reload', function () { window.location.reload(); });
+
+  es.addEventListener('draftindex', function (e) {
+    var msg = {};
+    try { msg = JSON.parse(e.data); } catch (err) {}
+    if (msg.action === 'show') showDraftIndexScene();
+    else if (msg.action === 'hide') hideDraftIndexScene();
+  });
+
+  /* ── Restore-on-load — jump straight to the settled phase-2 state
+     instead of replaying the title card if this reloads mid-show. ── */
+  fetch('/overlay/draftindex-state', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) { if (d && d.active) showDraftIndexScene(true); })
+    .catch(function () {});
+
+  /* ── Load saved position/size overrides from dashboard editor ── */
+  (function loadDraftIndexOverrides() {
+    fetch('/api/overlay-styles?file=DraftIndex')
+      .then(function (r) { return r.json(); })
+      .then(function (styles) {
+        if (!styles || !Object.keys(styles).length) return;
+        var css = Object.keys(styles).map(function (sel) {
+          var props = styles[sel];
+          var decls = Object.keys(props).map(function (prop) {
+            var cssProp = prop === 'fontSize' ? 'font-size' : prop;
+            return cssProp + ':' + props[prop] + ' !important';
+          }).join(';');
+          return sel + '{' + decls + '}';
+        }).join('\n');
+        var style = document.createElement('style');
+        style.id = 'draftindex-overrides';
+        style.textContent = css;
+        document.head.appendChild(style);
+      })
+      .catch(function () {});
+  })();
+})();
+</script>
+</body>
+</html>

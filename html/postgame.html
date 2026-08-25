@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script src="js/cache-bust.js"></script>
+  <meta name="viewport" content="width=1920" />
+  <title>Postgame</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #content {
+      position: relative;
+      z-index: 1;
+      width: 1920px;
+      height: 1080px;
+    }
+  </style>
+</head>
+<body>
+  <video id="bg-video" autoplay loop muted playsinline>
+    <source src="../assets/bgloop.webm" type="video/webm" />
+  </video>
+
+  <div id="content">
+    <!-- postgame content goes here -->
+  </div>
+</body>
+</html>

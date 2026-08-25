@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<base href="/">
+<script src="html/js/cache-bust.js"></script>
+<title>MLBB EKG Dashboard</title>
+<style>
+@font-face { font-family: 'Anton'; font-weight: 400; font-display: block; src: local('Anton'), local('Anton Regular'), url('/fonts/Anton-Regular.ttf') format('truetype'); }
+  :root {
+    --accent-left:   #d2001e;
+    --accent-right:  #0a9200;
+    --row-gap:       41px;
+    --ekg-width:     307px;
+    --ekg-heart-gap: 10px;
+  }
+
+  html, body {
+    background: transparent !important;
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    box-sizing: border-box;
+  }
+
+  .outer {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+
+
+  /* ── Teams ── */
+  .teams {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .teams-ekg {
+    display: flex;
+    flex-direction: row;
+  }
+  .team-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--row-gap);
+    padding: 10px 8px;
+  }
+  .team-col.left { border-right: 1px solid rgba(80,80,80,0.2); }
+
+  /* ── Playerstat bar row (camp-fixed, unaffected by SWAP) ── */
+  .teams-stats {
+    display: flex;
+    flex-direction: row;
+    margin-top: 30px;
+  }
+  .pstat-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 8px;
+  }
+
+  /* ── Player row ── */
+  .player-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+  }
+
+  /* ── BPM area ── */
+  .bpm-area {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 10px;
+    width: auto;
+  }
+  .heart {
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.6s, transform 0.05s;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .heart.off { color: #2a2a2a !important; }
+
+  .bpm-num {
+    font-family: 'Anton', sans-serif;
+    font-size: 26px;
+    line-height: 1;
+    transition: color 0.6s;
+    text-align: center;
+    min-width: 38px;
+    flex-shrink: 0;
+  }
+  .bpm-num.off { color: #2a2a2a !important; }
+
+  /* ── EKG zone ── */
+  .ekg-zone {
+    width: 26px;
+    height: 28px;
+    flex-shrink: 0;
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
+  .ekg-zone-coach {
+    width: 180px;
+    height: 42px;
+    flex-shrink: 0;
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
+  .coach-hrm .heart   { font-size: 27px; width: 27px; }
+  .coach-hrm .bpm-num { font-size: 39px; min-width: 57px; }
+  .ekg-zone svg { display: block; }
+
+  .path-line {
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    will-change: d;
+  }
+  .path-line.off { }
+
+  .ekg-gap-right { margin-right: var(--ekg-heart-gap); }
+  .ekg-gap-left  { margin-left:  var(--ekg-heart-gap); }
+
+  .player-name {
+    font-size: 6.05pt;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: absolute;
+    top: 2px; right: 6px;
+    pointer-events: none;
+  }
+  .status-dot {
+    position: absolute;
+    bottom: 4px; right: 6px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #444;
+    transition: background 0.4s;
+  }
+  .status-dot.connected { background: #22c55e; }
+
+  /* ── HP Bar ── */
+  .hp-bar-wrap {
+    width: 432px; height: 15px;
+    background: #0a0a0a;
+    border-radius: 2px;
+    position: relative; overflow: hidden; flex-shrink: 0;
+  }
+  .hp-bar-wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 2px;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.75),
+                inset 0  1px 4px rgba(0,0,0,0.5),
+                inset 0 -1px 4px rgba(0,0,0,0.5);
+    pointer-events: none;
+    z-index: 10;
+  }
+  /* P1-5: fills from left, reduces from right */
+  .hp-ghost {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    background: linear-gradient(to right, #7a0900, #d2001e);
+    will-change: width;
+  }
+  .hp-fill {
+    position: absolute; top: 0; bottom: 0; left: 0;
+    background: linear-gradient(to right, #008452, #00e375);
+    will-change: width;
+  }
+  /* P6-10: fills from right, reduces from left */
+  .hp-bar-wrap.right-side .hp-ghost {
+    left: auto; right: 0;
+    background: linear-gradient(to left, #7a0900, #d2001e);
+  }
+  .hp-bar-wrap.right-side .hp-fill {
+    left: auto; right: 0;
+    background: linear-gradient(to left, #008452, #00e375);
+  }
+
+  /* ── Item Panel ── */
+  .item-panel {
+    box-sizing: border-box;
+    width: 245px; height: 50px; flex-shrink: 0;
+    background: linear-gradient(to right, #c3c4c2, #f7f8f6 50%, #b6babb);
+    display: flex; flex-direction: row;
+    align-items: center;
+    padding: 0 6px;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .item-slot {
+    width: 35px; height: 35px; flex-shrink: 0;
+    border-radius: 4px; overflow: visible;
+    position: relative;
+  }
+  .item-img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+    border-radius: 4px;
+  }
+
+  /* animation recommendation: spring pop-in + brief golden glow
+     — feels like an in-game item pickup without being distracting */
+  @keyframes item-pop {
+    0%   { transform: scale(0.45); opacity: 0;   box-shadow: 0 0 0 0px  rgba(255,200,30,0);   }
+    50%  { transform: scale(1.15); opacity: 1;   box-shadow: 0 0 10px 4px rgba(255,200,30,0.75); }
+    75%  { transform: scale(0.96);               box-shadow: 0 0 5px 1px  rgba(255,200,30,0.25); }
+    100% { transform: scale(1);    opacity: 1;   box-shadow: 0 0 0 0px  rgba(255,200,30,0);   }
+  }
+  .item-pop {
+    animation: item-pop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* item combine/upgrade — white flash hides the src swap,
+     purple shimmer signals transformation                    */
+  @keyframes item-combine {
+    0%   { transform: scale(0.88); filter: brightness(5) saturate(0);                                    }
+    30%  { transform: scale(1.1);  filter: brightness(1.6) saturate(1.8); box-shadow: 0 0 12px 5px rgba(180,100,255,0.75); }
+    65%  { transform: scale(0.97); filter: brightness(1);                 box-shadow: 0 0 5px 2px  rgba(180,100,255,0.2);  }
+    100% { transform: scale(1);    filter: brightness(1);                 box-shadow: none;                                }
+  }
+  .item-combine {
+    animation: item-combine 0.48s ease-out forwards;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="outer">
+
+  <!-- ── TEAMS ── -->
+  <div class="teams">
+    <!-- EKG rows — rebuilt on SWAP -->
+    <div class="teams-ekg">
+      <div class="team-col left"  id="team1"></div>
+      <div class="team-col right" id="team2"></div>
+    </div>
+    <!-- Playerstat bars — camp-fixed, never rebuilt -->
+    <div class="teams-stats">
+      <div class="pstat-col" id="pstat-left"></div>
+      <div class="pstat-col" id="pstat-right"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/*
+  SLOT LAYOUT:
+  HOME mode:
+    Left  column (red)  : slots player1–5   displayed top→bottom as P1,P2,P3,P4,P5
+    Right column (green): slots player6–10  displayed top→bottom as P10,P9,P8,P7,P6
+
+  SWAP mode (sides flip):
+    Left  column (red)  : slots player6–10  displayed top→bottom as P10,P9,P8,P7,P6
+    Right column (green): slots player1–5   displayed top→bottom as P1,P2,P3,P4,P5
+
+  Visual side (left=red / right=green) never changes.
+  Only which slots feed into which column changes.
+*/
+
+const LEFT_SLOTS_HOME  = ['player1','player2','player3','player4','player5'];
+const RIGHT_SLOTS_HOME = ['player10','player9','player8','player7','player6'];
+
+const POLL_MS = 1000;
+const team1El = document.getElementById('team1');
+const team2El = document.getElementById('team2');
+const root    = document.documentElement;
+
+/* fixed CSS vars */
+root.style.setProperty('--row-gap',       '41px');
+root.style.setProperty('--ekg-width',     '307px');
+root.style.setProperty('--ekg-heart-gap', '10px');
+
+/* ── Swap state — driven by /match/state ── */
+let isSwapped = false;
+
+async function pollMatchState() {
+  try {
+    const res = await fetch('/match/state', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const newSwapped = !!data.swapped;
+    if (newSwapped !== isSwapped) {
+      isSwapped = newSwapped;
+      rebuildTeams();
+    }
+  } catch {}
+}
+pollMatchState();
+setInterval(pollMatchState, 2000);
+
+/* ── Debug / Live mode ── */
+let isDebugMode = localStorage.getItem('ekg_debug') === '1';
+
+window.ekg_setDebugMode = function(val) {
+  isDebugMode = !!val;
+  localStorage.setItem('ekg_debug', isDebugMode ? '1' : '0');
+  if (!isDebugMode) pollMainInfo();
+};
+
+/* ── Frequency ── */
+let freqScale = parseFloat(localStorage.getItem('ekg_freq') || '3.95');
+window.ekg_setFreqScale = function(val) {
+  freqScale = parseFloat(val) || freqScale;
+  localStorage.setItem('ekg_freq', freqScale);
+};
+
+/* ── Line width ── */
+let lineWidth = parseFloat(localStorage.getItem('ekg_lw') || '1.5');
+window.ekg_setLineWidth = function(val) {
+  lineWidth = parseFloat(val) || lineWidth;
+  localStorage.setItem('ekg_lw', lineWidth);
+};
+
+/* ── Feed URL (BPM) — always same origin ── */
+let feedUrl = window.location.origin + '/feed';
+
+/* ── Sub Info URL (HP / items) ── */
+const MAIN_INFO_DEFAULT = 'http://10.88.120.72:5001/api/sub-info/';
+let mainInfoUrl = localStorage.getItem('ekg_main_info_url') || MAIN_INFO_DEFAULT;
+
+/* ── All 10 player data objects (keyed by slot) ── */
+const ALL_SLOTS   = ['player1','player2','player3','player4','player5',
+                    'player6','player7','player8','player9','player10'];
+const COACH_SLOTS = ['coach_home1','coach_home2','coach_away1','coach_away2'];
+const ANIM_SLOTS  = [...ALL_SLOTS, ...COACH_SLOTS];
+
+const playerData = {};
+ALL_SLOTS.forEach(slot => {
+  const id   = parseInt(slot.replace('player',''));
+  const saved= JSON.parse(localStorage.getItem(`ekg_p${id}`)) || { manualBpm:60, isManual:false };
+  playerData[slot] = {
+    id, slot,
+    bpm: 0, connected: false,
+    isManual: saved.isManual,
+    manualBpm: saved.manualBpm || 60,
+    phase: Math.random(),
+    points: Array(200).fill(14),
+    revPoints: Array(200).fill(14),  /* pre-allocated reverse buffer */
+    scrollBuffer: 0,
+    pathEl: null, heartEl: null, valEl: null, dotEl: null, labelEl: null,
+    side: null,   /* 'left' or 'right' — assigned on build */
+    lastStroke: null, lastStrokeWidth: null, /* cached to skip redundant setAttribute */
+    hpCurrent: 1.0, hpGhost: 1.0, ghostTimer: null,
+    maxHp: 1000, curHp: 1000,
+    hpFillEl: null, hpGhostEl: null,
+    itemSlots: [],
+    equipState: Array(6).fill('9999'),
+  };
+});
+
+/* ── Coach playerData (BPM/EKG only — no HP, items, or sidebar controls) ── */
+COACH_SLOTS.forEach(slot => {
+  playerData[slot] = {
+    id: slot, slot,
+    bpm: 0, connected: false,
+    isManual: false, manualBpm: 60,
+    phase: Math.random(),
+    points: Array(200).fill(14),
+    revPoints: Array(200).fill(14),
+    scrollBuffer: 0,
+    pathEl: null, heartEl: null, valEl: null, dotEl: null, labelEl: null,
+    side: 'left',
+    lastStroke: null, lastStrokeWidth: null,
+    scrollScale: 0.5,
+    hpFillEl: null, hpGhostEl: null, itemSlots: [], equipState: [],
+  };
+});
+
+window.ekg_setPlayer = function(slot, isManual, bpm) {
+  const p = playerData[slot];
+  if (!p) return;
+  p.isManual  = !!isManual;
+  if (bpm !== undefined) p.manualBpm = parseInt(bpm) || p.manualBpm;
+  saveP(p);
+};
+
+/* ── Build/rebuild team columns ── */
+function buildRow(slot, side, coachSlot) {
+  const p   = playerData[slot];
+  p.side    = side;
+  const row = document.createElement('div');
+  row.className = `player-row ${side}-row`;
+
+  if (side === 'left') {
+    /* LEFT: EKG → 10px → Heart → 10px → BPM */
+    row.innerHTML = `
+      <div class="ekg-zone ekg-gap-right">
+        <svg width="100%" height="28" viewBox="0 0 400 28" preserveAspectRatio="none">
+          <path id="path-${slot}" class="path-line off" d=""/>
+        </svg>
+      </div>
+      <div class="bpm-area">
+        <div id="heart-${slot}" class="heart off">&#10084;</div>
+        <div id="val-${slot}"   class="bpm-num off">--</div>
+      </div>
+      <div class="player-name" id="lbl-${slot}">P${p.id}</div>
+      <div class="status-dot"  id="dot-${slot}"></div>
+    `;
+  } else {
+    /* RIGHT: BPM → 10px → Heart → 10px → EKG */
+    row.innerHTML = `
+      <div class="bpm-area">
+        <div id="val-${slot}"   class="bpm-num off">--</div>
+        <div id="heart-${slot}" class="heart off">&#10084;</div>
+      </div>
+      <div class="ekg-zone ekg-gap-left">
+        <svg width="100%" height="28" viewBox="0 0 400 28" preserveAspectRatio="none">
+          <path id="path-${slot}" class="path-line off" d=""/>
+        </svg>
+      </div>
+      <div class="player-name" id="lbl-${slot}">P${p.id}</div>
+      <div class="status-dot"  id="dot-${slot}"></div>
+    `;
+  }
+
+  p.pathEl  = row.querySelector(`#path-${slot}`);
+  p.heartEl = row.querySelector(`#heart-${slot}`);
+  p.valEl   = row.querySelector(`#val-${slot}`);
+  p.dotEl   = row.querySelector(`#dot-${slot}`);
+  p.labelEl = row.querySelector(`#lbl-${slot}`);
+
+  /* ── Coach HRM: always left-facing (EKG → Heart → BPM), 30 px gap ── */
+  if (coachSlot && playerData[coachSlot]) {
+    const c = playerData[coachSlot];
+    c.side  = 'left';
+    const coachDiv = document.createElement('div');
+    coachDiv.style.cssText = 'position:absolute;left:180px;top:50%;transform:translateY(-50%);display:flex;flex-direction:row;align-items:center;flex-shrink:0;';
+    coachDiv.className = 'coach-hrm';
+    coachDiv.innerHTML = `
+      <div class="ekg-zone-coach ekg-gap-right">
+        <svg width="100%" height="42" viewBox="0 0 400 28" preserveAspectRatio="none">
+          <path id="path-${coachSlot}" class="path-line off" d=""/>
+        </svg>
+      </div>
+      <div class="bpm-area">
+        <div id="heart-${coachSlot}" class="heart off">&#10084;</div>
+        <div id="val-${coachSlot}"   class="bpm-num off">--</div>
+      </div>
+    `;
+    row.appendChild(coachDiv);
+    c.pathEl  = coachDiv.querySelector(`#path-${coachSlot}`);
+    c.heartEl = coachDiv.querySelector(`#heart-${coachSlot}`);
+    c.valEl   = coachDiv.querySelector(`#val-${coachSlot}`);
+    c.dotEl   = null;
+    c.labelEl = null;
+  }
+
+  return row;
+}
+
+/* ── Build one HP-bar + item-panel column for a single player ──
+   side 'left'  → HP reduces from right, items fill L→R  (P1-5)
+   side 'right' → HP reduces from left,  items fill R→L  (P6-10, mirrored)
+── */
+function buildBarRow(slot, side) {
+  const p = playerData[slot];
+  p.barSide = side;
+
+  /* HP bar */
+  const hpGhostEl = document.createElement('div');
+  hpGhostEl.className = 'hp-ghost';
+  hpGhostEl.style.width = (p.hpGhost   * 432) + 'px';
+
+  const hpFillEl = document.createElement('div');
+  hpFillEl.className = 'hp-fill';
+  hpFillEl.style.width  = (p.hpCurrent * 432) + 'px';
+
+  const hpWrap = document.createElement('div');
+  hpWrap.className = 'hp-bar-wrap' + (side === 'right' ? ' right-side' : '');
+  hpWrap.appendChild(hpGhostEl);
+  hpWrap.appendChild(hpFillEl);
+
+  /* Item panel — slot 0=leftmost, slot 5=rightmost
+     P1-5: equip1 fills from slot 0 (left)
+     P6-10: equip1 fills from slot 5 (right, mirrored) */
+  const itemPanel = document.createElement('div');
+  itemPanel.className = 'item-panel';
+  p.itemSlots = [];
+
+  for (let j = 0; j < 6; j++) {
+    const slotEl = document.createElement('div');
+    slotEl.className = 'item-slot';
+    const img = document.createElement('img');
+    img.className = 'item-img';
+    img.dataset.itemId = '9999';
+    img.src = 'items/99999.png';
+    img.onerror = () => { img.src = 'items/99999.png'; };
+    slotEl.appendChild(img);
+    itemPanel.appendChild(slotEl);
+    p.itemSlots.push(slotEl);
+  }
+
+  /* item panel sits below hp bar, left-aligned for P1-5, right-aligned for P6-10 */
+  if (side === 'right') {
+    itemPanel.style.marginLeft = 'auto';
+  }
+
+  p.hpFillEl  = hpFillEl;
+  p.hpGhostEl = hpGhostEl;
+
+  const nameLabel = document.createElement('div');
+  nameLabel.style.cssText = 'font-size:10px;font-weight:700;color:#555;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;text-align:' + (side === 'right' ? 'right' : 'left') + ';';
+  nameLabel.textContent = `P${p.id}`;
+  p.statNameEl = nameLabel;
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;flex-direction:column;width:432px;';
+  wrapper.appendChild(nameLabel);
+  wrapper.appendChild(hpWrap);
+  wrapper.appendChild(itemPanel);
+
+  return wrapper;
+}
+
+function rebuildTeams() {
+  /* only the EKG rows are swap-aware — playerstats are untouched */
+  team1El.innerHTML = '';
+  team2El.innerHTML = '';
+
+  const leftSlots  = isSwapped ? RIGHT_SLOTS_HOME : LEFT_SLOTS_HOME;
+  const rightSlots = isSwapped ? LEFT_SLOTS_HOME  : RIGHT_SLOTS_HOME;
+
+  /* coaches are camp-fixed — home coaches always left, away always right */
+  const leftCoaches  = ['coach_home1', 'coach_home2', null, null, null];
+  const rightCoaches = ['coach_away1', 'coach_away2', null, null, null];
+
+  leftSlots.forEach((slot, i)  => team1El.appendChild(buildRow(slot,  'left',  leftCoaches[i])));
+  rightSlots.forEach((slot, i) => team2El.appendChild(buildRow(slot, 'right', rightCoaches[i])));
+}
+
+/* ── Playerstat bars — built ONCE, camp-fixed, never rebuilt ──
+   Camp1 (P1–P5)  → left  pstat-col, [HP | item] per unit
+   Camp2 (P6–P10) → right pstat-col, [item | HP] per unit
+── */
+function buildAllPlayerstats() {
+  const pstatLeft  = document.getElementById('pstat-left');
+  const pstatRight = document.getElementById('pstat-right');
+
+  LEFT_SLOTS_HOME.forEach(slot =>          /* P1, P2, P3, P4, P5 */
+    pstatLeft.appendChild(buildBarRow(slot, 'left'))
+  );
+
+  /* Camp2 natural order: P6 → P10 left to right */
+  ['player6','player7','player8','player9','player10'].forEach(slot =>
+    pstatRight.appendChild(buildBarRow(slot, 'right'))
+  );
+}
+
+rebuildTeams();
+buildAllPlayerstats();
+
+function saveP(p) {
+  localStorage.setItem(`ekg_p${p.id}`, JSON.stringify({
+    manualBpm: p.manualBpm,
+    isManual: p.isManual
+  }));
+}
+
+/* ── EKG waveform shape ── */
+function getHeartY(phase, bpm) {
+  const b = 14;  /* center of 28px SVG height */
+  if (bpm <= 0) return b;
+  if (phase > 0.10 && phase < 0.20)
+    return b - Math.sin((phase - 0.10) * 10 * Math.PI) * 3;
+  if (phase > 0.22 && phase < 0.30) {
+    const q = (phase - 0.22) / 0.08;
+    return b - Math.sin(q * 2 * Math.PI) * 13;
+  }
+  if (phase > 0.45 && phase < 0.65)
+    return b - Math.sin((phase - 0.45) * 5 * Math.PI) * 4;
+  return b;
+}
+
+/* ── Path string builder — pre-allocated segment buffer ── */
+const PATH_LEN = 200;
+const pathParts = new Array(PATH_LEN);
+
+function buildPathStr(pts) {
+  pathParts[0] = `M 0 ${pts[0]}`;
+  const step = 400 / (PATH_LEN - 1);
+  for (let i = 1; i < PATH_LEN; i++)
+    pathParts[i] = `L ${(i * step).toFixed(1)} ${pts[i]}`;
+  return pathParts.join(' ');
+}
+
+/* ── Animation ── */
+let last = 0;
+function animate(ts) {
+  const dt = (ts - (last || ts)) / 1000;
+  last = ts;
+
+  ANIM_SLOTS.forEach(slot => {
+    const p = playerData[slot];
+    if (!p.pathEl) return;
+
+    /* use cached manualBpm — updated on input change, not parsed here */
+    if (p.isManual) {
+      p.bpm = p.manualBpm;
+      p.connected = true;
+    }
+
+    const active = p.bpm > 0 && (p.isManual || p.connected);
+    if (active) p.phase = (p.phase + (p.bpm / 60) * dt) % 1;
+
+    p.scrollBuffer += dt * 60 * freqScale * (p.scrollScale || 1);
+    while (p.scrollBuffer >= 1) {
+      p.points.push(getHeartY(p.phase, active ? p.bpm : 0));
+      p.points.shift();
+      p.scrollBuffer -= 1;
+    }
+
+    let pts;
+    if (p.side === 'right') {
+      /* write reversed into pre-allocated buffer — no allocation */
+      const src = p.points;
+      const rev = p.revPoints;
+      for (let i = 0; i < PATH_LEN; i++) rev[i] = src[PATH_LEN - 1 - i];
+      pts = rev;
+    } else {
+      pts = p.points;
+    }
+
+    p.pathEl.setAttribute('d', buildPathStr(pts));
+
+    /* only setAttribute when value actually changed */
+    const col = (active && p.bpm > 0) ? bpmColor(p.bpm) : '#2a2a2a';
+    if (col !== p.lastStroke) {
+      p.pathEl.setAttribute('stroke', col);
+      p.lastStroke = col;
+    }
+    if (lineWidth !== p.lastStrokeWidth) {
+      p.pathEl.setAttribute('stroke-width', lineWidth);
+      p.lastStrokeWidth = lineWidth;
+    }
+
+    let beat = 0;
+    if (active && p.phase >= 0.22 && p.phase <= 0.50)
+      beat = Math.pow(1 - (p.phase - 0.22) / 0.28, 4);
+    p.heartEl.style.transform = `scale(${(1 + beat * 0.4).toFixed(3)})`;
+  });
+
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+/* ── Polling ── */
+const urlCache = {};
+async function fetchUrl(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error();
+    urlCache[url] = await res.json();
+  } catch { urlCache[url] = null; }
+}
+
+function applyData() {
+  const feed = urlCache[feedUrl];
+  ALL_SLOTS.forEach(slot => {
+    const p = playerData[slot];
+    if (!p.pathEl) return;
+
+    if (p.isManual) {
+      const bpm = p.manualBpm;
+      p.bpm = bpm; p.connected = true;
+      setDisplay(p, bpm, true, true);
+      return;
+    }
+    if (!Array.isArray(feed)) { p.bpm = 0; p.connected = false; setDisplay(p, 0, false, false); return; }
+    const entry = feed.find(e => e.slot === slot);
+    if (!entry)  { p.bpm = 0; p.connected = false; setDisplay(p, 0, false, false); return; }
+    const bpm    = parseInt(entry.bpm) || 0;
+    const hwConn = entry.status === 'ok';
+    p.bpm = bpm; p.connected = true;
+    if (entry.name && p.labelEl) p.labelEl.textContent = entry.name;
+    setDisplay(p, bpm, true, hwConn);
+  });
+
+  /* coaches — always read by slot name from flat feed, unaffected by swap */
+  COACH_SLOTS.forEach(slot => {
+    const p = playerData[slot];
+    if (!p.pathEl) return;
+    if (!Array.isArray(feed)) { p.bpm = 0; p.connected = false; setDisplay(p, 0, false, false); return; }
+    const entry = feed.find(e => e.slot === slot);
+    if (!entry)  { p.bpm = 0; p.connected = false; setDisplay(p, 0, false, false); return; }
+    const bpm    = parseInt(entry.bpm) || 0;
+    const hwConn = entry.status === 'ok';
+    p.bpm = bpm; p.connected = true;
+    if (entry.name && p.labelEl) p.labelEl.textContent = entry.name;
+    setDisplay(p, bpm, true, hwConn);
+  });
+}
+
+/* ── BPM → color (memoized — same bpm always gives same color)
+   ≤60  : #0a9200 (green)
+   60–120: lerp green→red
+   ≥120  : #d2001e (red)
+   Background is white, so we keep saturation high and avoid muddy midpoints.
+   We lerp in RGB space directly between the two hex values. ── */
+const bpmColorCache = {};
+function bpmColor(bpm) {
+  const key = bpm | 0; /* integer key — BPM changes are discrete */
+  if (bpmColorCache[key]) return bpmColorCache[key];
+  const green  = { r:10,  g:146, b:0  };
+  const orange = { r:230, g:100, b:0  };
+  const red    = { r:210, g:0,   b:30 };
+  const t = Math.max(0, Math.min(1, (bpm - 60) / 60));
+  const a = t < 0.5 ? green  : orange;
+  const b = t < 0.5 ? orange : red;
+  const u = t < 0.5 ? t * 2  : (t - 0.5) * 2;
+  const result = `rgb(${Math.round(a.r+(b.r-a.r)*u)},${Math.round(a.g+(b.g-a.g)*u)},${Math.round(a.b+(b.b-a.b)*u)})`;
+  bpmColorCache[key] = result;
+  return result;
+}
+
+function setDisplay(p, bpm, active, hwConn) {
+  if (!p.valEl) return;
+  p.valEl.textContent = active && bpm > 0 ? bpm : '--';
+  const off = !active || bpm <= 0;
+
+  if (off) {
+    p.valEl.className   = 'bpm-num off';
+    p.heartEl.className = 'heart off';
+    p.pathEl.className  = 'path-line off';
+    p.valEl.style.color   = '';
+    p.heartEl.style.color = '';
+    p.pathEl.removeAttribute('stroke');
+  } else {
+    const col = bpmColor(bpm);
+    p.valEl.className   = 'bpm-num';
+    p.heartEl.className = 'heart';
+    p.pathEl.className  = 'path-line';
+    p.valEl.style.color   = col;
+    p.heartEl.style.color = col;
+    p.pathEl.setAttribute('stroke', col);
+  }
+  if (p.dotEl) p.dotEl.className = 'status-dot' + (hwConn ? ' connected' : '');
+}
+
+/* ── HP Bar ── */
+const HP_BAR_H = 432;
+
+function setHP(slot, curHp, maxHp) {
+  const p = playerData[slot];
+  if (!p.hpFillEl || maxHp <= 0) return;
+
+  const newFrac = Math.max(0, Math.min(1, curHp / maxHp));
+
+  if (newFrac < p.hpCurrent - 0.001) {
+    /* damage taken — ghost holds at old level, fill snaps instantly */
+    p.hpGhost   = Math.max(p.hpGhost, p.hpCurrent);
+    p.hpCurrent = newFrac;
+
+    p.hpFillEl.style.transition  = 'none';
+    p.hpFillEl.style.width       = (newFrac * HP_BAR_H) + 'px';
+
+    p.hpGhostEl.style.transition = 'none';
+    p.hpGhostEl.style.width      = (p.hpGhost * HP_BAR_H) + 'px';
+
+    /* drain ghost after short hold */
+    clearTimeout(p.ghostTimer);
+    p.ghostTimer = setTimeout(() => {
+      p.hpGhostEl.style.transition = 'width 0.45s ease-in';
+      p.hpGhostEl.style.width      = (p.hpCurrent * HP_BAR_H) + 'px';
+      p.hpGhost = p.hpCurrent;
+    }, 550);
+  } else {
+    /* healing / reset — snap instantly, no animation */
+    p.hpCurrent = newFrac;
+    p.hpGhost   = newFrac;
+    clearTimeout(p.ghostTimer);
+    p.hpFillEl.style.transition  = 'none';
+    p.hpFillEl.style.width       = (newFrac * HP_BAR_H) + 'px';
+    p.hpGhostEl.style.transition = 'none';
+    p.hpGhostEl.style.width      = (newFrac * HP_BAR_H) + 'px';
+  }
+
+  p.maxHp = maxHp;
+  p.curHp = Math.round(newFrac * maxHp);
+}
+
+/* ── Item panel ──────────────────────────────────────────────────────────
+  equipList API order: index 0 = equip1 … index 5 = equip6
+  Visual layout [0=leftmost … 5=rightmost]:
+    P1-5  (left):  equip1 → slot 0, new items fill rightward, empty at right
+    P6-10 (right): equip1 → slot 5, new items fill leftward,  empty at left
+──────────────────────────────────────────────────────────────────────── */
+
+/* Returns array of 6 idStr for visual slots [0=leftmost … 5=rightmost]. */
+function buildVisualLayout(equipState, side) {
+  const filled = equipState.filter(id => id !== '9999');
+  const layout = Array(6).fill('9999');
+  if (side === 'right') {
+    /* P6-10 mirrored: equip1 at rightmost (slot 5), later items fill left */
+    for (let i = 0; i < filled.length; i++) {
+      layout[5 - i] = filled[i];
+    }
+  } else {
+    /* P1-5: equip1 at leftmost (slot 0), later items fill right */
+    for (let i = 0; i < filled.length; i++) {
+      layout[i] = filled[i];
+    }
+  }
+  return layout;
+}
+
+/* Apply new compact layout to slot elements with FLIP slide animation.
+   Reads current item IDs from img.dataset.itemId to compute diffs. */
+function applyCompactLayout(p, newLayout) {
+  const oldIds  = p.itemSlots.map(s => s.querySelector('img').dataset.itemId || '9999');
+  if (oldIds.join(',') === newLayout.join(',')) return;
+
+  /* record rects BEFORE any DOM change */
+  const oldRects = p.itemSlots.map(s => s.getBoundingClientRect());
+
+  /* update all img src / dataset first */
+  newLayout.forEach((newId, j) => {
+    const imgEl = p.itemSlots[j].querySelector('img');
+    if (newId === (imgEl.dataset.itemId || '9999')) return;
+    imgEl.dataset.itemId = newId;
+    imgEl.src = `items/${newId === '9999' ? '99999' : newId}.png`;
+    imgEl.onerror = () => { imgEl.src = 'items/99999.png'; };
+  });
+
+  /* FLIP: items that moved get an inverse transform that transitions to 0 */
+  newLayout.forEach((newId, j) => {
+    if (newId === '9999') {
+      const imgEl = p.itemSlots[j].querySelector('img');
+      imgEl.style.transition = '';
+      imgEl.style.transform  = '';
+      return;
+    }
+    const oldJ = oldIds.indexOf(newId);
+    const imgEl = p.itemSlots[j].querySelector('img');
+    if (oldJ !== -1 && oldJ !== j) {
+      /* item slid from oldJ → j */
+      const dx = oldRects[oldJ].left - oldRects[j].left;
+      imgEl.style.transition = 'none';
+      imgEl.style.transform  = `translateX(${dx}px)`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        imgEl.style.transition = 'transform 0.35s cubic-bezier(0.22,1,0.36,1)';
+        imgEl.style.transform  = 'translateX(0)';
+        setTimeout(() => { imgEl.style.transition = ''; imgEl.style.transform = ''; }, 400);
+      }));
+    } else if (oldIds[j] === '9999') {
+      /* new item appearing in previously empty slot — pop animation */
+      const slotEl = p.itemSlots[j];
+      slotEl.classList.remove('item-pop', 'item-combine');
+      void slotEl.offsetWidth;
+      slotEl.classList.add('item-pop');
+    }
+  });
+}
+
+/* Flying-ghost combine animation.
+   sourceVisualJs — visual slot indices whose items fly to dest
+   destOldJ       — visual slot index where dest currently lives (ghost target)
+   destNewId      — the new combined item ID string
+   newLayout      — compact layout after the combine                          */
+function runCombineAnimation(p, sourceVisualJs, destOldJ, destNewId, newLayout) {
+  const destSlotEl = p.itemSlots[destOldJ];
+  const destRect   = destSlotEl.getBoundingClientRect();
+  const destImg    = destSlotEl.querySelector('img');
+
+  /* pre-mark to avoid re-trigger on next poll */
+  destImg.dataset.itemId = destNewId;
+  sourceVisualJs.forEach(j => {
+    p.itemSlots[j].querySelector('img').dataset.itemId = '9999';
+  });
+
+  /* create fixed-position ghosts that fly toward dest */
+  const ghosts = sourceVisualJs.map(j => {
+    const srcSlot = p.itemSlots[j];
+    const srcRect = srcSlot.getBoundingClientRect();
+    const srcImg  = srcSlot.querySelector('img');
+    const dx = (destRect.left + destRect.width  / 2) - (srcRect.left + srcRect.width  / 2);
+    const dy = (destRect.top  + destRect.height / 2) - (srcRect.top  + srcRect.height / 2);
+
+    const ghost = document.createElement('img');
+    ghost.src = srcImg.src;
+    ghost.style.cssText = [
+      'position:fixed',
+      `left:${srcRect.left}px`, `top:${srcRect.top}px`,
+      `width:${srcRect.width}px`, `height:${srcRect.height}px`,
+      'border-radius:4px', 'pointer-events:none', 'z-index:9999',
+      'transition:transform 0.38s cubic-bezier(0.4,0,0.8,1),opacity 0.32s ease-in',
+      'will-change:transform,opacity',
+    ].join(';');
+    document.body.appendChild(ghost);
+    srcImg.style.opacity = '0';
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ghost.style.transform = `translate(${dx}px,${dy}px) scale(0.5)`;
+      ghost.style.opacity   = '0';
+    }));
+    return { ghost, srcImg };
+  });
+
+  setTimeout(() => {
+    ghosts.forEach(({ ghost, srcImg }) => {
+      ghost.remove();
+      srcImg.src = 'items/99999.png';
+      srcImg.style.opacity = '';
+    });
+
+    destImg.src     = `items/${destNewId}.png`;
+    destImg.onerror = () => { destImg.src = 'items/99999.png'; };
+    destImg.style.opacity = '';
+
+    destSlotEl.classList.remove('item-pop', 'item-combine');
+    void destSlotEl.offsetWidth;
+    destSlotEl.classList.add('item-combine');
+
+    /* compact remaining items downward via FLIP slide */
+    applyCompactLayout(p, newLayout);
+  }, 420);
+}
+
+function updateItems(slot, equipList) {
+  const p = playerData[slot];
+  if (!p.itemSlots || !p.itemSlots.length) return;
+
+  /* build new equipState from API (index 0 = equip1 … 5 = equip6) */
+  const newEquipState = [];
+  for (let i = 0; i < 6; i++) {
+    const item = equipList && equipList[i];
+    const val  = item ? item.value : 9999;
+    newEquipState.push((!val || val === 9999) ? '9999' : String(val));
+  }
+
+  if (newEquipState.join(',') === p.equipState.join(',')) return;
+
+  const oldEquipState = p.equipState;
+  const oldLayout     = buildVisualLayout(oldEquipState, p.barSide);
+  const newLayout     = buildVisualLayout(newEquipState, p.barSide);
+
+  /* detect combine: ≥1 API slot went filled→empty AND ≥1 slot changed to new item */
+  const isCombine =
+    oldEquipState.some((id, i) => id !== '9999' && newEquipState[i] === '9999') &&
+    newEquipState.some((id, i) => id !== '9999' && id !== oldEquipState[i]);
+
+  p.equipState = newEquipState;
+
+  if (isCombine) {
+    /* source visual slots: API slots that went filled→empty */
+    const sourceVisualJs = [];
+    oldEquipState.forEach((id, i) => {
+      if (id !== '9999' && newEquipState[i] === '9999') {
+        const vj = oldLayout.indexOf(id);
+        if (vj !== -1) sourceVisualJs.push(vj);
+      }
+    });
+
+    /* dest: first API slot whose item changed to a different non-empty value */
+    let destApiIdx = -1;
+    for (let i = 0; i < 6; i++) {
+      if (newEquipState[i] !== '9999' && newEquipState[i] !== oldEquipState[i]) {
+        destApiIdx = i; break;
+      }
+    }
+
+    /* dest old visual position (ghost flies here) */
+    const destOldItemId = oldEquipState[destApiIdx];
+    let destOldJ = (destOldItemId && destOldItemId !== '9999')
+      ? oldLayout.indexOf(destOldItemId)
+      : newLayout.indexOf(newEquipState[destApiIdx]);
+    if (destOldJ === -1) destOldJ = newLayout.indexOf(newEquipState[destApiIdx]);
+
+    runCombineAnimation(p, sourceVisualJs, destOldJ, newEquipState[destApiIdx], newLayout);
+  } else {
+    applyCompactLayout(p, newLayout);
+  }
+}
+
+/* debug state */
+const DBG_ITEMS = [2302, 3105, 3101, 2101, 1104, 1103];
+let dbgEquip    = Array(6).fill({ value: 9999 });
+
+function debugAddItem() {
+  if (!isDebugMode) return;
+  /* find first empty slot (handles vacated slots after combines) */
+  const emptyIdx = dbgEquip.findIndex(item => item.value === 9999);
+  if (emptyIdx === -1) return; /* all slots full */
+  dbgEquip = [...dbgEquip];
+  dbgEquip[emptyIdx] = { value: DBG_ITEMS[emptyIdx % DBG_ITEMS.length] };
+  updateItems('player1', dbgEquip);
+}
+
+/* simulate a combine: up to 2 source items fly into the dest slot.
+   supports 2-ingredient (1 source) and 3-ingredient (2 sources) combines. */
+const DBG_COMBINE_ITEMS = [3422, 3007, 3001, 2013, 3009, 2001];
+
+function debugCombineItem() {
+  if (!isDebugMode) return;
+  const filled = dbgEquip.reduce((acc, item, i) => {
+    if (item.value !== 9999) acc.push(i);
+    return acc;
+  }, []);
+  if (filled.length < 2) return;
+
+  /* dest = leftmost slot, sources = slots to the right — combines animate left */
+  const numSources = Math.min(filled.length - 1, 2);
+  const destIdx    = filled[0];
+  const srcIndices = filled.slice(1, numSources + 1);
+
+  dbgEquip = [...dbgEquip];
+  srcIndices.forEach(i => { dbgEquip[i] = { value: 9999 }; });
+  dbgEquip[destIdx] = { value: DBG_COMBINE_ITEMS[destIdx % DBG_COMBINE_ITEMS.length] };
+  updateItems('player1', dbgEquip);
+}
+
+function debugClearItems() {
+  if (!isDebugMode) return;
+  dbgEquip = Array(6).fill({ value: 9999 });
+  playerData['player1'].equipState = Array(6).fill('9999');
+  updateItems('player1', dbgEquip);
+}
+
+function debugHP(reduction) {
+  if (!isDebugMode) return;
+  const p = playerData['player1'];
+  setHP('player1', Math.max(0, (p.hpCurrent - reduction) * p.maxHp), p.maxHp);
+}
+
+function debugHPReset() {
+  if (!isDebugMode) return;
+  const p = playerData['player1'];
+  setHP('player1', p.maxHp, p.maxHp);
+}
+
+async function pollAll() {
+  if (feedUrl) await fetchUrl(feedUrl);
+  applyData();
+}
+pollAll();
+setInterval(pollAll, POLL_MS);
+
+/* ── Sub Info poll — HP + items for all 10 players (LIVE mode only) ──
+   sub-info uses camp_list[].seat_1..5 (each seat has pos, cur_health_point,
+   max_health_point, equip_list [8 slots], name — same pos mapping as main-info)
+── */
+/* sync sub-info URL with whatever was set in dashboard.html */
+fetch('/api/game-url').then(r => r.json()).then(d => {
+  if (d.url) {
+    mainInfoUrl = d.url;
+    localStorage.setItem('ekg_main_info_url', d.url);
+  }
+}).catch(() => {});
+
+async function pollMainInfo() {
+  if (isDebugMode || !mainInfoUrl) return;
+  let json;
+  try {
+    const res = await fetch(mainInfoUrl);
+    if (!res.ok) throw new Error();
+    json = await res.json();
+  } catch { return; }
+
+  if (!json || json.code !== 0 || !json.data) return;
+  const campList = json.data.camp_list;
+  if (!Array.isArray(campList)) return;
+
+  /* map by seat order: camp1 seat_s → player{s}, camp2 seat_s → player{s+5} */
+  campList.forEach(camp => {
+    if (camp.campid !== 1 && camp.campid !== 2) return;
+    for (let s = 1; s <= 5; s++) {
+      const seat = camp[`seat_${s}`];
+      if (!seat || seat.judger) continue;
+      const playerNum = camp.campid === 1 ? s : s + 5;
+      const slot = `player${playerNum}`;
+      const p = playerData[slot];
+      if (!p) continue;
+      if (seat.name && p.statNameEl) p.statNameEl.textContent = seat.name;
+      setHP(slot, seat.cur_health_point ?? 0, seat.max_health_point || 1);
+      updateItems(slot, (seat.equip_list || []).slice(0, 6));
+    }
+  });
+}
+setInterval(pollMainInfo, POLL_MS);
+</script>
+</body>
+</html>

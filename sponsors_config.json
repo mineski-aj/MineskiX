@@ -1,0 +1,36 @@
+{
+  "categories": [
+    {
+      "id": "cat_main",
+      "name": "OFFICIAL SPONSOR",
+      "duration": 4,
+      "logos": [
+        "INFINIX.png",
+        "SMART.png",
+        "VISA.png"
+      ]
+    },
+    {
+      "id": "cat_msofvnao999",
+      "name": "PARTNER IN ESPORTS",
+      "duration": 2,
+      "logos": [
+        "CLEAR.png",
+        "JOYTIFY.png"
+      ]
+    },
+    {
+      "id": "cat_msofvrqo889",
+      "name": "STRATEGIC PARTNER",
+      "duration": 2,
+      "logos": [
+        "TTRACING.png",
+        "CHINA AIRLINES.png",
+        "SIP.png"
+      ]
+    }
+  ],
+  "hiddenInIngame": [
+    "JOYTIFY.png"
+  ]
+}

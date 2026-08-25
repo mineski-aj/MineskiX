@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <script src="js/relay-client.js"></script>
+  <title>Map Selection Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* ── Login ── */
+    #login-wrap {
+      width: 320px;
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 80px;
+    }
+    #login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+    #login-wrap p  { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    /* ── App ── */
+    #app { display: none; width: 100%; max-width: 1100px; flex-direction: column; gap: 10px; height: 100%; }
+    #app.visible { display: flex; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+    #sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; display: inline-block; margin-right: 6px; transition: background .3s; }
+    #sync-dot.ok  { background: #00cc88; box-shadow: 0 0 5px #00cc88aa; }
+    #sync-dot.err { background: #ff4455; box-shadow: 0 0 5px #ff4455aa; }
+    #sync-label { font-size: 12px; color: #555; }
+
+    #body-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Buttons ── */
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(.85); }
+    .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
+    .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
+    .btn-reset  { background: #3a1a1a; border-color: #5a2a2a; color: #ff8899; font-size: 12px; }
+    .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
+    input[type="password"] {
+      width: 100%; background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px;
+      color: #e0e0f0; font-size: 13px; padding: 7px 10px; outline: none; transition: border-color .2s;
+    }
+    input[type="password"]:focus { border-color: #5566cc; }
+
+    /* ── Summary panel ── */
+    .panel { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; flex-shrink: 0; }
+    .panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #444; margin-bottom: 12px; }
+
+    #summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .summary-team { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .summary-team.away { flex-direction: row-reverse; text-align: right; }
+    .summary-team img { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+    .summary-team-name { font-size: 16px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .summary-team-side { font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+    .summary-team-side.blue { color: #6699ff; }
+    .summary-team-side.red  { color: #ff7788; }
+    .summary-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding: 0 10px; }
+    .summary-score { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: .05em; }
+    .summary-series { font-size: 11px; font-weight: 700; color: #7a7aaa; letter-spacing: .08em; text-transform: uppercase; }
+
+    #series-banner {
+      display: none; align-items: center; justify-content: space-between; gap: 12px;
+      background: #10240f; border: 1px solid #1e5a36; border-radius: 10px; padding: 12px 18px; flex-shrink: 0;
+    }
+    #series-banner.show { display: flex; }
+    #series-banner .msg { font-size: 14px; font-weight: 700; color: #44dd88; }
+
+    /* ── Game cards ── */
+    .game-card { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; flex-shrink: 0; }
+    .game-card.current { border-color: #33447a; }
+    .game-card.upcoming { opacity: .45; }
+    .game-card-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .game-card-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: .04em; }
+    .game-status { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 10px; }
+    .game-status.upcoming  { background: #1a1a24; color: #555; }
+    .game-status.current   { background: #1a2440; color: #7aa6ff; }
+    .game-status.complete  { background: #123a24; color: #44dd88; }
+
+    .step { margin-bottom: 12px; }
+    .step:last-child { margin-bottom: 0; }
+    .step-label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #666; margin-bottom: 6px; }
+    .step-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .pick-btn {
+      background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 8px; color: #aab;
+      font-size: 13px; font-weight: 600; padding: 8px 16px; cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .pick-btn:hover:not(:disabled) { border-color: #5566cc; color: #fff; }
+    .pick-btn:disabled { opacity: .35; cursor: default; }
+    .pick-btn.selected { background: #1e2a4a; border-color: #5577dd; color: #fff; }
+    .pick-btn.selected.blue { background: #10203f; border-color: #3366cc; color: #88aaff; }
+    .pick-btn.selected.red  { background: #3f1010; border-color: #cc3344; color: #ff8899; }
+    .pick-btn img.tlogo { width: 20px; height: 20px; object-fit: contain; }
+    .pick-btn.map-btn { flex-direction: column; padding: 6px; width: 108px; gap: 4px; }
+    .pick-btn.map-btn img { width: 96px; height: 54px; object-fit: cover; border-radius: 4px; }
+    .pick-btn.map-btn span { font-size: 11px; }
+
+    .game-summary { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .game-summary-item { font-size: 13px; color: #ccc; }
+    .game-summary-item b { color: #fff; }
+    .game-summary-item.blue b { color: #6699ff; }
+    .game-summary-item.red  b { color: #ff7788; }
+    .winner-tag { font-size: 12px; font-weight: 700; color: #44dd88; margin-left: auto; }
+    .upcoming-note { font-size: 12px; color: #555; }
+
+    #saved-toast {
+      position: fixed; right: 18px; bottom: 18px; background: #16a34a; color: #fff;
+      font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45); opacity: 0; transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease; z-index: 999;
+    }
+    #saved-toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="saved-toast">Saved</div>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <h2>Map Selection Dashboard</h2>
+  <p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+  <div class="err" id="login-err"></div>
+  <button class="btn btn-login" id="login-btn">Unlock</button>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <h1>Map Selection</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="sync-dot"></span>
+      <span id="sync-label">connecting…</span>
+      <button class="btn btn-reset" id="reset-btn">Reset Match</button>
+      <button class="btn btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div id="body-scroll">
+    <div class="panel">
+      <div class="panel-title">Teams &amp; Series</div>
+      <div id="summary"></div>
+    </div>
+
+    <div id="series-banner">
+      <span class="msg" id="series-banner-msg"></span>
+    </div>
+
+    <div id="games-root"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var token = sessionStorage.getItem('match_token') || '';
+  var state = null;
+  var MAPS = ['Broken Walls', 'Dangerous Grass', 'Expanding Rivers', 'Flying Cloud'];
+
+  /* ── AUTH ── */
+  function showApp()   { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('app').classList.add('visible'); }
+  function showLogin() { document.getElementById('login-wrap').style.display = ''; document.getElementById('app').classList.remove('visible'); }
+
+  if (token) tryAuth(token);
+
+  document.getElementById('login-btn').addEventListener('click', function () { tryAuth(document.getElementById('pw-input').value.trim()); });
+  document.getElementById('pw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+  document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
+
+  function tryAuth(pw) {
+    fetch('/mapselection/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) {
+        if (r.ok) {
+          token = pw;
+          sessionStorage.setItem('match_token', token);
+          document.getElementById('login-err').textContent = '';
+          showApp();
+          loadState();
+          connectSSE();
+        } else {
+          document.getElementById('login-err').textContent = 'Incorrect password.';
+        }
+      }).catch(function () { document.getElementById('login-err').textContent = 'Cannot reach server.'; });
+  }
+
+  /* ── LIVE SYNC ── */
+  function loadState() {
+    fetch('/mapselection/state', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) { state = s; render(); setSyncStatus(true); })
+      .catch(function () { setSyncStatus(false); });
+  }
+
+  // Relayed via the parent dashboard (see html/js/relay-client.js) instead
+  // of this iframe opening its own EventSource — see dashboard.html's
+  // relay comment for why. Team pick / series format changes on the
+  // Match Board tab go straight into match_state, not through our own
+  // action route, so they don't trigger the 'mapselection' channel on
+  // their own; the parent relays 'match' changes here too (instead of
+  // this previously polling /mapselection/state every few seconds) so
+  // this tab reacts instantly either way.
+  function connectSSE() {
+    connectRelay('mapselection', function (s) { state = s; render(); }, setSyncStatus);
+    connectRelay('match', function () { loadState(); }, null);
+  }
+
+  function setSyncStatus(ok) {
+    document.getElementById('sync-dot').className     = ok ? 'ok' : 'err';
+    document.getElementById('sync-label').textContent = ok ? 'Synced' : 'Disconnected';
+  }
+
+  var _toastTimer = null;
+  function showSavedToast() {
+    var t = document.getElementById('saved-toast');
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1200);
+  }
+
+  function act(action, extra) {
+    var body = Object.assign({ token: token, action: action }, extra || {});
+    fetch('/mapselection/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(function (r) {
+      setSyncStatus(r.ok);
+      if (r.ok) { showSavedToast(); return r.json().then(function (d) { state = d.state; render(); }); }
+      if (r.status === 401) { token = ''; sessionStorage.removeItem('match_token'); showLogin(); }
+    }).catch(function () { setSyncStatus(false); });
+  }
+
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    if (!confirm('Clear all coin toss / side / map / winner picks for this match and reset the series score to 0-0?')) return;
+    act('resetAll');
+  });
+
+  /* ── RENDER ── */
+  function logoUrl(short) { return '/logos/' + encodeURIComponent((short || '').toUpperCase()) + '.png'; }
+  function mapUrl(name)   { return '/maps/' + encodeURIComponent(name) + '.png'; }
+
+  function render() {
+    if (!state) return;
+    renderSummary();
+    renderBanner();
+    renderGames();
+  }
+
+  function renderSummary() {
+    var s = state;
+    var root = document.getElementById('summary');
+    root.innerHTML = '';
+
+    function teamBlock(side) {
+      var t = s[side];
+      var wrap = document.createElement('div');
+      wrap.className = 'summary-team' + (side === 'away' ? ' away' : '');
+      var img = document.createElement('img');
+      img.src = logoUrl(t.short);
+      img.onerror = function () { img.style.display = 'none'; };
+      wrap.appendChild(img);
+      var col = document.createElement('div');
+      var name = document.createElement('div');
+      name.className = 'summary-team-name';
+      name.textContent = t.name || (side === 'home' ? 'Home Team' : 'Away Team');
+      col.appendChild(name);
+      var sideLbl = document.createElement('div');
+      var teamSide = side === 'home' ? (s.swapped ? 'red' : 'blue') : (s.swapped ? 'blue' : 'red');
+      sideLbl.className = 'summary-team-side ' + teamSide;
+      sideLbl.textContent = '● ' + teamSide.toUpperCase() + ' SIDE';
+      col.appendChild(sideLbl);
+      wrap.appendChild(col);
+      return wrap;
+    }
+
+    root.appendChild(teamBlock('home'));
+    var mid = document.createElement('div');
+    mid.className = 'summary-mid';
+    var score = document.createElement('div');
+    score.className = 'summary-score';
+    score.textContent = (s.home.score || 0) + ' – ' + (s.away.score || 0);
+    mid.appendChild(score);
+    var series = document.createElement('div');
+    series.className = 'summary-series';
+    series.textContent = s.series || 'BO5';
+    mid.appendChild(series);
+    root.appendChild(mid);
+    root.appendChild(teamBlock('away'));
+  }
+
+  function renderBanner() {
+    var s = state;
+    var banner = document.getElementById('series-banner');
+    if (s.seriesComplete && s.seriesWinner) {
+      var winnerName = s[s.seriesWinner].name || (s.seriesWinner === 'home' ? 'Home Team' : 'Away Team');
+      document.getElementById('series-banner-msg').textContent =
+        '🏆 ' + winnerName + ' win the series ' + s.homeWins + '–' + s.awayWins;
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+
+  function teamName(side) { return state[side].name || (side === 'home' ? 'Home Team' : 'Away Team'); }
+  function teamShort(side) { return state[side].short || (side === 'home' ? 'HME' : 'AWY'); }
+
+  function renderGames() {
+    var root = document.getElementById('games-root');
+    root.innerHTML = '';
+    state.games.forEach(function (g) {
+      root.appendChild(buildGameCard(g));
+    });
+  }
+
+  function pickBtn(opts) {
+    var b = document.createElement('button');
+    b.className = 'pick-btn' + (opts.selected ? ' selected' : '') + (opts.extraClass ? ' ' + opts.extraClass : '');
+    if (opts.disabled) b.disabled = true;
+    if (opts.logo) {
+      var img = document.createElement('img');
+      img.className = 'tlogo';
+      img.src = opts.logo;
+      img.onerror = function () { img.style.display = 'none'; };
+      b.appendChild(img);
+    }
+    var span = document.createElement('span');
+    span.textContent = opts.label;
+    b.appendChild(span);
+    if (opts.onClick) b.addEventListener('click', opts.onClick);
+    return b;
+  }
+
+  function buildGameCard(g) {
+    var card = document.createElement('div');
+    var isCurrent  = !state.seriesComplete && g.game === state.currentGame;
+    var isUpcoming = !g.locked && !isCurrent;
+    card.className = 'game-card' + (isCurrent ? ' current' : '') + (isUpcoming ? ' upcoming' : '');
+
+    var hdr = document.createElement('div');
+    hdr.className = 'game-card-hdr';
+    var title = document.createElement('div');
+    title.className = 'game-card-title';
+    title.textContent = 'GAME ' + g.game;
+    hdr.appendChild(title);
+    var status = document.createElement('span');
+    status.className = 'game-status ' + (g.locked ? 'complete' : (isCurrent ? 'current' : 'upcoming'));
+    status.textContent = g.locked ? 'Complete' : (isCurrent ? 'In Progress' : 'Upcoming');
+    hdr.appendChild(status);
+    card.appendChild(hdr);
+
+    if (g.locked) {
+      card.appendChild(buildCompletedSummary(g));
+      return card;
+    }
+    if (isUpcoming) {
+      var note = document.createElement('div');
+      note.className = 'upcoming-note';
+      note.textContent = 'Waiting for Game ' + (state.currentGame || g.game) + ' to finish.';
+      card.appendChild(note);
+      return card;
+    }
+
+    // Step 1 — coin toss winner
+    card.appendChild(buildStep('Coin Toss Winner', [
+      pickBtn({ label: teamName('home'), logo: logoUrl(teamShort('home')), selected: g.tossWinner === 'home',
+        onClick: function () { act('toss', { game: g.game, winner: g.tossWinner === 'home' ? null : 'home' }); } }),
+      pickBtn({ label: teamName('away'), logo: logoUrl(teamShort('away')), selected: g.tossWinner === 'away',
+        onClick: function () { act('toss', { game: g.game, winner: g.tossWinner === 'away' ? null : 'away' }); } }),
+    ]));
+
+    // Step 2 — side choice, made by the toss winner
+    var sideLabel = g.tossWinner ? (teamName(g.tossWinner) + ' Picks Side') : 'Side Choice (pick coin toss winner first)';
+    card.appendChild(buildStep(sideLabel, [
+      pickBtn({ label: 'Blue Side', selected: g.tossSide === 'blue', extraClass: 'blue', disabled: !g.tossWinner,
+        onClick: function () { act('side', { game: g.game, side: 'blue' }); } }),
+      pickBtn({ label: 'Red Side', selected: g.tossSide === 'red', extraClass: 'red', disabled: !g.tossWinner,
+        onClick: function () { act('side', { game: g.game, side: 'red' }); } }),
+    ]));
+
+    // Step 3 — map
+    var mapBtns = MAPS.map(function (m) {
+      var b = document.createElement('button');
+      b.className = 'pick-btn map-btn' + (g.map === m ? ' selected' : '');
+      b.disabled = !g.tossSide;
+      var img = document.createElement('img');
+      img.src = mapUrl(m);
+      img.onerror = function () { img.style.display = 'none'; };
+      var span = document.createElement('span');
+      span.textContent = m;
+      b.appendChild(img); b.appendChild(span);
+      b.addEventListener('click', function () { act('map', { game: g.game, map: m }); });
+      return b;
+    });
+    card.appendChild(buildStep('Map', mapBtns));
+
+    // Step 4 — winner
+    card.appendChild(buildStep('Winner of Game ' + g.game, [
+      pickBtn({ label: teamName('home'), logo: logoUrl(teamShort('home')), disabled: !g.map,
+        onClick: function () { act('winner', { game: g.game, winner: 'home' }); } }),
+      pickBtn({ label: teamName('away'), logo: logoUrl(teamShort('away')), disabled: !g.map,
+        onClick: function () { act('winner', { game: g.game, winner: 'away' }); } }),
+    ]));
+
+    return card;
+  }
+
+  function buildStep(label, buttons) {
+    var step = document.createElement('div');
+    step.className = 'step';
+    var lbl = document.createElement('div');
+    lbl.className = 'step-label';
+    lbl.textContent = label;
+    step.appendChild(lbl);
+    var row = document.createElement('div');
+    row.className = 'step-row';
+    buttons.forEach(function (b) { row.appendChild(b); });
+    step.appendChild(row);
+    return step;
+  }
+
+  function buildCompletedSummary(g) {
+    var row = document.createElement('div');
+    row.className = 'game-summary';
+
+    var winnerItem = document.createElement('div');
+    winnerItem.className = 'game-summary-item';
+    winnerItem.innerHTML = 'Winner: <b>' + escapeHtml(teamName(g.winner)) + '</b>';
+    row.appendChild(winnerItem);
+
+    var mapItem = document.createElement('div');
+    mapItem.className = 'game-summary-item';
+    mapItem.innerHTML = 'Map: <b>' + escapeHtml(g.map || '—') + '</b>';
+    row.appendChild(mapItem);
+
+    var homeSideItem = document.createElement('div');
+    homeSideItem.className = 'game-summary-item ' + (g.homeSide || '');
+    homeSideItem.innerHTML = escapeHtml(teamShort('home')) + ': <b>' + (g.homeSide || '—').toUpperCase() + '</b>';
+    row.appendChild(homeSideItem);
+
+    var awaySideItem = document.createElement('div');
+    awaySideItem.className = 'game-summary-item ' + (g.awaySide || '');
+    awaySideItem.innerHTML = escapeHtml(teamShort('away')) + ': <b>' + (g.awaySide || '—').toUpperCase() + '</b>';
+    row.appendChild(awaySideItem);
+
+    var reopen = document.createElement('button');
+    reopen.className = 'btn btn-reset';
+    reopen.textContent = 'Reopen';
+    reopen.style.marginLeft = 'auto';
+    reopen.addEventListener('click', function () { act('reopen', { game: g.game }); });
+    row.appendChild(reopen);
+
+    return row;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+})();
+</script>
+</body>
+</html>

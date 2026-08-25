@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <title>Overlay Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #222232;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.03em;
+    }
+    #server-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #888;
+    }
+    .status-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #444;
+      transition: background 0.3s;
+    }
+    .status-dot.online  { background: #00cc88; box-shadow: 0 0 6px #00cc8888; }
+    .status-dot.offline { background: #ff4455; box-shadow: 0 0 6px #ff445588; }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    #layout {
+      flex: 1;
+      display: flex;
+      gap: 16px;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── Sidebar / Grid ─────────────────────────────────────── */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+      align-content: start;
+      overflow-y: auto;
+      flex: 1;
+      min-width: 0;
+      padding-right: 4px;
+    }
+    #layout.split #grid {
+      flex: none;
+      width: 360px;
+      grid-template-columns: 1fr;
+    }
+
+    /* ── Preview panel ──────────────────────────────────────── */
+    #preview-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      background: #0a0a14;
+      border: 1px solid #222232;
+      border-radius: 10px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    #layout.split #preview-panel { display: flex; }
+
+    #preview-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      border-bottom: 1px solid #1e1e2c;
+      flex-shrink: 0;
+    }
+    #preview-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e8e8f0;
+    }
+    #preview-label {
+      font-size: 11px;
+      color: #555;
+      font-family: 'Consolas', monospace;
+      margin-left: 10px;
+    }
+
+    #preview-frame-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+    #preview-iframe {
+      position: absolute;
+      width: 1920px;
+      height: 1080px;
+      border: none;
+      transform-origin: top left;
+    }
+
+    /* ── Card ───────────────────────────────────────────────── */
+    .card {
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card.previewing {
+      border-color: #6677cc;
+      box-shadow: 0 0 0 1px #6677cc33;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #1e1e2c;
+    }
+    .card-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #333;
+      flex-shrink: 0;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .card-dot.online  { background: #00cc88; box-shadow: 0 0 6px #00cc8880; }
+    .card-dot.offline { background: #ff4455; box-shadow: 0 0 6px #ff445580; }
+    .card-dot.unknown { background: #555; }
+
+    .card-title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      color: #e8e8f0;
+    }
+    .card-url {
+      font-size: 11px;
+      color: #555;
+      font-family: 'Consolas', monospace;
+    }
+
+    .card-body { padding: 12px 16px; }
+
+    /* ── Button row ─────────────────────────────────────────── */
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .btn-row:last-child { margin-bottom: 0; }
+
+    .btn {
+      padding: 5px 14px;
+      border-radius: 5px;
+      border: 1px solid transparent;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: filter 0.15s, opacity 0.15s;
+      text-decoration: none;
+      display: inline-block;
+      line-height: 22px;
+    }
+    .btn:hover  { filter: brightness(1.15); }
+    .btn:active { filter: brightness(0.9);  }
+
+    .btn-open    { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; }
+    .btn-show    { background: #1a3a2a; border-color: #2a5a3a; color: #44cc88; }
+    .btn-hide    { background: #3a1a1a; border-color: #5a2a2a; color: #ff6677; }
+    .btn-action  { background: #222230; border-color: #33334a; color: #9090c0; }
+    .btn-preview { background: #1a1a2e; border-color: #2a2a4a; color: #6677cc; }
+    .btn-preview.active { background: #2a2a4a; border-color: #6677cc; color: #aabbff; }
+
+    /* ── Feature section ────────────────────────────────────── */
+    .features-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #444;
+      margin: 10px 0 6px;
+    }
+    .feature-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #0f0f18;
+      margin-bottom: 5px;
+    }
+    .feature-row:last-child { margin-bottom: 0; }
+    .feature-name { font-size: 12px; color: #a0a0b8; }
+    .feature-btns { display: flex; gap: 6px; }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .divider { height: 1px; background: #1e1e2c; margin: 10px 0; }
+
+    /* ── Flash feedback ─────────────────────────────────────── */
+    @keyframes flash-ok {
+      0%   { background: #1a3a2a; }
+      100% { background: transparent; }
+    }
+    .flash-ok { animation: flash-ok 0.6s ease-out; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Overlay Dashboard</h1>
+  <div id="server-status">
+    <div class="status-dot" id="srv-dot"></div>
+    <span id="srv-label">Checking server…</span>
+    <span style="color:#333; margin: 0 6px;">|</span>
+    <span id="srv-time" style="font-size:11px; color:#444;"></span>
+  </div>
+</header>
+
+<div id="layout">
+  <div id="grid"></div>
+  <div id="preview-panel">
+    <div id="preview-hdr">
+      <div>
+        <span id="preview-title">Preview</span>
+        <span id="preview-label"></span>
+      </div>
+      <button class="btn btn-action" id="preview-close">✕ Close</button>
+    </div>
+    <div id="preview-frame-wrap">
+      <iframe id="preview-iframe" src=""></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── Overlay definitions ──────────────────────────────────── */
+  var OVERLAYS = [
+    {
+      id: 'draft',
+      name: 'Draft Overlay',
+      file: 'Draft.html',
+    },
+    {
+      id: 'mplfs',
+      name: 'MPL Full Screen',
+      file: 'mplfs.html',
+      globalHide: '/overlay/fs/hide',
+      features: [
+        { name: 'Post Hearts',   show: '/overlay/post_hearts/show',   hide: '/overlay/post_hearts/hide'   },
+        { name: 'Post Richguy',  show: '/overlay/post_richguy/show',  hide: '/overlay/post_richguy/hide'  },
+        { name: 'Post Itemline', show: '/overlay/post_itemline/show', hide: '/overlay/post_itemline/hide' },
+      ],
+      extraActions: [
+        { label: 'Item In',   action: '/overlay/post_itemline/itemin'  },
+        { label: 'Item Out',  action: '/overlay/post_itemline/itemout' },
+        { label: 'Debug Off', action: '/overlay/fs/debugoff'           },
+      ],
+    },
+    {
+      id: 'fights',
+      name: 'Fight Recap',
+      file: 'fights.html',
+      show: '/overlay/fights/show',
+      hide: '/overlay/fights/hide',
+    },
+    {
+      id: 'mploverlay',
+      name: 'MPL Player Overlay',
+      file: 'mploverlay_v5.html',
+      hide: '/overlay/hide',
+    },
+    {
+      id: 'ingame',
+      name: 'In-Game Cam',
+      file: 'ingame_camv1.html',
+    },
+    {
+      id: 'bpm',
+      name: 'BPM Meter',
+      file: 'heart_stopping_moment_v14.html',
+      show: '/meter/show',
+      hide: '/meter/hide',
+      extraActions: [
+        { label: '+',     action: '/meter/plus'  },
+        { label: '−',     action: '/meter/minus' },
+        { label: 'Clear', action: '/meter/clear' },
+      ],
+    },
+    {
+      id: 'draftpredict',
+      name: 'Draft Predict',
+      file: null,
+      show: '/overlay/draftpredict/show',
+      hide: '/overlay/draftpredict/hide',
+    },
+  ];
+
+  /* ── DOM helpers ──────────────────────────────────────────── */
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls)  e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+  function btn(label, cls, onClick) {
+    var b = el('button', 'btn ' + cls, label);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  /* ── Hit a control endpoint ───────────────────────────────── */
+  function hit(url, cardBody) {
+    fetch(url).then(function (r) {
+      if (r.ok && cardBody) {
+        cardBody.classList.remove('flash-ok');
+        void cardBody.offsetWidth;
+        cardBody.classList.add('flash-ok');
+      }
+    }).catch(function () {});
+  }
+
+  /* ── Shared preview panel ────────────────────────────────── */
+  var layout       = document.getElementById('layout');
+  var previewPanel = document.getElementById('preview-panel');
+  var previewIframe = document.getElementById('preview-iframe');
+  var previewTitle = document.getElementById('preview-title');
+  var previewLabel = document.getElementById('preview-label');
+  var activeCard   = null;
+  var activeBtn    = null;
+  var loadedFiles  = {};
+
+  function scalePreview() {
+    var wrap = document.getElementById('preview-frame-wrap');
+    var scaleX = wrap.clientWidth  / 1920;
+    var scaleY = wrap.clientHeight / 1080;
+    var scale  = Math.min(scaleX, scaleY);
+    var scaledW = Math.round(1920 * scale);
+    var scaledH = Math.round(1080 * scale);
+    previewIframe.style.transform = 'scale(' + scale + ')';
+    previewIframe.style.left = Math.round((wrap.clientWidth  - scaledW) / 2) + 'px';
+    previewIframe.style.top  = Math.round((wrap.clientHeight - scaledH) / 2) + 'px';
+  }
+
+  function openPreview(ov, pBtn, card) {
+    /* Toggle off if already previewing this card */
+    if (activeCard === card) {
+      closePreview();
+      return;
+    }
+
+    /* Deactivate previous */
+    if (activeCard) {
+      activeCard.classList.remove('previewing');
+      if (activeBtn) { activeBtn.classList.remove('active'); activeBtn.textContent = 'Preview'; }
+    }
+
+    /* Load iframe (lazy, once per file) */
+    if (!loadedFiles[ov.file]) {
+      previewIframe.src = ov.file + '?preview=1';
+      loadedFiles[ov.file] = true;
+    } else if (previewIframe.src.indexOf(ov.file) === -1) {
+      previewIframe.src = ov.file + '?preview=1';
+    }
+
+    previewTitle.textContent = ov.name;
+    previewLabel.textContent = ov.file;
+    card.classList.add('previewing');
+    pBtn.classList.add('active');
+    pBtn.textContent = 'Previewing';
+    activeCard = card;
+    activeBtn  = pBtn;
+
+    /* Show only the active card in the sidebar */
+    Array.prototype.forEach.call(grid.querySelectorAll('.card'), function (c) {
+      c.style.display = c === card ? '' : 'none';
+    });
+
+    layout.classList.add('split');
+    requestAnimationFrame(scalePreview);
+  }
+
+  function closePreview() {
+    /* Restore all cards */
+    Array.prototype.forEach.call(grid.querySelectorAll('.card'), function (c) {
+      c.style.display = '';
+    });
+
+    layout.classList.remove('split');
+    if (activeCard) activeCard.classList.remove('previewing');
+    if (activeBtn)  { activeBtn.classList.remove('active'); activeBtn.textContent = 'Preview'; }
+    activeCard = null;
+    activeBtn  = null;
+  }
+
+  document.getElementById('preview-close').addEventListener('click', closePreview);
+  window.addEventListener('resize', function () {
+    if (layout.classList.contains('split')) scalePreview();
+  });
+
+  /* ── Build cards ──────────────────────────────────────────── */
+  var grid = document.getElementById('grid');
+  var dots = {};
+
+  OVERLAYS.forEach(function (ov) {
+    var card = el('div', 'card');
+
+    /* Header */
+    var hdr   = el('div', 'card-header');
+    var dot   = el('div', 'card-dot unknown');
+    var info  = el('div');
+    var title = el('div', 'card-title', ov.name);
+    var urlLbl = el('div', 'card-url', ov.file || '(no page)');
+    info.appendChild(title);
+    info.appendChild(urlLbl);
+    hdr.appendChild(dot);
+    hdr.appendChild(info);
+
+    if (ov.file) {
+      var openBtn = el('a', 'btn btn-open', 'Open ↗');
+      openBtn.href   = ov.file;
+      openBtn.target = '_blank';
+      hdr.appendChild(openBtn);
+    }
+
+    card.appendChild(hdr);
+    dots[ov.id] = dot;
+
+    /* Body */
+    var body = el('div', 'card-body');
+
+    /* Show / Hide row */
+    if (ov.show || ov.hide || ov.globalHide) {
+      var row = el('div', 'btn-row');
+      if (ov.show)       row.appendChild(btn('Show',     'btn-show', function () { hit(ov.show, body); }));
+      if (ov.hide)       row.appendChild(btn('Hide',     'btn-hide', function () { hit(ov.hide, body); }));
+      if (ov.globalHide) row.appendChild(btn('Hide All', 'btn-hide', function () { hit(ov.globalHide, body); }));
+      body.appendChild(row);
+    }
+
+    /* Extra action buttons */
+    if (ov.extraActions && ov.extraActions.length) {
+      var arow = el('div', 'btn-row');
+      ov.extraActions.forEach(function (a) {
+        arow.appendChild(btn(a.label, 'btn-action', function () { hit(a.action, body); }));
+      });
+      body.appendChild(arow);
+    }
+
+    /* Sub-features */
+    if (ov.features && ov.features.length) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      body.appendChild(el('div', 'features-label', 'Features'));
+      ov.features.forEach(function (feat) {
+        var fr = el('div', 'feature-row');
+        fr.appendChild(el('div', 'feature-name', feat.name));
+        var fb = el('div', 'feature-btns');
+        if (feat.show) fb.appendChild(btn('Show', 'btn-show', function () { hit(feat.show, body); }));
+        if (feat.hide) fb.appendChild(btn('Hide', 'btn-hide', function () { hit(feat.hide, body); }));
+        fr.appendChild(fb);
+        body.appendChild(fr);
+      });
+    }
+
+    /* Placeholder if no controls */
+    if (!body.children.length) {
+      var ph = el('div', '', 'No controls available');
+      ph.style.cssText = 'font-size:12px;color:#444;padding:4px 0;';
+      body.appendChild(ph);
+    }
+
+    /* Preview button */
+    if (ov.file) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      var prow = el('div', 'btn-row');
+      var pBtn = btn('Preview', 'btn-action btn-preview', function () {
+        openPreview(ov, pBtn, card);
+      });
+      prow.appendChild(pBtn);
+      body.appendChild(prow);
+    }
+
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+
+  /* ── Status polling ───────────────────────────────────────── */
+  function pollStatus() {
+    fetch('/').then(function (r) {
+      var dot  = document.getElementById('srv-dot');
+      var lbl  = document.getElementById('srv-label');
+      var time = document.getElementById('srv-time');
+      dot.className   = 'status-dot ' + (r.ok ? 'online' : 'offline');
+      lbl.textContent = r.ok ? 'Server online' : 'Server error';
+      time.textContent = 'last check ' + new Date().toLocaleTimeString();
+    }).catch(function () {
+      document.getElementById('srv-dot').className  = 'status-dot offline';
+      document.getElementById('srv-label').textContent = 'Server offline';
+    });
+
+    OVERLAYS.forEach(function (ov) {
+      if (!ov.file) { dots[ov.id].className = 'card-dot unknown'; return; }
+      fetch(ov.file, { method: 'HEAD', cache: 'no-store' })
+        .then(function (r) { dots[ov.id].className = 'card-dot ' + (r.ok ? 'online' : 'offline'); })
+        .catch(function () { dots[ov.id].className = 'card-dot offline'; });
+    });
+  }
+
+  pollStatus();
+  setInterval(pollStatus, 5000);
+})();
+</script>
+</body>
+</html>

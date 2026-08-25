@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="js/cache-bust.js"></script>
+<title>Dynamic Content</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d0d12;
+    color: #d0d0d8;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    gap: 16px;
+    overflow-y: auto;
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #222232;
+    flex-shrink: 0;
+  }
+  .page-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  /* ── Per-panel save controls ── */
+  .panel-save-status {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #333;
+    transition: color 0.3s;
+  }
+  .panel-save-status.saving { color: #5577cc; }
+  .panel-save-status.saved  { color: #00cc88; }
+  .panel-save-status.error  { color: #ff4455; }
+  .panel-save-status.dirty  { color: #ddaa33; }
+
+  .panel-save-btn {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #ddd;
+    background: #2a2a3e;
+    border: 1px solid #3a3a52;
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .panel-save-btn:hover { background: #34344a; }
+  .panel-save-btn:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Two-column split ── */
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* ── Panel card ── */
+  .panel {
+    background: #13131c;
+    border: 1px solid #1e1e2c;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1a1a28;
+  }
+  .panel-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+  .badge-ph { background: #1a2a4a; color: #4a8fff; border: 1px solid #2a3a6a; }
+  .badge-en { background: #1a3a2a; color: #44cc88; border: 1px solid #2a5a3a; }
+  .badge-universal { background: #2a1a3a; color: #cc88ff; border: 1px solid #4a2a5a; }
+  .panel-label-sub {
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Field group ── */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #555;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #252535;
+    border-radius: 6px;
+    color: #ddd;
+    padding: 8px 10px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    outline: none;
+    resize: vertical;
+    min-height: 56px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  textarea:focus {
+    border-color: #4455aa;
+    background: rgba(255,255,255,0.07);
+  }
+  textarea::placeholder { color: #333; }
+
+  /* ── Universal section ── */
+  .universal-row {
+    flex-shrink: 0;
+  }
+  .universal-placeholder {
+    font-size: 11px;
+    color: #2a2a3a;
+    text-align: center;
+    padding: 20px;
+    border: 1px dashed #1e1e2e;
+    border-radius: 8px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ── Divider label ── */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #1a1a28;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="page-title">Dynamic Content</span>
+</div>
+
+<!-- Top: PH | EN -->
+<div class="split-row">
+
+  <!-- PH Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-badge badge-ph">PH</span>
+      <button id="ph-save-btn" class="panel-save-btn" onclick="savePanel('ph')">Save</button>
+      <span id="ph-status" class="panel-save-status">—</span>
+      <span class="panel-label-sub">Filipino Content</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="ph-ticker">Ticker</label>
+      <textarea id="ph-ticker" name="ph_ticker" rows="2" placeholder="Enter PH ticker text…"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="ph-headline">Headline</label>
+      <textarea id="ph-headline" name="ph_headline" rows="2" placeholder="Enter PH headline…"></textarea>
+    </div>
+  </div>
+
+  <!-- EN Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-badge badge-en">EN</span>
+      <button id="en-save-btn" class="panel-save-btn" onclick="savePanel('en')">Save</button>
+      <span id="en-status" class="panel-save-status">—</span>
+      <span class="panel-label-sub">English Content</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="en-ticker">Ticker</label>
+      <textarea id="en-ticker" name="en_ticker" rows="2" placeholder="Enter EN ticker text…"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="en-headline">Headline</label>
+      <textarea id="en-headline" name="en_headline" rows="2" placeholder="Enter EN headline…"></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- Divider -->
+<div class="section-divider">Universal</div>
+
+<!-- Bottom: Universal -->
+<div class="universal-row">
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-badge badge-universal">Universal</span>
+      <button id="uni-save-btn" class="panel-save-btn" onclick="savePanel('uni')">Save</button>
+      <span id="uni-status" class="panel-save-status">—</span>
+      <span class="panel-label-sub">Applies to all languages</span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="match-headline">Match Headline</label>
+      <textarea id="match-headline" name="match_headline" rows="2" placeholder="Enter match headline…"></textarea>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FIELDS = ['ph_ticker', 'en_ticker', 'ph_headline', 'en_headline', 'match_headline'];
+  const ID_MAP  = {
+    ph_ticker:      'ph-ticker',
+    en_ticker:      'en-ticker',
+    ph_headline:    'ph-headline',
+    en_headline:    'en-headline',
+    match_headline: 'match-headline',
+  };
+  const PANELS = {
+    ph:  { fields: ['ph_ticker', 'ph_headline'], statusId: 'ph-status',  btnId: 'ph-save-btn' },
+    en:  { fields: ['en_ticker', 'en_headline'], statusId: 'en-status',  btnId: 'en-save-btn' },
+    uni: { fields: ['match_headline'],           statusId: 'uni-status', btnId: 'uni-save-btn' },
+  };
+
+  // Last-known-saved value per field. A panel's own save only ever overwrites
+  // ITS fields with live DOM values — every other field is re-sent from this
+  // snapshot, so saving PH never flushes EN's still-unsaved edits to disk.
+  const committed = {};
+
+  function setStatus(panelKey, s) {
+    const el = document.getElementById(PANELS[panelKey].statusId);
+    el.className = 'panel-save-status ' + s;
+    el.textContent = s === 'saving' ? 'Saving…' : s === 'saved' ? 'Saved' : s === 'error' ? 'Error' : s === 'dirty' ? 'Unsaved changes' : '—';
+  }
+
+  async function load() {
+    try {
+      const r = await fetch('/api/dynamic-content', { cache: 'no-store' });
+      const d = await r.json();
+      FIELDS.forEach(k => {
+        committed[k] = d[k] || '';
+        const el = document.getElementById(ID_MAP[k]);
+        if (el) el.value = committed[k];
+      });
+    } catch {}
+  }
+
+  async function savePanel(panelKey) {
+    const panel = PANELS[panelKey];
+    const btnEl = document.getElementById(panel.btnId);
+    setStatus(panelKey, 'saving');
+    btnEl.disabled = true;
+    const body = { ...committed };
+    panel.fields.forEach(k => {
+      const el = document.getElementById(ID_MAP[k]);
+      body[k] = el ? el.value : '';
+    });
+    try {
+      const r = await fetch('/api/dynamic-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (r.ok) {
+        panel.fields.forEach(k => { committed[k] = body[k]; });
+        setStatus(panelKey, 'saved');
+        setTimeout(() => setStatus(panelKey, ''), 2000);
+      } else {
+        setStatus(panelKey, 'error');
+      }
+    } catch {
+      setStatus(panelKey, 'error');
+    } finally {
+      btnEl.disabled = false;
+    }
+  }
+
+  Object.entries(PANELS).forEach(([panelKey, panel]) => {
+    panel.fields.forEach(k => {
+      const el = document.getElementById(ID_MAP[k]);
+      if (el) el.addEventListener('input', () => setStatus(panelKey, 'dirty'));
+    });
+  });
+
+  load();
+</script>
+</body>
+</html>

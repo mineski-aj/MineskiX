@@ -1,0 +1,1457 @@
+{
+  "battleid": "805504994835708009",
+  "date": "2026-05-07",
+  "game_start_time": "2026-05-07T07:04:36.616Z",
+  "game_end_time": "2026-05-07T07:22:04.192Z",
+  "game_duration": "16:16",
+  "camp1_tricode": "RORA",
+  "camp2_tricode": "FLCN",
+  "camp1": {
+    "tricode": "RORA",
+    "players": [
+      {
+        "player1": {
+          "slot": "slot10",
+          "name": "watch10",
+          "player_name": "Ryuu Tanji | 苏宇",
+          "role": "EXP LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 4,
+              "game_time_fmt": "00:04",
+              "item_id": 1512
+            },
+            {
+              "game_time_s": 55,
+              "game_time_fmt": "00:55",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 137,
+              "game_time_fmt": "02:17",
+              "item_id": 2004
+            },
+            {
+              "game_time_s": 160,
+              "game_time_fmt": "02:40",
+              "item_id": 1203
+            },
+            {
+              "game_time_s": 193,
+              "game_time_fmt": "03:13",
+              "item_id": 3522
+            },
+            {
+              "game_time_s": 225,
+              "game_time_fmt": "03:45",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 264,
+              "game_time_fmt": "04:24",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 296,
+              "game_time_fmt": "04:56",
+              "item_id": 2205
+            },
+            {
+              "game_time_s": 331,
+              "game_time_fmt": "05:31",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 384,
+              "game_time_fmt": "06:24",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 418,
+              "game_time_fmt": "06:58",
+              "item_id": 3203
+            },
+            {
+              "game_time_s": 458,
+              "game_time_fmt": "07:38",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 482,
+              "game_time_fmt": "08:02",
+              "item_id": 1203
+            },
+            {
+              "game_time_s": 510,
+              "game_time_fmt": "08:30",
+              "item_id": 2203
+            },
+            {
+              "game_time_s": 535,
+              "game_time_fmt": "08:55",
+              "item_id": 1203
+            },
+            {
+              "game_time_s": 552,
+              "game_time_fmt": "09:12",
+              "item_id": 1204
+            },
+            {
+              "game_time_s": 605,
+              "game_time_fmt": "10:05",
+              "item_id": 3210
+            },
+            {
+              "game_time_s": 640,
+              "game_time_fmt": "10:40",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 643,
+              "game_time_fmt": "10:43",
+              "item_id": 2206
+            },
+            {
+              "game_time_s": 681,
+              "game_time_fmt": "11:21",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 695,
+              "game_time_fmt": "11:35",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 775,
+              "game_time_fmt": "12:55",
+              "item_id": 3212
+            },
+            {
+              "game_time_s": 813,
+              "game_time_fmt": "13:33",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 852,
+              "game_time_fmt": "14:12",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 962,
+              "game_time_fmt": "16:02",
+              "item_id": 3207
+            }
+          ]
+        }
+      },
+      {
+        "player2": {
+          "slot": "slot9",
+          "name": "watch9",
+          "player_name": "Lawww.",
+          "role": "JUNGLER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 2,
+              "game_time_fmt": "00:02",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 12,
+              "game_time_fmt": "00:12",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 63,
+              "game_time_fmt": "01:03",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 126,
+              "game_time_fmt": "02:06",
+              "item_id": 1007
+            },
+            {
+              "game_time_s": 144,
+              "game_time_fmt": "02:24",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 172,
+              "game_time_fmt": "02:52",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 178,
+              "game_time_fmt": "02:58",
+              "item_id": 1006
+            },
+            {
+              "game_time_s": 235,
+              "game_time_fmt": "03:55",
+              "item_id": 2008
+            },
+            {
+              "game_time_s": 265,
+              "game_time_fmt": "04:25",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 282,
+              "game_time_fmt": "04:42",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 310,
+              "game_time_fmt": "05:10",
+              "item_id": 2301
+            },
+            {
+              "game_time_s": 349,
+              "game_time_fmt": "05:49",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 373,
+              "game_time_fmt": "06:13",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 377,
+              "game_time_fmt": "06:17",
+              "item_id": 1006
+            },
+            {
+              "game_time_s": 388,
+              "game_time_fmt": "06:28",
+              "item_id": 1004
+            },
+            {
+              "game_time_s": 397,
+              "game_time_fmt": "06:37",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 486,
+              "game_time_fmt": "08:06",
+              "item_id": 2006
+            },
+            {
+              "game_time_s": 494,
+              "game_time_fmt": "08:14",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 510,
+              "game_time_fmt": "08:30",
+              "item_id": 1006
+            },
+            {
+              "game_time_s": 541,
+              "game_time_fmt": "09:01",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 556,
+              "game_time_fmt": "09:16",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 639,
+              "game_time_fmt": "10:39",
+              "item_id": 2009
+            },
+            {
+              "game_time_s": 641,
+              "game_time_fmt": "10:41",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 688,
+              "game_time_fmt": "11:28",
+              "item_id": 2004
+            },
+            {
+              "game_time_s": 697,
+              "game_time_fmt": "11:37",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 772,
+              "game_time_fmt": "12:52",
+              "item_id": 3015
+            },
+            {
+              "game_time_s": 813,
+              "game_time_fmt": "13:33",
+              "item_id": 1008
+            },
+            {
+              "game_time_s": 909,
+              "game_time_fmt": "15:09",
+              "item_id": 2107
+            }
+          ]
+        }
+      },
+      {
+        "player3": {
+          "slot": "slot8",
+          "name": "watch8",
+          "player_name": "Vortt Manuell",
+          "role": "MID LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 7,
+              "game_time_fmt": "00:07",
+              "item_id": 1413
+            },
+            {
+              "game_time_s": 56,
+              "game_time_fmt": "00:56",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 123,
+              "game_time_fmt": "02:03",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 161,
+              "game_time_fmt": "02:41",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 214,
+              "game_time_fmt": "03:34",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 276,
+              "game_time_fmt": "04:36",
+              "item_id": 3208
+            },
+            {
+              "game_time_s": 311,
+              "game_time_fmt": "05:11",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 335,
+              "game_time_fmt": "05:35",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 372,
+              "game_time_fmt": "06:12",
+              "item_id": 2205
+            },
+            {
+              "game_time_s": 407,
+              "game_time_fmt": "06:47",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 440,
+              "game_time_fmt": "07:20",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 483,
+              "game_time_fmt": "08:03",
+              "item_id": 3203
+            },
+            {
+              "game_time_s": 494,
+              "game_time_fmt": "08:14",
+              "item_id": 1203
+            },
+            {
+              "game_time_s": 509,
+              "game_time_fmt": "08:29",
+              "item_id": 3423
+            },
+            {
+              "game_time_s": 549,
+              "game_time_fmt": "09:09",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 592,
+              "game_time_fmt": "09:52",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 610,
+              "game_time_fmt": "10:10",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 647,
+              "game_time_fmt": "10:47",
+              "item_id": 3204
+            },
+            {
+              "game_time_s": 681,
+              "game_time_fmt": "11:21",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 716,
+              "game_time_fmt": "11:56",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 773,
+              "game_time_fmt": "12:53",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 887,
+              "game_time_fmt": "14:47",
+              "item_id": 2208
+            },
+            {
+              "game_time_s": 909,
+              "game_time_fmt": "15:09",
+              "item_id": 1201
+            }
+          ]
+        }
+      },
+      {
+        "player4": {
+          "slot": "slot7",
+          "name": "watch7",
+          "player_name": "爱|•sʜɪʀᴏシ",
+          "role": "ROAMER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 12,
+              "game_time_fmt": "00:12",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 49,
+              "game_time_fmt": "00:49",
+              "item_id": 1105
+            },
+            {
+              "game_time_s": 98,
+              "game_time_fmt": "01:38",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 161,
+              "game_time_fmt": "02:41",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 181,
+              "game_time_fmt": "03:01",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 245,
+              "game_time_fmt": "04:05",
+              "item_id": 3103
+            },
+            {
+              "game_time_s": 311,
+              "game_time_fmt": "05:11",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 360,
+              "game_time_fmt": "06:00",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 402,
+              "game_time_fmt": "06:42",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 428,
+              "game_time_fmt": "07:08",
+              "item_id": 3204
+            },
+            {
+              "game_time_s": 453,
+              "game_time_fmt": "07:33",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 494,
+              "game_time_fmt": "08:14",
+              "item_id": 2202
+            },
+            {
+              "game_time_s": 541,
+              "game_time_fmt": "09:01",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 576,
+              "game_time_fmt": "09:36",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 597,
+              "game_time_fmt": "09:57",
+              "item_id": 1203
+            },
+            {
+              "game_time_s": 626,
+              "game_time_fmt": "10:26",
+              "item_id": 3201
+            },
+            {
+              "game_time_s": 653,
+              "game_time_fmt": "10:53",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 705,
+              "game_time_fmt": "11:45",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 707,
+              "game_time_fmt": "11:47",
+              "item_id": 2303
+            },
+            {
+              "game_time_s": 725,
+              "game_time_fmt": "12:05",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 769,
+              "game_time_fmt": "12:49",
+              "item_id": 2201
+            },
+            {
+              "game_time_s": 814,
+              "game_time_fmt": "13:34",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 908,
+              "game_time_fmt": "15:08",
+              "item_id": 3208
+            },
+            {
+              "game_time_s": 918,
+              "game_time_fmt": "15:18",
+              "item_id": 1102
+            }
+          ]
+        }
+      },
+      {
+        "player5": {
+          "slot": "slot6",
+          "name": "watch6",
+          "player_name": "Yass Karlsefnii...",
+          "role": "GOLD LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 20,
+              "game_time_fmt": "00:20",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 68,
+              "game_time_fmt": "01:08",
+              "item_id": 2303
+            },
+            {
+              "game_time_s": 79,
+              "game_time_fmt": "01:19",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 93,
+              "game_time_fmt": "01:33",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 113,
+              "game_time_fmt": "01:53",
+              "item_id": 2103
+            },
+            {
+              "game_time_s": 180,
+              "game_time_fmt": "03:00",
+              "item_id": 1104
+            },
+            {
+              "game_time_s": 213,
+              "game_time_fmt": "03:33",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 255,
+              "game_time_fmt": "04:15",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 281,
+              "game_time_fmt": "04:41",
+              "item_id": 3106
+            },
+            {
+              "game_time_s": 296,
+              "game_time_fmt": "04:56",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 308,
+              "game_time_fmt": "05:08",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 356,
+              "game_time_fmt": "05:56",
+              "item_id": 1007
+            },
+            {
+              "game_time_s": 415,
+              "game_time_fmt": "06:55",
+              "item_id": 1104
+            },
+            {
+              "game_time_s": 454,
+              "game_time_fmt": "07:34",
+              "item_id": 2108
+            },
+            {
+              "game_time_s": 482,
+              "game_time_fmt": "08:02",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 508,
+              "game_time_fmt": "08:28",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 522,
+              "game_time_fmt": "08:42",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 590,
+              "game_time_fmt": "09:50",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 613,
+              "game_time_fmt": "10:13",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 638,
+              "game_time_fmt": "10:38",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 660,
+              "game_time_fmt": "11:00",
+              "item_id": 3102
+            },
+            {
+              "game_time_s": 688,
+              "game_time_fmt": "11:28",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 739,
+              "game_time_fmt": "12:19",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 750,
+              "game_time_fmt": "12:30",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 813,
+              "game_time_fmt": "13:33",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 854,
+              "game_time_fmt": "14:14",
+              "item_id": 3108
+            },
+            {
+              "game_time_s": 896,
+              "game_time_fmt": "14:56",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 933,
+              "game_time_fmt": "15:33",
+              "item_id": 2101
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "camp2": {
+    "tricode": "FLCN",
+    "players": [
+      {
+        "player1": {
+          "slot": "slot1",
+          "name": "watch1",
+          "player_name": "Kaii.",
+          "role": "EXP LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 2,
+              "game_time_fmt": "00:02",
+              "item_id": 1512
+            },
+            {
+              "game_time_s": 41,
+              "game_time_fmt": "00:41",
+              "item_id": 1204
+            },
+            {
+              "game_time_s": 62,
+              "game_time_fmt": "01:02",
+              "item_id": 1204
+            },
+            {
+              "game_time_s": 79,
+              "game_time_fmt": "01:19",
+              "item_id": 3562
+            },
+            {
+              "game_time_s": 122,
+              "game_time_fmt": "02:02",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 164,
+              "game_time_fmt": "02:44",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 186,
+              "game_time_fmt": "03:06",
+              "item_id": 2003
+            },
+            {
+              "game_time_s": 211,
+              "game_time_fmt": "03:31",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 290,
+              "game_time_fmt": "04:50",
+              "item_id": 3005
+            },
+            {
+              "game_time_s": 314,
+              "game_time_fmt": "05:14",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 324,
+              "game_time_fmt": "05:24",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 367,
+              "game_time_fmt": "06:07",
+              "item_id": 1007
+            },
+            {
+              "game_time_s": 393,
+              "game_time_fmt": "06:33",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 408,
+              "game_time_fmt": "06:48",
+              "item_id": 1006
+            },
+            {
+              "game_time_s": 442,
+              "game_time_fmt": "07:22",
+              "item_id": 2008
+            },
+            {
+              "game_time_s": 470,
+              "game_time_fmt": "07:50",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 495,
+              "game_time_fmt": "08:15",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 527,
+              "game_time_fmt": "08:47",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 551,
+              "game_time_fmt": "09:11",
+              "item_id": 1005
+            },
+            {
+              "game_time_s": 585,
+              "game_time_fmt": "09:45",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 597,
+              "game_time_fmt": "09:57",
+              "item_id": 3014
+            },
+            {
+              "game_time_s": 602,
+              "game_time_fmt": "10:02",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 602,
+              "game_time_fmt": "10:02",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 610,
+              "game_time_fmt": "10:10",
+              "item_id": 2103
+            },
+            {
+              "game_time_s": 633,
+              "game_time_fmt": "10:33",
+              "item_id": 1005
+            },
+            {
+              "game_time_s": 712,
+              "game_time_fmt": "11:52",
+              "item_id": 3004
+            },
+            {
+              "game_time_s": 724,
+              "game_time_fmt": "12:04",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 764,
+              "game_time_fmt": "12:44",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 842,
+              "game_time_fmt": "14:02",
+              "item_id": 3013
+            }
+          ]
+        }
+      },
+      {
+        "player2": {
+          "slot": "slot2",
+          "name": "watch2",
+          "player_name": "잉어",
+          "role": "JUNGLER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 3,
+              "game_time_fmt": "00:03",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 85,
+              "game_time_fmt": "01:25",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 93,
+              "game_time_fmt": "01:33",
+              "item_id": 2303
+            },
+            {
+              "game_time_s": 131,
+              "game_time_fmt": "02:11",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 176,
+              "game_time_fmt": "02:56",
+              "item_id": 1104
+            },
+            {
+              "game_time_s": 186,
+              "game_time_fmt": "03:06",
+              "item_id": 2102
+            },
+            {
+              "game_time_s": 214,
+              "game_time_fmt": "03:34",
+              "item_id": 1103
+            },
+            {
+              "game_time_s": 246,
+              "game_time_fmt": "04:06",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 299,
+              "game_time_fmt": "04:59",
+              "item_id": 2101
+            },
+            {
+              "game_time_s": 317,
+              "game_time_fmt": "05:17",
+              "item_id": 2106
+            },
+            {
+              "game_time_s": 377,
+              "game_time_fmt": "06:17",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 387,
+              "game_time_fmt": "06:27",
+              "item_id": 1105
+            },
+            {
+              "game_time_s": 416,
+              "game_time_fmt": "06:56",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 460,
+              "game_time_fmt": "07:40",
+              "item_id": 2104
+            },
+            {
+              "game_time_s": 506,
+              "game_time_fmt": "08:26",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 589,
+              "game_time_fmt": "09:49",
+              "item_id": 3104
+            },
+            {
+              "game_time_s": 639,
+              "game_time_fmt": "10:39",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 646,
+              "game_time_fmt": "10:46",
+              "item_id": 2104
+            },
+            {
+              "game_time_s": 701,
+              "game_time_fmt": "11:41",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 763,
+              "game_time_fmt": "12:43",
+              "item_id": 1201
+            },
+            {
+              "game_time_s": 835,
+              "game_time_fmt": "13:55",
+              "item_id": 3105
+            },
+            {
+              "game_time_s": 886,
+              "game_time_fmt": "14:46",
+              "item_id": 1101
+            },
+            {
+              "game_time_s": 941,
+              "game_time_fmt": "15:41",
+              "item_id": 2101
+            }
+          ]
+        }
+      },
+      {
+        "player3": {
+          "slot": "slot3",
+          "name": "watch3",
+          "player_name": "NPC.",
+          "role": "MID LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 2,
+              "game_time_fmt": "00:02",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 58,
+              "game_time_fmt": "00:58",
+              "item_id": 1202
+            },
+            {
+              "game_time_s": 80,
+              "game_time_fmt": "01:20",
+              "item_id": 2301
+            },
+            {
+              "game_time_s": 116,
+              "game_time_fmt": "01:56",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 162,
+              "game_time_fmt": "02:42",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 176,
+              "game_time_fmt": "02:56",
+              "item_id": 2003
+            },
+            {
+              "game_time_s": 204,
+              "game_time_fmt": "03:24",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 249,
+              "game_time_fmt": "04:09",
+              "item_id": 3005
+            },
+            {
+              "game_time_s": 279,
+              "game_time_fmt": "04:39",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 284,
+              "game_time_fmt": "04:44",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 335,
+              "game_time_fmt": "05:35",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 349,
+              "game_time_fmt": "05:49",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 366,
+              "game_time_fmt": "06:06",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 409,
+              "game_time_fmt": "06:49",
+              "item_id": 3003
+            },
+            {
+              "game_time_s": 463,
+              "game_time_fmt": "07:43",
+              "item_id": 1004
+            },
+            {
+              "game_time_s": 478,
+              "game_time_fmt": "07:58",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 503,
+              "game_time_fmt": "08:23",
+              "item_id": 1003
+            },
+            {
+              "game_time_s": 552,
+              "game_time_fmt": "09:12",
+              "item_id": 2003
+            },
+            {
+              "game_time_s": 573,
+              "game_time_fmt": "09:33",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 598,
+              "game_time_fmt": "09:58",
+              "item_id": 3002
+            },
+            {
+              "game_time_s": 622,
+              "game_time_fmt": "10:22",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 674,
+              "game_time_fmt": "11:14",
+              "item_id": 2004
+            },
+            {
+              "game_time_s": 719,
+              "game_time_fmt": "11:59",
+              "item_id": 1002
+            },
+            {
+              "game_time_s": 852,
+              "game_time_fmt": "14:12",
+              "item_id": 3015
+            },
+            {
+              "game_time_s": 883,
+              "game_time_fmt": "14:43",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 935,
+              "game_time_fmt": "15:35",
+              "item_id": 2001
+            }
+          ]
+        }
+      },
+      {
+        "player4": {
+          "slot": "slot4",
+          "name": "watch4",
+          "player_name": "Vennzzyy..",
+          "role": "ROAMER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 7,
+              "game_time_fmt": "00:07",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 89,
+              "game_time_fmt": "01:29",
+              "item_id": 2004
+            },
+            {
+              "game_time_s": 142,
+              "game_time_fmt": "02:22",
+              "item_id": 1005
+            },
+            {
+              "game_time_s": 164,
+              "game_time_fmt": "02:44",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 199,
+              "game_time_fmt": "03:19",
+              "item_id": 3009
+            },
+            {
+              "game_time_s": 205,
+              "game_time_fmt": "03:25",
+              "item_id": 1301
+            },
+            {
+              "game_time_s": 263,
+              "game_time_fmt": "04:23",
+              "item_id": 1008
+            },
+            {
+              "game_time_s": 314,
+              "game_time_fmt": "05:14",
+              "item_id": 1008
+            },
+            {
+              "game_time_s": 334,
+              "game_time_fmt": "05:34",
+              "item_id": 2014
+            },
+            {
+              "game_time_s": 339,
+              "game_time_fmt": "05:39",
+              "item_id": 1204
+            },
+            {
+              "game_time_s": 355,
+              "game_time_fmt": "05:55",
+              "item_id": 1204
+            },
+            {
+              "game_time_s": 387,
+              "game_time_fmt": "06:27",
+              "item_id": 2306
+            },
+            {
+              "game_time_s": 425,
+              "game_time_fmt": "07:05",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 445,
+              "game_time_fmt": "07:25",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 460,
+              "game_time_fmt": "07:40",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 574,
+              "game_time_fmt": "09:34",
+              "item_id": 3001
+            },
+            {
+              "game_time_s": 582,
+              "game_time_fmt": "09:42",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 602,
+              "game_time_fmt": "10:02",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 641,
+              "game_time_fmt": "10:41",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 663,
+              "game_time_fmt": "11:03",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 741,
+              "game_time_fmt": "12:21",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 872,
+              "game_time_fmt": "14:32",
+              "item_id": 3008
+            },
+            {
+              "game_time_s": 921,
+              "game_time_fmt": "15:21",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 963,
+              "game_time_fmt": "16:03",
+              "item_id": 3013
+            }
+          ]
+        }
+      },
+      {
+        "player5": {
+          "slot": "slot5",
+          "name": "watch5",
+          "player_name": "Lawakk",
+          "role": "GOLD LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "bpm_on_end": null,
+          "item_timeline": [
+            {
+              "game_time_s": 8,
+              "game_time_fmt": "00:08",
+              "item_id": 1411
+            },
+            {
+              "game_time_s": 58,
+              "game_time_fmt": "00:58",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 133,
+              "game_time_fmt": "02:13",
+              "item_id": 2004
+            },
+            {
+              "game_time_s": 194,
+              "game_time_fmt": "03:14",
+              "item_id": 1005
+            },
+            {
+              "game_time_s": 213,
+              "game_time_fmt": "03:33",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 271,
+              "game_time_fmt": "04:31",
+              "item_id": 3009
+            },
+            {
+              "game_time_s": 321,
+              "game_time_fmt": "05:21",
+              "item_id": 3431
+            },
+            {
+              "game_time_s": 350,
+              "game_time_fmt": "05:50",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 378,
+              "game_time_fmt": "06:18",
+              "item_id": 2002
+            },
+            {
+              "game_time_s": 399,
+              "game_time_fmt": "06:39",
+              "item_id": 1005
+            },
+            {
+              "game_time_s": 435,
+              "game_time_fmt": "07:15",
+              "item_id": 1205
+            },
+            {
+              "game_time_s": 469,
+              "game_time_fmt": "07:49",
+              "item_id": 2013
+            },
+            {
+              "game_time_s": 531,
+              "game_time_fmt": "08:51",
+              "item_id": 1008
+            },
+            {
+              "game_time_s": 573,
+              "game_time_fmt": "09:33",
+              "item_id": 1008
+            },
+            {
+              "game_time_s": 614,
+              "game_time_fmt": "10:14",
+              "item_id": 2014
+            },
+            {
+              "game_time_s": 627,
+              "game_time_fmt": "10:27",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 636,
+              "game_time_fmt": "10:36",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 710,
+              "game_time_fmt": "11:50",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 725,
+              "game_time_fmt": "12:05",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 755,
+              "game_time_fmt": "12:35",
+              "item_id": 2001
+            },
+            {
+              "game_time_s": 833,
+              "game_time_fmt": "13:53",
+              "item_id": 3008
+            },
+            {
+              "game_time_s": 876,
+              "game_time_fmt": "14:36",
+              "item_id": 1001
+            },
+            {
+              "game_time_s": 919,
+              "game_time_fmt": "15:19",
+              "item_id": 2001
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "highlights": {
+    "lowest_avg_bpm": null,
+    "highest_avg_bpm": null,
+    "highest_peak_bpm": null,
+    "lowest_avg_at_objectives": null,
+    "highest_peak_at_objectives": null
+  },
+  "clashes": {
+    "clash_count": null,
+    "camp1_avg_bpm_in_clashes": null,
+    "camp2_avg_bpm_in_clashes": null,
+    "clashes": []
+  }
+}

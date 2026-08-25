@@ -1,0 +1,426 @@
+{
+  "battleid": "3602904537184682678",
+  "date": "2026-08-22",
+  "game_start_time": "2026-08-22T06:33:30.769Z",
+  "game_end_time": "2026-08-22T07:03:39.728Z",
+  "game_duration": "21:21",
+  "home": {
+    "tricode": "APBR",
+    "camp_code": "11149",
+    "camp_name": "AP.BREN",
+    "players": [
+      {
+        "player1": {
+          "player_name": "JMPINKMAN",
+          "role": "EXP LANER",
+          "avg_bpm": 86,
+          "peak_bpm": 118,
+          "pct_above_120": "0%",
+          "avg_bpm_at_objectives": 82,
+          "peak_bpm_at_objectives": 94,
+          "avg_clash_bpm": 83,
+          "bpm_on_end": 94
+        }
+      },
+      {
+        "player2": {
+          "player_name": "JamesPangks",
+          "role": "JUNGLER",
+          "avg_bpm": 91,
+          "peak_bpm": 155,
+          "pct_above_120": "19%",
+          "avg_bpm_at_objectives": 89,
+          "peak_bpm_at_objectives": 131,
+          "avg_clash_bpm": 90,
+          "bpm_on_end": 59
+        }
+      },
+      {
+        "player3": {
+          "player_name": "LanceCy",
+          "role": "MID LANER",
+          "avg_bpm": 87,
+          "peak_bpm": 141,
+          "pct_above_120": "5%",
+          "avg_bpm_at_objectives": 87,
+          "peak_bpm_at_objectives": 107,
+          "avg_clash_bpm": 80,
+          "bpm_on_end": 100
+        }
+      },
+      {
+        "player4": {
+          "player_name": "Escalera",
+          "role": "ROAMER",
+          "avg_bpm": 65,
+          "peak_bpm": 119,
+          "pct_above_120": "0%",
+          "avg_bpm_at_objectives": 62,
+          "peak_bpm_at_objectives": 81,
+          "avg_clash_bpm": 61,
+          "bpm_on_end": 72
+        }
+      },
+      {
+        "player5": {
+          "player_name": "Shizou",
+          "role": "GOLD LANER",
+          "avg_bpm": 90,
+          "peak_bpm": 167,
+          "pct_above_120": "9%",
+          "avg_bpm_at_objectives": 82,
+          "peak_bpm_at_objectives": 89,
+          "avg_clash_bpm": 86,
+          "bpm_on_end": 105
+        }
+      }
+    ]
+  },
+  "away": {
+    "tricode": "TWIS",
+    "camp_code": "10975",
+    "camp_name": "Twisted Minds PH",
+    "players": [
+      {
+        "player1": {
+          "player_name": "Lansu",
+          "role": "EXP LANER",
+          "avg_bpm": 82,
+          "peak_bpm": 124,
+          "pct_above_120": "1%",
+          "avg_bpm_at_objectives": 78,
+          "peak_bpm_at_objectives": 115,
+          "avg_clash_bpm": 81,
+          "bpm_on_end": 88
+        }
+      },
+      {
+        "player2": {
+          "player_name": "Sensu1",
+          "role": "JUNGLER",
+          "avg_bpm": 73,
+          "peak_bpm": 126,
+          "pct_above_120": "4%",
+          "avg_bpm_at_objectives": 67,
+          "peak_bpm_at_objectives": 80,
+          "avg_clash_bpm": 68,
+          "bpm_on_end": 77
+        }
+      },
+      {
+        "player3": {
+          "player_name": "Sionnn",
+          "role": "MID LANER",
+          "avg_bpm": 96,
+          "peak_bpm": 149,
+          "pct_above_120": "36%",
+          "avg_bpm_at_objectives": 85,
+          "peak_bpm_at_objectives": 139,
+          "avg_clash_bpm": 93,
+          "bpm_on_end": 98
+        }
+      },
+      {
+        "player4": {
+          "player_name": "Tracyyy",
+          "role": "ROAMER",
+          "avg_bpm": 99,
+          "peak_bpm": 121,
+          "pct_above_120": "1%",
+          "avg_bpm_at_objectives": 101,
+          "peak_bpm_at_objectives": 116,
+          "avg_clash_bpm": 97,
+          "bpm_on_end": 99
+        }
+      },
+      {
+        "player5": {
+          "player_name": "Bennyqt",
+          "role": "GOLD LANER",
+          "avg_bpm": 78,
+          "peak_bpm": 129,
+          "pct_above_120": "8%",
+          "avg_bpm_at_objectives": 63,
+          "peak_bpm_at_objectives": 124,
+          "avg_clash_bpm": 73,
+          "bpm_on_end": 67
+        }
+      }
+    ]
+  },
+  "highlights": {
+    "lowest_avg_bpm": {
+      "camp": "camp1",
+      "player": "player4",
+      "player_name": "Escalera",
+      "slot": "slot4",
+      "name": "watch4",
+      "role": "ROAMER",
+      "avg_bpm": 65,
+      "peak_bpm": 119,
+      "pct_above_120": "0%",
+      "avg_bpm_at_objectives": 62,
+      "peak_bpm_at_objectives": 81,
+      "avg_clash_bpm": 61
+    },
+    "highest_avg_bpm": {
+      "camp": "camp2",
+      "player": "player4",
+      "player_name": "Tracyyy",
+      "slot": "slot7",
+      "name": "watch7",
+      "role": "ROAMER",
+      "avg_bpm": 99,
+      "peak_bpm": 121,
+      "pct_above_120": "1%",
+      "avg_bpm_at_objectives": 101,
+      "peak_bpm_at_objectives": 116,
+      "avg_clash_bpm": 97
+    },
+    "highest_peak_bpm": {
+      "camp": "camp1",
+      "player": "player5",
+      "player_name": "Shizou",
+      "slot": "slot5",
+      "name": "watch5",
+      "role": "GOLD LANER",
+      "avg_bpm": 90,
+      "peak_bpm": 167,
+      "pct_above_120": "9%",
+      "avg_bpm_at_objectives": 82,
+      "peak_bpm_at_objectives": 89,
+      "avg_clash_bpm": 86
+    },
+    "lowest_avg_at_objectives": {
+      "camp": "camp1",
+      "player": "player4",
+      "player_name": "Escalera",
+      "slot": "slot4",
+      "name": "watch4",
+      "role": "ROAMER",
+      "avg_bpm": 65,
+      "peak_bpm": 119,
+      "pct_above_120": "0%",
+      "avg_bpm_at_objectives": 62,
+      "peak_bpm_at_objectives": 81,
+      "avg_clash_bpm": 61
+    },
+    "highest_peak_at_objectives": {
+      "camp": "camp2",
+      "player": "player3",
+      "player_name": "Sionnn",
+      "slot": "slot8",
+      "name": "watch8",
+      "role": "MID LANER",
+      "avg_bpm": 96,
+      "peak_bpm": 149,
+      "pct_above_120": "36%",
+      "avg_bpm_at_objectives": 85,
+      "peak_bpm_at_objectives": 139,
+      "avg_clash_bpm": 93
+    },
+    "lowest_avg_clash_bpm": {
+      "camp": "camp1",
+      "player": "player4",
+      "player_name": "Escalera",
+      "slot": "slot4",
+      "name": "watch4",
+      "role": "ROAMER",
+      "avg_bpm": 65,
+      "peak_bpm": 119,
+      "pct_above_120": "0%",
+      "avg_bpm_at_objectives": 62,
+      "peak_bpm_at_objectives": 81,
+      "avg_clash_bpm": 61
+    },
+    "highest_avg_clash_bpm": {
+      "camp": "camp2",
+      "player": "player4",
+      "player_name": "Tracyyy",
+      "slot": "slot7",
+      "name": "watch7",
+      "role": "ROAMER",
+      "avg_bpm": 99,
+      "peak_bpm": 121,
+      "pct_above_120": "1%",
+      "avg_bpm_at_objectives": 101,
+      "peak_bpm_at_objectives": 116,
+      "avg_clash_bpm": 97
+    }
+  },
+  "clashes": {
+    "clash_count": 24,
+    "camp1_avg_bpm_in_clashes": 80,
+    "camp2_avg_bpm_in_clashes": 82,
+    "clashes": [
+      {
+        "fight_id": 138,
+        "game_time": "01:21",
+        "duration_s": 9,
+        "camp1_avg_bpm": 100,
+        "camp2_avg_bpm": 93
+      },
+      {
+        "fight_id": 140,
+        "game_time": "01:39",
+        "duration_s": 20,
+        "camp1_avg_bpm": 98,
+        "camp2_avg_bpm": 93
+      },
+      {
+        "fight_id": 143,
+        "game_time": "02:18",
+        "duration_s": 5,
+        "camp1_avg_bpm": 90,
+        "camp2_avg_bpm": 94
+      },
+      {
+        "fight_id": 145,
+        "game_time": "02:35",
+        "duration_s": 8,
+        "camp1_avg_bpm": 84,
+        "camp2_avg_bpm": 94
+      },
+      {
+        "fight_id": 149,
+        "game_time": "03:59",
+        "duration_s": 9,
+        "camp1_avg_bpm": 73,
+        "camp2_avg_bpm": 101
+      },
+      {
+        "fight_id": 151,
+        "game_time": "04:55",
+        "duration_s": 7,
+        "camp1_avg_bpm": 81,
+        "camp2_avg_bpm": 95
+      },
+      {
+        "fight_id": 153,
+        "game_time": "05:26",
+        "duration_s": 10,
+        "camp1_avg_bpm": 79,
+        "camp2_avg_bpm": 91
+      },
+      {
+        "fight_id": 154,
+        "game_time": "05:43",
+        "duration_s": 8,
+        "camp1_avg_bpm": 77,
+        "camp2_avg_bpm": 89
+      },
+      {
+        "fight_id": 159,
+        "game_time": "06:50",
+        "duration_s": 28,
+        "camp1_avg_bpm": 80,
+        "camp2_avg_bpm": 83
+      },
+      {
+        "fight_id": 169,
+        "game_time": "09:46",
+        "duration_s": 8,
+        "camp1_avg_bpm": 79,
+        "camp2_avg_bpm": 96
+      },
+      {
+        "fight_id": 171,
+        "game_time": "10:14",
+        "duration_s": 5,
+        "camp1_avg_bpm": 81,
+        "camp2_avg_bpm": 97
+      },
+      {
+        "fight_id": 172,
+        "game_time": "10:25",
+        "duration_s": 7,
+        "camp1_avg_bpm": 71,
+        "camp2_avg_bpm": 95
+      },
+      {
+        "fight_id": 173,
+        "game_time": "10:44",
+        "duration_s": 11,
+        "camp1_avg_bpm": 73,
+        "camp2_avg_bpm": 89
+      },
+      {
+        "fight_id": 175,
+        "game_time": "11:05",
+        "duration_s": 28,
+        "camp1_avg_bpm": 75,
+        "camp2_avg_bpm": 86
+      },
+      {
+        "fight_id": 176,
+        "game_time": "11:38",
+        "duration_s": 18,
+        "camp1_avg_bpm": 73,
+        "camp2_avg_bpm": 80
+      },
+      {
+        "fight_id": 178,
+        "game_time": "12:36",
+        "duration_s": 5,
+        "camp1_avg_bpm": 83,
+        "camp2_avg_bpm": 76
+      },
+      {
+        "fight_id": 179,
+        "game_time": "12:50",
+        "duration_s": 21,
+        "camp1_avg_bpm": 81,
+        "camp2_avg_bpm": 71
+      },
+      {
+        "fight_id": 180,
+        "game_time": "13:15",
+        "duration_s": 12,
+        "camp1_avg_bpm": 81,
+        "camp2_avg_bpm": 72
+      },
+      {
+        "fight_id": 182,
+        "game_time": "14:55",
+        "duration_s": 9,
+        "camp1_avg_bpm": 93,
+        "camp2_avg_bpm": 78
+      },
+      {
+        "fight_id": 183,
+        "game_time": "15:49",
+        "duration_s": 16,
+        "camp1_avg_bpm": 87,
+        "camp2_avg_bpm": 80
+      },
+      {
+        "fight_id": 184,
+        "game_time": "17:08",
+        "duration_s": 28,
+        "camp1_avg_bpm": 76,
+        "camp2_avg_bpm": 66
+      },
+      {
+        "fight_id": 185,
+        "game_time": "17:40",
+        "duration_s": 12,
+        "camp1_avg_bpm": 75,
+        "camp2_avg_bpm": 63
+      },
+      {
+        "fight_id": 190,
+        "game_time": "19:33",
+        "duration_s": 21,
+        "camp1_avg_bpm": 73,
+        "camp2_avg_bpm": 73
+      },
+      {
+        "fight_id": 192,
+        "game_time": "20:08",
+        "duration_s": 22,
+        "camp1_avg_bpm": 76,
+        "camp2_avg_bpm": 77
+      }
+    ]
+  }
+}

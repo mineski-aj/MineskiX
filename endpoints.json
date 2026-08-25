@@ -1,0 +1,150 @@
+{
+  "base_url": "http://localhost:3000",
+  "endpoints": [
+    {
+      "method": "GET",
+      "url": "/",
+      "description": "Live dashboard — HTML table of all players, BPM, and game state"
+    },
+    {
+      "method": "GET",
+      "url": "/feed",
+      "description": "vMix-style flat array of all player readings"
+    },
+    {
+      "method": "GET",
+      "url": "/feed/vmix",
+      "description": "Alias for /feed"
+    },
+    {
+      "method": "GET",
+      "url": "/feed/order",
+      "description": "Camp-ordered feed with live BPM, stats, hero_id, and item_timeline per player"
+    },
+    {
+      "method": "POST",
+      "url": "/bpm",
+      "description": "Receive BPM reading from Android watch"
+    },
+    {
+      "method": "GET",
+      "url": "/bpm",
+      "description": "Latest single BPM reading"
+    },
+    {
+      "method": "GET",
+      "url": "/bpm/log?limit=100",
+      "description": "Recent BPM log entries. Optional ?limit=N (default 100)"
+    },
+    {
+      "method": "GET",
+      "url": "/postgame",
+      "description": "Last completed game stats — includes item_timeline and hero_id per player"
+    },
+    {
+      "method": "GET",
+      "url": "/events?since=0",
+      "description": "Per-player K/D/A and objective events for current game. Optional ?since=<game_time_s>"
+    },
+    {
+      "method": "GET",
+      "url": "/stats/league",
+      "description": "Current matchup and all-time league stats"
+    },
+    {
+      "method": "GET",
+      "url": "/positions?camp=1&seat=1&from=0&to=600",
+      "description": "Position log for current game. All params optional: camp (1|2), seat (1-5), from/to in seconds"
+    },
+    {
+      "method": "GET",
+      "url": "/fights",
+      "description": "Completed fight recaps for current game"
+    },
+    {
+      "method": "GET",
+      "url": "/fights?last=5",
+      "description": "Last N fight recaps"
+    },
+    {
+      "method": "GET",
+      "url": "/fights-static",
+      "description": "fights.json from disk (debug)"
+    },
+    {
+      "method": "GET",
+      "url": "/fights-overlay",
+      "description": "fights.html overlay page"
+    },
+    {
+      "method": "GET",
+      "url": "/hero/:filename",
+      "description": "Serve hero icon image. e.g. /hero/HERO_10_KOTAK.png"
+    },
+    {
+      "method": "GET",
+      "url": "/items/:filename",
+      "description": "Serve item image. e.g. /items/3001.png"
+    },
+    {
+      "method": "GET",
+      "url": "/role/:filename",
+      "description": "Serve role icon image. e.g. /role/JUNGLER.png"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/events",
+      "description": "SSE stream — subscribe for overlay trigger events"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/post_hearts/show",
+      "description": "Trigger post_hearts overlay SHOW via SSE"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/post_hearts/hide",
+      "description": "Trigger post_hearts overlay HIDE via SSE"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/post_itemline/show",
+      "description": "Trigger item timeline overlay SHOW via SSE — fetches /postgame and animates in"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/post_itemline/hide",
+      "description": "Trigger item timeline overlay HIDE via SSE — plays 400ms out animation"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/fights/show",
+      "description": "Trigger fights overlay SHOW via SSE"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/fights/hide",
+      "description": "Trigger fights overlay HIDE via SSE"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/fights/pending",
+      "description": "Poll for queued fight overlay action (consumed on read)"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/slot1",
+      "description": "Trigger player slot overlay SHOW. Slots: slot1–slot10"
+    },
+    {
+      "method": "GET",
+      "url": "/overlay/hide",
+      "description": "Trigger player slot overlay HIDE"
+    },
+    {
+      "method": "GET",
+      "url": "/meter/:cmd",
+      "description": "Meter control commands"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "hrm-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Heartrate ingestion server for MLBB broadcast overlays — receives BPM pushes from Android watches, serves current readings to overlay_server.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

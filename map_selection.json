@@ -1,0 +1,74 @@
+{
+  "games": [
+    {
+      "game": 1,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 2,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 3,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 4,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 5,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 6,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    },
+    {
+      "game": 7,
+      "tossWinner": null,
+      "tossSide": null,
+      "homeSide": null,
+      "awaySide": null,
+      "map": null,
+      "winner": null,
+      "locked": false
+    }
+  ]
+}

@@ -1,0 +1,325 @@
+#TALENTS
+Odin
+Thea
+Denisse
+Naisou
+Athena
+Hans
+Renmar
+Uomi
+Rockhart
+Brigida
+Midnight
+Leo
+Joshycakes	
+Wolf
+Burrito	
+
+#COUNTRY MANAGER
+Dar Andrew Cayabyab
+
+#OPERATIONS MANAGER
+Christine Yuson
+
+#ACCOUNT MANAGER
+Marcus Joaquin Gonzales
+
+#LEAD PROJECT MANAGER
+Katherine Denise "KD" Sy
+
+#ASSISTANT PROJECT MANAGER
+Jessica Jane Felicilda
+
+#BROADCAST CONSULTANT
+Andrew James Sarmiento
+
+#BROADCAST MANAGER
+Nicole Ann "IKOY CUTIE"  Fajardo
+
+#BROADCAST TECHNICAL DIRECTOR
+CJ Dagumboy
+
+#BROADCAST HTML ENGINEER
+Shawn Acener Manabat
+
+#BROADCAST ASSOCIATE
+Alioth “Wiggy” Cabatingan
+
+#SHOW DIRECTOR
+Karl Durante
+
+#ASSISTANT SHOW DIRECTOR / VISION MIXER
+James “Chuts” Concepcion
+
+#SHOW AND CONTENT PRODUCER
+Maouie Reyes
+
+#CO-PRODUCER
+Sheilla Mae Songalia
+
+#ASSISTANT CONTENT PRODUCER
+Jesus Evan Bonjibod
+
+#CONTENT STATISTICIAN
+John Paulo “Bok” De Guzman
+
+#CREATIVE LEAD
+Edfrancis Gador
+
+#LEAD MOTION GRAPHICS
+Ron Albert Ramos
+
+#ASST. MOTION GRAPHICS
+Jimwell Peña
+
+#GRAPHIC DESIGNER
+Mj Maca
+Jonnell Medrano
+
+#GFX DYNAMIC DESIGNERS
+Adrian Navarro
+Clinton Pradilla
+
+#HEAD OF LEAGUE OPERATIONS
+Rinzcent Gueco
+
+#HEAD REFEREE
+Wilbert “WILBEEEERT”  Manabat
+
+#HEAD OF IT
+Kel Rosales
+
+#IT ASSOCIATES
+Marlon Descartin
+Rommel Lopera
+
+#HEAD OF HOSPITALITY
+Jeremiah Obial
+
+#TALENT MANAGER
+Matthew Militar
+
+#ASSISTANT TALENT MANAGER
+DM Mabborang
+
+#HEAD OF LOGISTICS
+Angelo Masongsong
+
+#SPONSOR LOGISTICS PIC
+Jesusquino Lim
+
+#FLOOR DIRECTOR
+Jayar Estrada
+
+#STAGE HAND
+Chao Desamparado
+
+#STAGING TECHNICAL DIRECTOR
+Jordan Swing
+
+#ASSISTANT STAGING TECHNICAL DIRECTOR
+Allen Bert Araño
+Alfred Diwa
+
+#LIGHTING DIRECTOR
+Mac Flor
+
+#MAIN CG OPERATOR
+Emir Ryan Concepcion
+
+#EN CG DIRECTOR
+JM Navarro
+
+#CG DYNAMIC OPERATOR
+Rence Antonio
+
+#LED OPERATOR
+Vaan Balatbat
+
+#“MIC CHECK” OPERATOR / POV RECORDER
+Kenneth Bayona
+
+#API ENGINEER
+MR. F5
+
+#GAME DIRECTOR
+Rgee Garcia
+
+#GAME OBSERVER
+Troy Berris
+
+#HIGHLIGHTS OPERATOR
+Avin Francis Kais
+
+#AUDIO ENGINEER
+James Romero
+
+#LEAD STREAM ENGINEER
+Sean Arago
+
+#STREAM ENGINEER
+Annejeleeka Ho
+
+#STREAM MODERATOR
+Yuri Domasig
+
+#GRAPHIC DESIGNER
+MJ Maca
+
+#GFX DYNAMIC DESIGNERS
+Adrian Navarro
+Clinton Pradilla
+
+#SCRIPT WRITER
+Calvin Angeles Trilles
+
+#TELEPROMPTER
+Glenn Vincent Guinto
+
+#STAGE & ONGROUND DESIGNER
+Daryl Raihan
+
+#REFEREES
+Patrick Pablico
+Jefferson Serrano
+Mico “Chico” Tabernilla
+Dominique “JD” Galvez
+Joshua “G4bsolute” Gabriel
+Miko Sevilla
+
+#TECHNICAL CONSULTANTS
+Duane Cadangan
+Anna Francisco
+
+#LIAISON OFFICERS
+APBR - JJ Sanchez
+FLCN - Lorenzo Joaquin
+OMG - Charles Martin
+ONIC - Justine Cerezo
+RORA - Renzo Lacsamana
+TLPH - Honey Vertudes
+TNC - LordJC Reyes
+TWIS - Kyne Lao
+
+#CAMERA CREW
+#MAXIONE PRODUCTION
+Jireh “Gimbal Standard” Alvarez
+Ruel "Pao" San Luis
+Allan Mejia
+Ronald Sarco
+
+#CONTENT TEAM
+#TIRADORES PRODUCTIONS
+
+#CONTENT PROJECT MANAGER
+Julian Dave Cabigao
+
+#SEGMENT PRODUCER
+Abiel Anselmo
+
+#CAMERA OPERATOR
+Savvy Saddie
+
+#VIDEO EDITOR
+Mark Luna
+
+#PRODUCTION ASSISTANT
+Rod Alcantara
+
+
+#HMUA
+Grace Filomeno
+Theresse Angela Filomeno
+Khaye Nemis
+
+#STYLISTS
+George Palmiano
+Michael De Guzman 
+
+#ASSISTANT STYLIST 
+Bettina Isabel Laqueo
+
+
+#LOGISTICS TEAM
+Bernadeth Villaflor
+Ariel Gonzales
+Regie Rhein Aram
+Mark Dueñas
+Christian Arellano
+Christopher Borja
+Artimus Bernardo
+John Paul San Gabriel
+Mark Cambaya
+Saimon Santos
+Nathaniel Esguerra
+Danilo A. Escanilla Jr.
+
+#SPONSOR LOGISTICS TEAM
+Zyrone Nery
+Ric Jaca
+
+#HEAD USHER
+Dan Abella
+
+#USHERS
+Lau Cortes
+Khian Mendoza
+Hans Steve Nieva
+Jerome Castro
+JC Francisco
+
+#FANSIKLABAN TEAM
+Marjon Bensig
+Karl Chester Alarcon
+Nathan Enriquez
+
+#PROCUREMENT TEAM
+Imay Flores
+Arlyn Castillo
+Rushelle Capistrano
+Zaira Villar
+Maridell Frias
+
+#SOCIAL MEDIA TEAM
+#AGUIRRE ADVERTISING
+Antonio Aguirre
+Bea Decipulo
+Ella Garcia
+GeeJay Guay
+Aldous Jerusalem
+Jm Javillonar
+Jane Estrada
+Marcus Fabro
+
+#HEAD OF SAFETY AND SECURITY
+Jerome T. Capoquian EMT, CSSP
+
+#SAFETY TEAM/MEDICAL TEAM
+Dexter Lazaro EIM NCII, SO2
+Mario Evangelista SO2
+
+#EVENT SECURITY MARHALLS
+SO Raymund Sagarang
+PA Jasper Tavermin CSP, SO
+PA Jonalyn Portem SO
+PA Dennis Casimiro
+PA Gentle De Asis
+PA Richard Talagtagc
+PA Ryan Rotone
+PA Kennth Javier
+PA Alibsar Ayyub
+PA Democrito Israel Gapo
+
+#STAGING & FABRICATION
+Stage One Events
+
+#LIGHTS & SOUNDS AND TECHNICALS
+Xstatic Event System Inc.
+
+#LED TECHNICALS
+APEX Ventures
+
+
+
+
+#THANK YOU FOR WATCHING!

@@ -1,0 +1,3552 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <script src="html/js/overlay-sse-shim.js"></script>
+  <title>Draft Overlay</title>
+  <style>
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 600;
+      font-display: block;
+      src: local('GeneralSans-Semibold'), local('GeneralSans-SemiBold'), local('General Sans Semibold');
+    }
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 700;
+      font-display: block;
+      src: local('GeneralSans-Bold'), local('General Sans Bold'), url('/fonts/GeneralSans-Bold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'Anton';
+      font-weight: 400;
+      font-display: block;
+      src: local('Anton'), local('Anton Regular'), url('fonts/Anton-Regular.ttf') format('truetype');
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    /* ── Scene ─────────────────────────────────────────────────── */
+    #scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      background: url('assets/draft/draftbg.png') no-repeat 0 0 / 1920px 1080px;
+      transform: translateY(0);
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* Hidden state slides fully below the frame; base rule above carries
+       the "in" transition (slides upward to show), this carries the
+       "out" transition (slides downward to hide). Default (no class) is
+       visible, so a page load never flashes blank while the real state
+       is still being fetched — see the restore-on-load fetch below. */
+    #scene.draft-hidden {
+      transform: translateY(1080px);
+      transition: transform 0.45s cubic-bezier(0.4, 0, 1, 1);
+    }
+
+    /* ── Status area (BANNING / PICKING / FINAL CHANGES) ────────
+       left: -125.889px, top: 660.077px from design CSS.
+       Width 2172px makes the visual center land at 960px (screen center).
+    ─────────────────────────────────────────────────────────────── */
+    #status-area {
+      position: absolute;
+      left: -125.889px;
+      top: 923.077px;
+      width: 2172px;
+      text-align: center;
+    }
+    #status-text {
+      font-family: 'General Sans', 'Arial Black', sans-serif;
+      font-weight: 600;
+      font-size: 18px; /* 4.3pt @ 300dpi */
+      color: rgb(40,40,40);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+
+    /* ── Countdown row ─────────────────────────────────────────── */
+    #countdown-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    #countdown-text {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 63px; /* 15.12pt @ 300dpi */
+      color: rgb(40,40,40);
+      line-height: 1;
+    }
+
+    /* ── Camp indicator triangles ──────────────────────────────── */
+    .tri {
+      width: 14px; height: 14px;
+      flex-shrink: 0;
+      visibility: hidden; /* reserves space; keeps countdown centered */
+      background: #00E878;
+      animation: tri-hover 2.2s ease-in-out infinite;
+    }
+    .tri.active { visibility: visible; }
+
+    /* Camp1 → left-pointing (on left of countdown, points toward camp1 side) */
+    #tri-camp1 { clip-path: polygon(14px 0, 0 7px, 14px 14px); }
+    /* Camp2 → right-pointing (on right of countdown, points toward camp2 side) */
+    #tri-camp2 { clip-path: polygon(0 0, 14px 7px, 0 14px); }
+
+    @keyframes tri-hover {
+      0%   { transform: translateX(-4px); }
+      50%  { transform: translateX(4px); }
+      100% { transform: translateX(-4px); }
+    }
+
+    /* ── Card idle triangles — shown only before a seat's picking turn
+       starts. Anchored right at the card's top/bottom edge; plate-content's
+       overflow:hidden clips whichever part of the hover bob exceeds the
+       card bounds. Apex always points toward the card's vertical centre. */
+    .card-tri {
+      position: absolute;
+      left: 50%;
+      width: 42px; height: 20px;
+      pointer-events: none;
+      z-index: 2;
+      display: none;
+    }
+    /* Outer glow (not a directional shadow) — colored to match each camp,
+       stacked drop-shadows (tight core + soft halo) since filter is the
+       only way to glow a clip-path shape rather than its rectangular box.
+       Symmetric, so it's unaffected by which edge the triangle sits against. */
+    .card-tri.camp1 { background: #1E64FF; filter: drop-shadow(0 0 3px #1E64FF) drop-shadow(0 0 8px #1E64FF); }
+    .card-tri.camp2 { background: #FF3232; filter: drop-shadow(0 0 3px #FF3232) drop-shadow(0 0 8px #FF3232); }
+    .card-tri-top {
+      top: 0;
+      /* Matches the animation's 0%/100% keyframe exactly — otherwise, during
+         its staggered animation-delay, the element has no transform at all
+         (not even the translateX(-50%) centering, since that only exists
+         inside the keyframes), so it sits uncentered until the delay ends
+         and visibly snaps into place. */
+      transform: translateX(-50%) translateY(-3px);
+      clip-path: polygon(0 0, 42px 0, 21px 20px); /* apex down, toward centre */
+      animation: card-tri-bob-top 2.2s ease-in-out infinite;
+    }
+    .card-tri-bottom {
+      bottom: 0;
+      transform: translateX(-50%) translateY(3px);
+      clip-path: polygon(21px 0, 42px 20px, 0 20px); /* apex up, toward centre */
+      animation: card-tri-bob-bottom 2.2s ease-in-out infinite;
+    }
+    @keyframes card-tri-bob-top {
+      0%, 100% { transform: translateX(-50%) translateY(-3px); }
+      50%      { transform: translateX(-50%) translateY(-7px); }
+    }
+    @keyframes card-tri-bob-bottom {
+      0%, 100% { transform: translateX(-50%) translateY(3px); }
+      50%      { transform: translateX(-50%) translateY(7px); }
+    }
+
+    /* ── Pick plate flex layout ────────────────────────────────── */
+    .plates-camp {
+      position: absolute;
+      top: 851px;
+      display: flex;
+      gap: 1px;
+      align-items: flex-start;
+    }
+    .plates-camp-1 { left: 0; }
+    /* Camp2: seat_1 rightmost → row-reverse, container starts at left:1161 */
+    .plates-camp-2 { left: 1161px; flex-direction: row-reverse; }
+
+    /* Flex item — its width transitions drive the squeeze/expand */
+    .seat-unit {
+      flex: 0 0 auto;
+      width: 151px;
+      height: 168px;
+      position: relative;
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 0;
+    }
+    .seat-unit.picking-expand { width: 167px; }
+
+    /* 1 picker: others shrink to 147 px */
+    .plates-camp.has-picker .seat-unit:not(.picking-expand) { width: 147px; }
+
+    /* 2 pickers: others shrink to fill remaining span exactly */
+    .plates-camp.has-two-pickers .seat-unit.picking-expand  { width: 167px; }
+    .plates-camp.has-two-pickers .seat-unit:not(.picking-expand) {
+      width: calc((759px - 2 * 167px - 4px) / 3); /* ≈ 140.33 px */
+    }
+
+    /* Plate — fills the seat-unit so plateback.png background grows with it */
+    .plate {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 168px;
+      background: url('assets/draft/plateback.png') no-repeat center center / cover;
+    }
+
+    /* Content wrapper — fills the plate width so cropping scales with it */
+    .plate-content {
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 168px;
+      overflow: hidden;
+    }
+
+    /* Hero WebM video — 168 px wide (uniform scale), centred.
+       plate-content overflow:hidden crops sides as plate shrinks,
+       and crops top/bottom since the video is taller than 168 px. */
+    .hero-video {
+      position: absolute;
+      left: 50%; top: -3px;
+      transform: translateX(-50%);
+      width: 168px;
+      height: auto;
+      display: none;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Matte-reveal canvas — matches hero-video position exactly */
+    .plate-canvas {
+      position: absolute;
+      left: 50%; top: -3px;
+      transform: translateX(-50%);
+      width: 168px;
+      /* height set dynamically to match hero video natural aspect ratio */
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Name — centred under the seat-unit (auto width = seat-unit width) */
+    .player-name {
+      position: absolute;
+      top: 177px; /* 168 + 9 */
+      left: 0; right: 0;
+      text-align: center;
+      font-family: 'General Sans', 'Arial Black', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+
+    /* Pick plate reveal flash (kept for reference, not triggered) */
+    @keyframes reveal-blue {
+      0%   { box-shadow: none; }
+      16%  { box-shadow: inset 0 0 0 4px rgba(30,120,255,1),
+                         0 0 36px 18px rgba(30,120,255,0.95); }
+      32%  { box-shadow: none; }
+      48%  { box-shadow: inset 0 0 0 4px rgba(30,120,255,1),
+                         0 0 36px 18px rgba(30,120,255,0.95); }
+      64%  { box-shadow: none; }
+      80%  { box-shadow: inset 0 0 0 3px rgba(30,120,255,0.6),
+                         0 0 18px 8px rgba(30,120,255,0.4); }
+      100% { box-shadow: none; }
+    }
+    @keyframes reveal-red {
+      0%   { box-shadow: none; }
+      16%  { box-shadow: inset 0 0 0 4px rgba(255,50,50,1),
+                         0 0 36px 18px rgba(255,50,50,0.95); }
+      32%  { box-shadow: none; }
+      48%  { box-shadow: inset 0 0 0 4px rgba(255,50,50,1),
+                         0 0 36px 18px rgba(255,50,50,0.95); }
+      64%  { box-shadow: none; }
+      80%  { box-shadow: inset 0 0 0 3px rgba(255,50,50,0.6),
+                         0 0 18px 8px rgba(255,50,50,0.4); }
+      100% { box-shadow: none; }
+    }
+    @keyframes hero-fadein {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .plate.revealing-blue { animation: reveal-blue 0.72s ease-in-out forwards; }
+    .plate.revealing-red  { animation: reveal-red  0.72s ease-in-out forwards; }
+    .plate-hero.fadein    { animation: hero-fadein 0.45s ease-in forwards; }
+
+    /* ── Hero banner (bluehero / redhero) ──────────────────────── */
+    .hero-banner {
+      position: absolute;
+      top: 0;
+      width: 27px; height: 202px;
+      pointer-events: none;
+      z-index: 4;
+      transition: transform 0.3s ease-out;
+    }
+    .hero-banner-c1 { left:  0; transform: translateX(-100%); }
+    .hero-banner-c2 { right: 0; transform: translateX(100%);  }
+    .hero-banner-c1.slide-in { transform: translateX(0); }
+    .hero-banner-c2.slide-in { transform: translateX(0); }
+
+    .hero-banner-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 27px; height: 202px;
+      display: block;
+    }
+    .hero-banner-name {
+      position: absolute;
+      top: 9px;
+      left: 50%;
+      transform: translateX(-50%);
+      writing-mode: vertical-lr;
+      text-orientation: mixed;
+      font-family: 'General Sans', 'Arial Black', sans-serif;
+      font-weight: 600;
+      font-size: 15.4px; /* 3.69pt @ 300dpi */
+      color: #fff;
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ── Draft Stats (toggleable) — PICK / CONTENTION RATE / WIN RATE
+       reveal, played once per live hero pick, both sides (blue rect for
+       camp1, red for camp2 — see .dstats-rect-camp1/2 below).
+       Sits inside plate-content so it tracks the seat's own width; fills
+       the whole card like every other reveal layer here.
+
+       .dstats-rect and .dstats-text are SEPARATE siblings (not one nested
+       inside the other) even though they slide together — this matters:
+       mix-blend-mode only blends an element with whatever is already
+       painted behind it within the nearest ancestor that itself forms a
+       stacking context (transform/opacity/filter/etc. all do this). If
+       .dstats-rect were nested inside a wrapper that had its own
+       `transform` (needed for the slide), that wrapper would isolate the
+       rect's blend to just its own empty background instead of reaching
+       through to heroVid — which is exactly the "multiply isn't doing
+       anything" bug this shipped with once. Putting the transform on
+       .dstats-rect itself (a leaf, no transformed ancestor above it
+       besides plate-content, which has none) keeps it blending correctly
+       against heroVid; .dstats-text carries the identical slide via the
+       shared .dstats-slide rules so the two visually move as one unit. */
+    .dstats-slide {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      transform: translateX(-100%);
+    }
+    /* Camp2 (red side) starts off-screen to the RIGHT instead of the left
+       — mirror of camp1. Both .dstatsRect and .dstatsText carry a shared
+       dstats-campN class specifically so this selector's specificity
+       (exactly 2 classes: .dstats-slide + .dstats-campN) matches BOTH
+       elements identically — using each element's OWN differently-named
+       class here (.dstats-rect-campN vs .dstats-text) instead shipped a
+       real bug: .dstats-text.dstats-campN.dstats-slide is a 3-class
+       selector, which unconditionally beat the 2-class .dstats-slide.dstats-in
+       below regardless of source order, so the text layer stayed stuck
+       off-screen forever while the rect (correctly a 2-class tie, resolved
+       by ordering this block first) slid in fine — Draft Stats visually
+       looked like "just an empty rectangle slides in" for the whole red
+       side. This rule MUST stay before .dstats-slide.dstats-in: both are
+       genuine 2-class ties on a (camp2, mid-transition-in) element, and
+       .dstats-in needs to win that tie so "in" resolves to translateX(0)
+       for both camps. The .dstats-out override further below is a 3-class
+       selector on purpose (dstats-campN + dstats-slide + dstats-out) so it
+       always wins on real specificity — no ordering constraint needed
+       there, but it's written with .dstats-campN too for consistency. */
+    .dstats-slide.dstats-camp2 {
+      transform: translateX(100%);
+    }
+    .dstats-slide.dstats-in {
+      transform: translateX(0);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dstats-slide.dstats-out {
+      transform: translateX(-100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 1, 1);
+    }
+    .dstats-slide.dstats-camp2.dstats-out {
+      transform: translateX(100%);
+    }
+    .dstats-rect {
+      z-index: 2;
+      mix-blend-mode: multiply;
+    }
+    .dstats-rect-camp1 { background: #0055ff; }
+    .dstats-rect-camp2 { background: #cd0000; }
+    .dstats-text {
+      z-index: 3;
+    }
+
+    /* Rows sit inset from one edge to clear the vertical hero-name
+       backer (27px wide, .hero-banner) — camp1's sits at the card's left
+       edge so rows shift right to clear it; camp2's sits at the right
+       edge (mirrored, for whenever this gets wired up on that side too)
+       so rows shift left instead. left/right both set with no explicit
+       width lets the box narrow itself automatically. */
+    .dstats-text.dstats-camp1 .dstats-row,
+    .dstats-text.dstats-camp1 .dstats-debut-row { left: 27px; right: 0; }
+    .dstats-text.dstats-camp2 .dstats-row,
+    .dstats-text.dstats-camp2 .dstats-debut-row { left: 0; right: 27px; }
+
+    /* Three stacked rows, each independently faded/slid — see
+       startDraftStats() below for the exact timeline. Every row shares
+       the same untriggered "start" transform (the CONTENTION RATE row's
+       own resting spot — where PICK first pops in during phase 2), so
+       PICK/WIN RATE visually reveal themselves moving away from the spot
+       CONTENTION RATE already occupies when phase 3 fires. */
+    .dstats-row {
+      position: absolute;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.2s ease-out, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .dstats-row-pick       { top: 10px;  transform: translateY(54px);  }
+    .dstats-row-contention { top: 54px;  transform: translateY(0);     }
+    .dstats-row-winrate    { top: 112px; transform: translateY(-58px); }
+    .dstats-row.dstats-pop    { opacity: 1; }
+    .dstats-row.dstats-settle { transform: translateY(0); }
+
+    /* PICK pops in oversized (phase 2) then shrinks back to normal size
+       as it shifts up into its final row (phase 3) — same translateY+scale
+       transform, so both read as one continuous motion. Only the pick row
+       gets this; contention/win rate just fade+slide, no scale. */
+    .dstats-row-pick.dstats-pop    { transform: translateY(54px) scale(2.6); }
+    .dstats-row-pick.dstats-settle { transform: translateY(0) scale(1); }
+
+    .dstats-label {
+      font-family: 'General Sans', 'Arial Black', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 1.15;
+    }
+    .dstats-value {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 26px;
+      color: #fff;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* Debut Pick — replaces the whole PICK/CONTENTION RATE/WIN RATE
+       reveal when the hero's pick count is 0 (never picked before, so
+       there's no stat worth showing yet). Still rides on the same phase 1
+       rect slide-in; "DEBUT" pops in first, "PICK!" pops in right after,
+       each with its own bouncy "button" pop — no phase 3 (nothing to
+       settle into), straight to the hold once both are in. */
+    .dstats-debut-row {
+      position: absolute;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.25s ease-out, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dstats-debut-row.dstats-pop { opacity: 1; transform: scale(1); }
+    .dstats-row-debut-label { top: 50px; }
+    .dstats-row-debut-value { top: 78px; }
+    .dstats-debut-label {
+      font-family: 'General Sans', 'Arial Black', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: 0.08em;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .dstats-debut-value {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 48px;
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    /* Patch buff/nerf/adjust badge — pops in once the whole Draft Stats
+       container has fully slid back out (see startDraftStats()'s final
+       timer). Corner position is mirrored per camp so it never sits under
+       that camp's own hero-name banner (camp1's banner is at the card's
+       left edge, so the badge sits top-right; camp2's banner is at the
+       right edge, so the badge sits top-left instead). */
+    .dstats-buff-badge {
+      position: absolute;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5; /* above the hero-banner (4) — it's a corner overlay, meant to sit on top */
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 0.2s ease-out, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dstats-buff-badge.dstats-pop { opacity: 1; transform: scale(1); }
+    .dstats-buff-camp1 { top: 3px; right: 3px; }
+    .dstats-buff-camp2 { top: 3px; left: 3px; }
+    .dstats-buff-nerf   { background: #e8121f; }
+    .dstats-buff-buff   { background: #1fbf4c; }
+    .dstats-buff-adjust { background: #0055ff; }
+
+    /* Solid triangle, built the same clip-path way as .card-tri above. */
+    .dstats-buff-arrow {
+      width: 12px; height: 12px;
+      background: #fff;
+    }
+    .dstats-buff-arrow-down { clip-path: polygon(50% 100%, 0 20%, 100% 20%); }
+    .dstats-buff-arrow-up   { clip-path: polygon(50% 0%, 0 80%, 100% 80%); }
+
+    .dstats-buff-gear { width: 15px; height: 15px; color: #fff; }
+    .dstats-buff-gear svg { width: 100%; height: 100%; display: block; }
+
+    /* ── Post-pick glow overlay (div above canvas, z-index 3) ──── */
+    .plate-glow {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    @keyframes picked-glow-gold {
+      0%   { box-shadow: none; }
+      25%  { box-shadow: inset 0 0 0 3px rgba(255,215,80,1),
+                         inset 0 0 50px 20px rgba(255,200,60,0.75); }
+      100% { box-shadow: none; }
+    }
+    .plate-glow.picked { animation: picked-glow-gold 0.9s ease-out forwards; }
+
+    @keyframes hero-brighten {
+      0%   { filter: brightness(1); }
+      25%  { filter: brightness(2); }
+      100% { filter: brightness(1); }
+    }
+    .hero-video.brightening   { animation: hero-brighten 0.9s ease-out forwards; }
+    .plate-canvas.brightening { animation: hero-brighten 0.9s ease-out forwards; }
+
+    /* ── Role icons ────────────────────────────────────────────── */
+    /* Anchored at left:5 top:5; default transform centres it in the plate.
+       (151-70)/2 - 5 = 35.5   (168-70)/2 - 5 = 44                        */
+    .role-icon {
+      position: absolute;
+      width: 70px; height: 70px;
+      /* always centred regardless of plate-content width */
+      left: calc(50% - 35px); top: calc(50% - 35px);
+      object-fit: contain;
+      transform-origin: center;
+      transform: scale(1);
+      transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 2;
+      filter: brightness(0) invert(1) brightness(0.086);
+    }
+
+    /* Press squishes from centre — translate calculated in JS at animationend */
+    @keyframes role-press {
+      0%   { transform: scale(1);    }
+      35%  { transform: scale(0.78); }
+      65%  { transform: scale(1.10); }
+      100% { transform: scale(1);    }
+    }
+    .role-icon.pressing {
+      animation: role-press 0.55s ease-out forwards;
+      transition: none;
+    }
+
+    /* ── Ban plates ────────────────────────────────────────────── */
+    /* overflow:hidden clips the hero tween to the banplate area.
+       The element's own box-shadow (outer glow) is NOT clipped by
+       its own overflow:hidden — it renders outside the bounds. */
+    .banplate {
+      position: absolute;
+      width: 91px; height: 71px;
+      overflow: hidden;
+    }
+
+    /* Inset border on top of hero via ::after (same size → no overflow clipping) */
+    .banplate::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Red glow when banning — inset only, slow pulse */
+    @keyframes ban-inner {
+      0%, 100% { box-shadow: inset 0 0 0 0 rgba(255,50,50,0),
+                             inset 0 0 0 0 rgba(255,50,50,0); }
+      50%       { box-shadow: inset 0 0 0 3px rgba(255,50,50,1),
+                              inset 0 0 14px 3px rgba(255,50,50,0.55); }
+    }
+    .banplate.banning::after { animation: ban-inner 1.8s ease-in-out infinite; }
+
+    /* Ban hero image */
+    .ban-hero {
+      width: 91px; height: 71px;
+      object-fit: cover; display: block;
+      opacity: 0;
+    }
+
+    /* Ban reveal: slides up from below (masked by overflow:hidden),
+       then fades to greyscale + 50% brightness */
+    @keyframes ban-reveal {
+      0%   { transform: translateY(71px); filter: none; }
+      55%  { transform: translateY(0);    filter: none; }
+      100% { transform: translateY(0);    filter: grayscale(1) brightness(0.5); }
+    }
+    .ban-hero.ban-revealing { animation: ban-reveal 0.95s ease-out forwards; }
+
+    /* ── Pick gradient overlay ─────────────────────────────────── */
+    .pick-gradient {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 2; /* must render over the player photo (z-index: 1) */
+      animation: grad-pulse 1.4s ease-in-out infinite;
+      /* screen (not normal) blending — lightens/brightens the photo
+         underneath by its own color instead of just tinting over it, so it
+         reads as the photo glowing rather than being covered by a wash */
+      mix-blend-mode: screen;
+    }
+    .pick-gradient.camp1 {
+      background: linear-gradient(to top, rgba(30,100,255,0.85) 0%, transparent 70%);
+    }
+    .pick-gradient.camp2 {
+      background: linear-gradient(to top, rgba(255,50,50,0.85) 0%, transparent 70%);
+    }
+    @keyframes grad-pulse {
+      0%, 100% { opacity: 0.25; }
+      50%       { opacity: 0.9;  }
+    }
+
+    /* ── Player photo (FRONT → VICTORY sequence during picking) ──── */
+    .player-photo {
+      position: absolute;
+      left: 50%; top: 7px;
+      transform: translateX(-50%) translateY(30px);
+      width: 333px; /* 168px card frame × 2.2, scaled down 10% */
+      height: auto;
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+      display: none;
+    }
+    @keyframes photo-ease-up-in {
+      from { opacity: 0; transform: translateX(-50%) translateY(30px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @keyframes photo-quick-fadeout {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+    @keyframes photo-bounce-in {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.7); }
+      60%  { opacity: 1; transform: translateX(-50%) scale(1.06); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+    .player-photo.photo-entering  { animation: photo-ease-up-in     0.6s  cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .player-photo.photo-quick-out { animation: photo-quick-fadeout  0.15s ease-in forwards; }
+    .player-photo.photo-bounce-in { animation: photo-bounce-in      0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* FRONT renders visually larger than VICTORY at the same box width
+       (source-image framing), so FRONT gets an extra 10% reduction */
+    .player-photo.photo-front-size { width: 300px; }
+
+    /* Erase canvas — mirrors player-photo positioning; driven by the same
+       matte mask (s17_matte2.webm) that reveals the hero video */
+    .photo-canvas {
+      position: absolute;
+      left: 50%; top: 7px;
+      transform: translateX(-50%);
+      width: 333px;
+      z-index: 1;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── Pick background video + matte canvas (inside each plate) ── */
+    .plate { overflow: hidden; }
+
+    .plate-pick-video {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      object-fit: fill;
+      display: none;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Layers on top of .plate-pick-video (later in the same untiered
+       stacking group — see DOM order in buildPickPlates), but still under
+       the player photo, which has an explicit z-index. */
+    .plate-pick-anim {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      object-fit: fill;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    .plate-pick-anim.pick-anim-visible { opacity: 1; }
+
+
+    /* ── Timer bar ─────────────────────────────────────────────── */
+    #timer-bar {
+      position: absolute;
+      left: 0px; top: 1066px;
+      width: 1920px; height: 14px;
+      background: rgb(0,80,220);
+      transform-origin: center center;
+      transform: scaleX(1);
+      display: none;
+    }
+
+    /* ── Score boxes ─────────────────────────────────────────────── */
+    .score-box {
+      position: absolute;
+      top: 860px;
+      width: 55px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    #score-c1 { left: 768px; }
+    #score-c2 { left: 1097px; }
+    .score-bar {
+      width: 11px;
+      height: 40px;
+      background: #161616;
+      flex-shrink: 0;
+    }
+    #score-c1 .score-bar.scored { background: #1E64FF; }
+    #score-c2 .score-bar.scored { background: #FF3232; }
+
+    /* ── Team tricode labels ────────────────────────────────────── */
+    #team-c1, #team-c2 {
+      position: absolute;
+      top: 1028.849px;
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 31px; /* 7.5pt @ 300dpi */
+      color: #fff;
+      text-transform: uppercase;
+      line-height: 1;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #team-c1 { left: 816.964px; transform: translateX(-50%); }
+    #team-c2 { left: 1107.737px; transform: translateX(-50%); }
+
+    /* ── Team logos ────────────────────────────────────────────── */
+    .draft-team-logo {
+      position: absolute;
+      top: 929.849px;
+      width: 70px; height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #draft-logo-c1 { left: 810.964px; transform: translateX(-50%); }
+    #draft-logo-c2 { left: 1110.737px; transform: translateX(-50%); }
+    #draft-logo-c1 .draft-logo-fallback {
+      position: absolute;
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: rgb(42, 0, 255);
+    }
+    #draft-logo-c2 .draft-logo-fallback {
+      position: absolute;
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: rgb(210, 30, 30);
+    }
+    .draft-logo-img {
+      position: absolute;
+      width: 70px; height: 70px;
+      object-fit: contain;
+    }
+
+    /* ── Sponsor loop ───────────────────────────────────────────── */
+    #sponsor-loop {
+      position: absolute;
+      left: 890px;
+      top: 1019px;
+      width: 140px;
+      height: 50px;
+      overflow: hidden;
+    }
+    #sponsor-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 140px;
+      height: 50px;
+      object-fit: contain;
+      transform: translateX(-110%);
+    }
+    #sponsor-img.spon-in {
+      transform: translateX(0);
+      transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
+    }
+    #sponsor-img.spon-out {
+      transform: translateX(110%);
+      transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
+    }
+
+    /* ── Map bug — same box/asset as mploverlay_v7's #sb-map (ingame
+       scoreboard), centered here directly above the ban/pick draft area
+       (bans start at BAN_TOP = 780px) instead of the ingame position. ── */
+    #draft-map {
+      position: absolute;
+      left: 813px;
+      top: 691px;
+      width: 294px;
+      height: 69px;
+      z-index: 50;
+      background-image: url('/assets/ingame/mapbacker.png');
+      background-size: 100% 100%;
+      pointer-events: none;
+    }
+    #draft-map-logo {
+      position: absolute;
+      left: 9px;
+      top: 9px;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #draft-map-logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    #draft-map-name {
+      position: absolute;
+      left: 102px;
+      top: 10px;
+      width: 185px;
+      height: 50px;
+      box-sizing: border-box;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .draft-map-name-text {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      color: #000000;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* ── Match/Game indicator — from Match Board's match+computed-game
+       state, shown as "MATCH 1 - GAME 1" centered above the draft area. ── */
+    #draft-match-game {
+      position: absolute;
+      left: 837px;
+      top: 851px;
+      width: 247px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .draft-match-game-text {
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 18px; /* 4.4pt @ 300dpi */
+      color: #000000;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* ── Coach BPM + headset + name — home=blue/left, away=red/right,
+       mirror(x) = 1920 − x − width (same formula as the map bug / pui
+       cards elsewhere in this codebase). Heart+beat pattern is the same
+       one ingame_blue.html's #p*-bpm-box uses against the live HRM feed
+       (GET /feed, coach_home1 / coach_away1 slots — already served by
+       lib/feeds.js, just not consumed here yet). ── */
+    .dcoach-bpm {
+      position: absolute;
+      top: 793px;
+      width: 91px; height: 44px;
+    }
+    .dcoach-bpm.dcoach-home { left: 7px; }
+    .dcoach-bpm.dcoach-away { left: 1822px; }
+    .dcoach-bpm-heart {
+      position: absolute;
+      left: 2px; top: 11px;
+      width: 22px; height: 22px;
+      color: #e8121f;
+      transition: color 0.6s;
+    }
+    .dcoach-bpm-heart svg { width: 100%; height: 100%; display: block; }
+    .dcoach-bpm-num {
+      position: absolute;
+      left: 26px; top: 0;
+      width: 44px; height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Anton', sans-serif;
+      font-size: 32px;
+      line-height: 1;
+      color: #141414;
+      transition: color 0.6s;
+    }
+    .dcoach-bpm-unit {
+      position: absolute;
+      left: 71px; top: 9px;
+      width: 20px; height: 14px;
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 9px;
+      line-height: 10px;
+      color: #141414;
+    }
+
+    .dcoach-headset {
+      position: absolute;
+      top: 801px;
+      width: 27px; height: 27px;
+      color: #141414;
+    }
+    .dcoach-headset.dcoach-home { left: 130px; }
+    .dcoach-headset.dcoach-away { left: 1763px; }
+    .dcoach-headset svg { width: 100%; height: 100%; display: block; }
+
+    .dcoach-name {
+      position: absolute;
+      top: 802px;
+      width: 129px; height: 27px;
+      /* No overflow-x/overflow-y mix here on purpose — per spec, pairing
+         hidden with visible forces the visible axis to compute as auto
+         (a scrollbar), which is not what we want. Width never actually
+         overflows (dcoachFitName guarantees it fits), so plain `visible`
+         on both axes is enough and never shows a scrollbar. */
+      overflow: visible;
+      display: flex;
+      align-items: center;
+    }
+    .dcoach-name.dcoach-home { left: 165px;  justify-content: flex-start; }
+    .dcoach-name.dcoach-away { left: 1626px; justify-content: flex-end; }
+    .dcoach-name-text {
+      display: block;
+      max-width: 129px;
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      color: #141414;
+    }
+    .dcoach-name.dcoach-home .dcoach-name-text { text-align: left; }
+    .dcoach-name.dcoach-away .dcoach-name-text { text-align: right; }
+
+    /* ── Draft Recap — previous game's pick/ban recap. Independent of
+       #scene (shown/hidden via its own toggle, not tied to the main
+       draft scene's slide state). Blue card mirrors the red card;
+       every hero/ban slot inside a card is positioned relative to that
+       card's own background box, so moving the card carries its 5
+       picks + 5 bans + title along, while each slot stays individually
+       draggable/resizable on top of that (see CLAUDE.md's "every
+       element is independently editable" rule). ── */
+    #draftrecap-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* Slide in/out — blue enters from off-screen left, red from
+       off-screen right, both sliding back out the same way they came
+       in. Two-rule direction split (base = "out" easing, .draftrecap-
+       visible = "in" easing) is the same technique #scene/#scene.draft-
+       hidden use above, just on transform instead of opacity. */
+    .dr-bg {
+      position: absolute;
+      width: 398px; height: 218px;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      transition: transform 0.45s cubic-bezier(0.4, 0, 1, 1);
+    }
+    #dr-blue-bg {
+      left: 0px; top: 562px;
+      background-image: url('assets/draft/recapblue.png');
+      transform: translateX(-450px);
+    }
+    #dr-red-bg {
+      left: 1522px; top: 562px;
+      background-image: url('assets/draft/recapred.png');
+      transform: translateX(450px);
+    }
+    #draftrecap-page.draftrecap-visible #dr-blue-bg,
+    #draftrecap-page.draftrecap-visible #dr-red-bg {
+      transform: translateX(0);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .dr-title {
+      position: absolute;
+      left: 7px; top: 0px;
+      width: 384px; height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+    #dr-red-title { justify-content: flex-end; }
+    .dr-title-text {
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 19px; /* 4.5pt @ 300dpi */
+      color: #ffffff;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .dr-red-title-text { text-align: right; }
+
+    /* Hero pick slot — video fills/crops the box (portrait, matches the
+       pick-reveal video's own aspect ratio) instead of the object-fit:cover
+       stretching that would distort the ban-hero KOTAK still below. */
+    .dr-pick {
+      position: absolute;
+      top: 50px;
+      width: 74px; height: 117px;
+      overflow: hidden;
+      background: #000;
+    }
+    .dr-pick video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #dr-blue-pick-1, #dr-red-pick-1 { left: 7px; }
+    #dr-blue-pick-2, #dr-red-pick-2 { left: 84.5px; }
+    #dr-blue-pick-3, #dr-red-pick-3 { left: 162px; }
+    #dr-blue-pick-4, #dr-red-pick-4 { left: 239.5px; }
+    #dr-blue-pick-5, #dr-red-pick-5 { left: 317px; }
+
+    /* Ban slot — square KOTAK portrait cropped top/bottom by object-fit:
+       cover into this short, wide box (same crop technique as the live
+       ban plate's .ban-hero, just a different box ratio). */
+    .dr-ban {
+      position: absolute;
+      top: 172px;
+      width: 73px; height: 39px;
+      overflow: hidden;
+      background: #000;
+    }
+    .dr-ban img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(1) brightness(0.5);
+    }
+    #dr-blue-ban-1, #dr-red-ban-1 { left: 8px; }
+    #dr-blue-ban-2, #dr-red-ban-2 { left: 85.5px; }
+    #dr-blue-ban-3, #dr-red-ban-3 { left: 163px; }
+    #dr-blue-ban-4, #dr-red-ban-4 { left: 240.5px; }
+    #dr-blue-ban-5, #dr-red-ban-5 { left: 318px; }
+
+    /* ── Pick/ban status badges (banned/stolen/ban_again/ban_to_pick) —
+       drawn on a full-cover overlay div rather than on .dr-pick/.dr-ban
+       directly so the border+glow live at the slot's own bounds
+       (box-sizing:border-box keeps them from ever getting clipped by
+       the slot's overflow:hidden). Entrance animation replays by
+       adding .dr-status-in then removing it on a timer (see
+       drSetStatus() in the script below) rather than relying on
+       animationend, matching this file's usual reveal convention. ── */
+    .dr-status {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      border: 0 solid transparent;
+      z-index: 4;
+    }
+    .dr-status-label {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: 0.4px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    /* pick_status: "banned" */
+    .dr-status-banned {
+      border: 3px solid #e8121f;
+      box-shadow: inset 0 0 12px rgba(232, 18, 31, 0.85);
+    }
+    .dr-status-banned .dr-status-label { display: flex; background: #e8121f; }
+
+    /* pick_status: "stolen" */
+    .dr-status-stolen {
+      border: 3px solid #3a3a3a;
+      box-shadow: inset 0 0 12px rgba(58, 58, 58, 0.85);
+    }
+    .dr-status-stolen .dr-status-label { display: flex; background: #3a3a3a; }
+
+    /* ban_status: "ban_again" (ban slots only — no label) */
+    .dr-status-ban-again {
+      border: 2px solid #e8121f;
+      box-shadow: inset 0 0 10px rgba(232, 18, 31, 0.85);
+    }
+
+    /* ban_status: "ban_to_pick" (ban slots only — no label) */
+    .dr-status-ban-to-pick {
+      border: 2px solid #ffcc00;
+      box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.85);
+    }
+
+    @keyframes dr-status-in {
+      0%   { opacity: 0; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .dr-status.dr-status-in { animation: dr-status-in 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  </style>
+</head>
+<body>
+
+<div id="scene"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* Dashboard Control-tab preview iframe loads this page with ?preview=1
+     (same convention as the Edit tab and mplfs.html-style previewButton
+     entries). When set, this instance is fully decoupled from the REAL
+     broadcast show/hide state — it never auto-shows/hides itself based on
+     what's actually live, only in response to window.previewTrigger(...)
+     calls the dashboard makes directly. Without this, a preview iframe
+     would react to the same live SSE events as the real vMix instance,
+     doubling video-decode/canvas-compositing load exactly when this scene
+     is heaviest (see CLAUDE.md-adjacent perf notes on this page). */
+  var PREVIEW_ONLY = /[?&]preview=1(?:&|$)/.test(window.location.search);
+
+  var DEFAULT_URL = window.location.protocol + '//' + window.location.hostname + ':5001/api/gamedata';
+  var STORAGE_KEY = 'draft_overlay_api_url';
+  var POLL_MS     = 1000;
+
+  /* Fetch draft API URL from server, override default if set.
+     Dedicated setting (Settings → Draft (Pick/Ban) API) — separate from the
+     general /api/game-url used by the rest of the overlay, since the draft
+     feed uses its own response format (see normalizeDraftPayload below).
+     poll() isn't started (see startPolling below) until this resolves —
+     otherwise an early poll() tick could hit DEFAULT_URL first, latch onto
+     whatever battleid that reports, then flip to the real apiUrl and see a
+     different battleid, forcing a reload loop the instant the two sources
+     disagree (e.g. DEFAULT_URL's local game client vs. a remote draft feed
+     watching a different match entirely). */
+  fetch('/api/draft-url').then(function(r){ return r.json(); }).then(function(d){
+    if (d.url) apiUrl = d.url;
+    startPolling();
+  }).catch(function(){ startPolling(); });
+
+  /* Player photo names (basenames with both FRONT + VICTORY variants). */
+  var PLAYER_PHOTO_NAMES  = [];
+  var PLAYER_PHOTO_LOOKUP = {}; /* lowercased name → canonical name */
+  fetch('/api/player-photos', { cache: 'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      PLAYER_PHOTO_NAMES = d.names || [];
+      PLAYER_PHOTO_NAMES.forEach(function(n) { PLAYER_PHOTO_LOOKUP[n.toLowerCase()] = n; });
+    })
+    .catch(function(){});
+
+  /* 'live' = match the seat's real player name to a photo; 'random' = test mode.
+     Server defaults to 'live' on every restart; dashboard can flip it at runtime. */
+  var draftPhotoMode = 'live';
+  fetch('/overlay/draft-photo-mode', { cache: 'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d.mode) draftPhotoMode = d.mode; })
+    .catch(function(){});
+
+  /* Draft Stats arm/disarm state — see startDraftStats() below.
+     draftStatsEnabled itself is declared down there (defaults true);
+     this just confirms it against the server on load, same pattern as
+     draftPhotoMode above. */
+  fetch('/overlay/features', { cache: 'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ if (d && d.draftstats !== undefined) draftStatsEnabled = d.draftstats; })
+    .catch(function(){});
+
+  /* Draft Recap API URL (Settings → Draft Recap API) — previous-draft
+     format, separate feed from the live draft-info-only apiUrl above. */
+  var draftRecapApiUrl = 'https://theapi.dpdns.org/api/previous-draft/';
+  fetch('/api/draft-recap-url').then(function(r){ return r.json(); }).then(function(d){
+    if (d.url) draftRecapApiUrl = d.url;
+  }).catch(function(){});
+
+  /* Player photo layout — matches .player-photo / .photo-canvas CSS width */
+  var PHOTO_W = 333;
+
+  /* Pick plate layout */
+  var PLATE_W = 151, PLATE_H = 168, PLATE_TOP = 851, PLATE_GAP = 1;
+  var NAME_TOP = 1028;
+  /* role string → icon filename */
+  var ROLE_MAP = {
+    'exp_laner':  'role/EXP LANER.png',
+    'jungler':    'role/JUNGLER.png',
+    'mid_laner':  'role/MID LANER.png',
+    'roamer':     'role/ROAMER.png',
+    'gold_laner': 'role/GOLD LANER.png',
+  };
+  /* ordered list — seat index fallback when all roles missing */
+  var ALL_ROLES = ['exp_laner', 'jungler', 'mid_laner', 'roamer', 'gold_laner'];
+  /* ROLE_FILES[i] used only as initial placeholder before first poll */
+  var ROLE_FILES = ALL_ROLES.map(function(r) { return ROLE_MAP[r]; });
+
+  /* roleid → role string; fetched from server (locked per battleid, survives page reload) */
+  var playerRoles = {};
+
+  /* Fetch role assignments locked by the server for this battleid.
+     Retried every poll until server confirms matching battleid with non-empty roles. */
+  function fetchAndApplyRoles(bid) {
+    fetch('/api/draft-roles', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.battleid === bid && data.roles && Object.keys(data.roles).length > 0) {
+          playerRoles = data.roles;
+          Object.keys(prevPick).forEach(function(k) { prevPick[k].roleid = undefined; });
+        }
+      })
+      .catch(function() {});
+  }
+
+  /* The draft-info-only feed has no roleid field (server-locked roles are
+     keyed by roleid from the *general* game API, which this feed doesn't
+     share), so role icons need a client-local equivalent, keyed by player
+     name instead, only used when normalizeDraftPayload() below is actually
+     rewriting a draft-info-only response. Locked per battleid like the
+     server-side version, mirroring its "keep explicit real roles, randomize
+     the rest" heuristic. */
+  var usingDraftInfoOnlyFormat = false;
+  var localDraftRoles          = {};
+  var localDraftRolesBattleId  = null;
+  var ROLE_ALIASES = {
+    'exp_laner': 'exp_laner', 'exp': 'exp_laner', 'exp laner': 'exp_laner',
+    'jungler': 'jungler', 'jungle': 'jungler',
+    'mid_laner': 'mid_laner', 'mid': 'mid_laner', 'mid laner': 'mid_laner',
+    'roamer': 'roamer', 'roam': 'roamer', 'support': 'roamer',
+    'gold_laner': 'gold_laner', 'gold': 'gold_laner', 'gold laner': 'gold_laner', 'marksman': 'gold_laner'
+  };
+
+  function assignLocalDraftRoles(camp1, camp2) {
+    var result = {};
+    [camp1, camp2].forEach(function (camp) {
+      if (!camp) return;
+      var seats = [];
+      for (var s = 1; s <= 5; s++) { var seat = camp['seat_' + s]; if (seat && seat.name) seats.push(seat); }
+      if (!seats.length) return;
+
+      var claimed = {};
+      seats.forEach(function (seat) {
+        var mapped = ROLE_ALIASES[(seat.role || '').toLowerCase().trim()];
+        if (mapped && !claimed[mapped]) { claimed[mapped] = true; result[seat.name] = mapped; }
+      });
+
+      var remaining = ALL_ROLES.filter(function (r) { return !claimed[r]; });
+      for (var j = remaining.length - 1; j > 0; j--) {
+        var k = Math.floor(Math.random() * (j + 1));
+        var tmp = remaining[j]; remaining[j] = remaining[k]; remaining[k] = tmp;
+      }
+      var ri = 0;
+      seats.forEach(function (seat) {
+        if (result[seat.name]) return;
+        result[seat.name] = remaining[ri++];
+      });
+    });
+    return result;
+  }
+
+  /* Ban plate layout — no gap between seats */
+  var BAN_W = 91, BAN_H = 71, BAN_TOP = 780;
+  var C1_BAN_X = [0,1,2,3,4].map(function(i){ return 304 + i * BAN_W; });
+  var C2_BAN_X = [0,1,2,3,4].map(function(i){ return 1525 - i * BAN_W; });
+
+  /* ── DOM refs ──────────────────────────────────────────────── */
+  var scene    = document.getElementById('scene');
+
+  var apiUrl = DEFAULT_URL;
+
+  /* ── Timer bar (smooth rAF countdown) ─────────────────────── */
+  var TIMER_MAX    = 50;   /* max seconds per pick/ban turn */
+  var timerEl      = null;
+  var tmSyncAt     = 0;    /* performance.now() when this turn's value was locked in */
+  var tmSyncVal    = 0;    /* leftTime locked in at the start of this turn */
+  var tmCampid     = 0;    /* 0 = hidden, 1/2 = active camp */
+  var tmRAF        = null;
+  var tmHasStart   = false; /* true once first value is locked for the current turn */
+
+  function tmGetCurrent() {
+    return Math.max(0, tmSyncVal - (performance.now() - tmSyncAt) / 1000);
+  }
+
+  function tmFrame() {
+    var t     = tmGetCurrent();
+    var scale = Math.min(1, Math.max(0, t / TIMER_MAX));
+    timerEl.style.transform = 'scaleX(' + scale + ')';
+    if (t > 0) {
+      tmRAF = requestAnimationFrame(tmFrame);
+    } else {
+      tmRAF = null;
+      tmHasStart = false; /* unlock so the next non-zero value starts a fresh turn */
+    }
+  }
+
+  function tmSync(campid, leftTime) {
+    if (!timerEl) return;
+    if (campid === 0 || leftTime <= 0) {
+      timerEl.style.display = 'none';
+      if (tmRAF) { cancelAnimationFrame(tmRAF); tmRAF = null; }
+      tmCampid   = 0;
+      tmHasStart = false;
+      return;
+    }
+    timerEl.style.background = campid === 1 ? 'rgb(0,80,220)' : 'rgb(220,50,50)';
+    timerEl.style.display    = 'block';
+
+    /* Decide if this is a genuinely new turn:
+       - camp switched sides, OR
+       - no starting value locked yet for this turn, OR
+       - API reports significantly MORE time than our prediction (timer reset for new phase) */
+    var predicted = tmGetCurrent();
+    var isNewTurn = (campid !== tmCampid) || !tmHasStart || (leftTime > predicted + 5);
+
+    if (isNewTurn) {
+      tmSyncAt   = performance.now();
+      tmSyncVal  = leftTime;
+      tmCampid   = campid;
+      tmHasStart = true;
+      if (!tmRAF) tmRAF = requestAnimationFrame(tmFrame);
+    }
+    /* Otherwise: client countdown runs uninterrupted — API inconsistencies ignored */
+  }
+
+  function buildTimerBar() {
+    timerEl = document.createElement('div');
+    timerEl.id = 'timer-bar';
+    scene.appendChild(timerEl);
+  }
+
+
+  /* ── Element / state maps ──────────────────────────────────── */
+  var campContainers = {}; /* campid → flex container div */
+  var pickEls  = {};
+  var prevPick = {};
+  var banEls   = {};  /* campid_i → { banplate, bhi } */
+  var prevBan  = {};  /* campid_i → { ban_heroid, banning } */
+  var teamEls  = {};  /* campid → div */
+  var logoEls  = {};  /* campid → { img, fb } */
+
+  /* ── Update camp-level picker class ────────────────────────── */
+  function updateCampPickerClass(campid) {
+    var container = campContainers[campid];
+    var count = container.querySelectorAll('.seat-unit.picking-expand').length;
+    container.classList.remove('has-picker', 'has-two-pickers');
+    if      (count === 1) container.classList.add('has-picker');
+    else if (count >= 2)  container.classList.add('has-two-pickers');
+  }
+
+  /* ── Build pick plates ─────────────────────────────────────── */
+  function buildPickPlates() {
+    for (var ci = 0; ci < 2; ci++) {
+      var campid = ci + 1;
+
+      /* Flex container for this camp */
+      var container = document.createElement('div');
+      container.className = 'plates-camp plates-camp-' + campid;
+      scene.appendChild(container);
+      campContainers[campid] = container;
+
+      for (var i = 0; i < 5; i++) {
+        var key = campid + '_' + i;
+
+        /* Seat unit — the flex item whose width transitions */
+        var seatUnit = document.createElement('div');
+        seatUnit.className = 'seat-unit';
+
+        /* Plate — always 151 px; edge seats anchor inward so they only expand toward centre */
+        var plate = document.createElement('div');
+        plate.id = 'plate-' + key;
+        /* Expansion direction per seat:
+           Camp1: seat1→right, seat2→left, seat3→right, seat4→left, seat5→left
+           Camp2: TBD */
+        var C1_ANCHORS = ['anchor-left','anchor-right','anchor-left','anchor-right','anchor-right'];
+        var anchor = '';
+        if (campid === 1) { anchor = C1_ANCHORS[i]; }
+        else              { if (i === 0) anchor = 'anchor-right'; else if (i === 4) anchor = 'anchor-left'; }
+        plate.className = 'plate' + (anchor ? ' ' + anchor : '');
+
+        /* Content wrapper — 151 px fixed, clipped, anchored inside the expanding plate */
+        var plateContent = document.createElement('div');
+        plateContent.className = 'plate-content';
+
+        var vid = document.createElement('video');
+        vid.className   = 'plate-pick-video';
+        vid.src         = campid === 1
+          ? 'assets/draft/motion/bluepickbg1.webm'
+          : 'assets/draft/motion/redpickbg1.webm';
+        vid.loop = true; vid.muted = true;
+        vid.playsInline = true; vid.preload = 'none';
+        plate.appendChild(vid); /* direct child of plate so it scales with the full width */
+
+        var pickGrad = document.createElement('div');
+        pickGrad.className = 'pick-gradient ' + (campid === 1 ? 'camp1' : 'camp2');
+        plate.appendChild(pickGrad);
+
+        /* New picking animation — layered on top of the original pick
+           background video/gradient (no z-index needed: it just comes
+           later in the same untiered stacking group), but still behind the
+           player photo, which has an explicit higher z-index. */
+        var pickAnim = document.createElement('video');
+        pickAnim.className = 'plate-pick-anim';
+        pickAnim.src = campid === 1
+          ? 'assets/motion/pickingblue.webm'
+          : 'assets/motion/pickingred.webm';
+        pickAnim.loop = true; pickAnim.muted = true;
+        pickAnim.playsInline = true; pickAnim.preload = 'none';
+        plate.appendChild(pickAnim);
+
+        var heroVid = document.createElement('video');
+        heroVid.className   = 'hero-video';
+        heroVid.loop        = true;
+        heroVid.muted       = true;
+        heroVid.playsInline = true;
+        heroVid.preload     = 'none';
+        plateContent.appendChild(heroVid);
+
+        /* Canvas for matte composite — on top of heroVid during reveal.
+           GPU-composited only (drawImage + destination-in, see
+           startMatteReveal) — no willReadFrequently hint since this
+           canvas is never read back with getImageData. */
+        var cvs = document.createElement('canvas');
+        cvs.className = 'plate-canvas';
+        cvs.width = 168; cvs.height = 168;
+        plateContent.appendChild(cvs);
+        var ctx2d = cvs.getContext('2d');
+
+        /* Player photo (FRONT → VICTORY) + its erase canvas */
+        var photoImg = document.createElement('img');
+        photoImg.className = 'player-photo';
+        photoImg.alt = '';
+        plateContent.appendChild(photoImg);
+
+        var photoCanvas = document.createElement('canvas');
+        photoCanvas.className = 'photo-canvas';
+        photoCanvas.width = PHOTO_W; photoCanvas.height = PHOTO_W;
+        plateContent.appendChild(photoCanvas);
+        var photoCtx = photoCanvas.getContext('2d', { willReadFrequently: true });
+
+        /* Offscreen buffer — samples the matte mask at the photo's own
+           (larger) resolution so the erase aligns with the photo's size */
+        var photoMatteCanv = document.createElement('canvas');
+        photoMatteCanv.width = PHOTO_W; photoMatteCanv.height = PHOTO_W;
+        var photoMatteCtx = photoMatteCanv.getContext('2d', { willReadFrequently: true });
+
+        /* Matte video (luma-based wipe mask) — feeds updatePhotoErase()'s
+           JS pixel math unchanged (photo erase combines this mask with
+           the photo's OWN alpha via Math.min, which doesn't map onto a
+           single GPU compositing op, so it keeps the getImageData path). */
+        var matteVid = document.createElement('video');
+        matteVid.src = 'assets/draft/motion/s17_matte2.webm';
+        matteVid.muted = true; matteVid.playsInline = true;
+        matteVid.preload = 'none'; matteVid.style.display = 'none';
+        plateContent.appendChild(matteVid);
+
+        /* Same wipe, pre-baked as a REAL alpha channel (offline, via
+           ffmpeg — alpha = 255 - lumaOfOriginal, identical formula to
+           matteAlphaAt() below, verified pixel-exact against it) so the
+           hero reveal can composite on the GPU via destination-in
+           instead of getImageData/putImageData every frame. */
+        var heroMatteVid = document.createElement('video');
+        heroMatteVid.src = 'assets/draft/motion/s17_matte2_alpha.webm';
+        heroMatteVid.muted = true; heroMatteVid.playsInline = true;
+        heroMatteVid.preload = 'none'; heroMatteVid.style.display = 'none';
+        plateContent.appendChild(heroMatteVid);
+
+        var glowDiv = document.createElement('div');
+        glowDiv.className = 'plate-glow';
+        plateContent.appendChild(glowDiv);
+
+        /* Hero banner — bluehero for camp1, redhero for camp2 */
+        var banner = document.createElement('div');
+        banner.className = 'hero-banner ' + (campid === 1 ? 'hero-banner-c1' : 'hero-banner-c2');
+
+        var bannerImg = document.createElement('img');
+        bannerImg.className = 'hero-banner-img';
+        bannerImg.src = campid === 1 ? 'assets/draft/bluehero.png' : 'assets/draft/redhero.png';
+        bannerImg.alt = '';
+        banner.appendChild(bannerImg);
+
+        var bannerName = document.createElement('span');
+        bannerName.className = 'hero-banner-name';
+        banner.appendChild(bannerName);
+
+        plateContent.appendChild(banner);
+
+        var roleImg = document.createElement('img');
+        roleImg.className = 'role-icon';
+        roleImg.alt = ''; roleImg.style.opacity = '0';
+        plateContent.appendChild(roleImg);
+
+        /* Idle "not picking yet" edge triangles — blue for camp1, red for camp2.
+           Staggered by seat index so the bob reads as a wave. Camp1's flex
+           container runs seat index left→right, so increasing delay with i
+           sweeps left→right; camp2's is row-reverse (index 0 = rightmost),
+           so the same i-based delay sweeps right→left there — no
+           campid-specific math needed. */
+        var triCampClass = campid === 1 ? 'camp1' : 'camp2';
+        var triDelay = (i * 0.3) + 's';
+        var triTop = document.createElement('div');
+        triTop.className = 'card-tri card-tri-top ' + triCampClass;
+        triTop.style.animationDelay = triDelay;
+        plateContent.appendChild(triTop);
+
+        var triBottom = document.createElement('div');
+        triBottom.className = 'card-tri card-tri-bottom ' + triCampClass;
+        triBottom.style.animationDelay = triDelay;
+        plateContent.appendChild(triBottom);
+
+        /* Draft Stats reveal (toggleable) — see startDraftStats() below.
+           Built identically for both camps; the rect's color (blue/red)
+           is the only camp-specific visual, via dstats-rect-campN.
+           .dstatsRect and .dstatsText are separate siblings (both direct
+           children of plateContent, NOT one nested in the other) so the
+           rect's multiply blend isn't isolated by a transformed ancestor
+           — see the CSS comment above .dstats-slide for why that matters. */
+        var dstatsRect = document.createElement('div');
+        dstatsRect.className = 'dstats-slide dstats-camp' + campid + ' dstats-rect dstats-rect-camp' + campid;
+        plateContent.appendChild(dstatsRect);
+
+        var dstatsText = document.createElement('div');
+        dstatsText.className = 'dstats-slide dstats-text dstats-camp' + campid;
+
+        var dstatsPickRow = document.createElement('div');
+        dstatsPickRow.className = 'dstats-row dstats-row-pick';
+        dstatsPickRow.innerHTML = '<div class="dstats-label">Pick</div><div class="dstats-value dstats-pick-value">0</div>';
+        dstatsText.appendChild(dstatsPickRow);
+
+        var dstatsContentionRow = document.createElement('div');
+        dstatsContentionRow.className = 'dstats-row dstats-row-contention';
+        dstatsContentionRow.innerHTML = '<div class="dstats-label">Contention<br>Rate</div><div class="dstats-value dstats-contention-value">0%</div>';
+        dstatsText.appendChild(dstatsContentionRow);
+
+        var dstatsWinrateRow = document.createElement('div');
+        dstatsWinrateRow.className = 'dstats-row dstats-row-winrate';
+        dstatsWinrateRow.innerHTML = '<div class="dstats-label">Win Rate</div><div class="dstats-value dstats-winrate-value">0%</div>';
+        dstatsText.appendChild(dstatsWinrateRow);
+
+        /* Debut Pick — shown instead of the rows above when pick count is
+           0 (see startDraftStats() below). Two separate elements so each
+           can pop in on its own stagger. */
+        var dstatsDebutLabel = document.createElement('div');
+        dstatsDebutLabel.className = 'dstats-debut-row dstats-row-debut-label dstats-debut-label';
+        dstatsDebutLabel.textContent = 'Debut';
+        dstatsText.appendChild(dstatsDebutLabel);
+
+        var dstatsDebutValue = document.createElement('div');
+        dstatsDebutValue.className = 'dstats-debut-row dstats-row-debut-value dstats-debut-value';
+        dstatsDebutValue.textContent = 'Pick!';
+        dstatsText.appendChild(dstatsDebutValue);
+
+        plateContent.appendChild(dstatsText);
+
+        /* Buff/nerf/adjust corner badge — its own independent element
+           (not inside dstatsText/dstatsRect), since it doesn't slide with
+           the rest of the reveal — it pops in afterward and stays. */
+        var dstatsBuffBadge = document.createElement('div');
+        dstatsBuffBadge.className = 'dstats-buff-badge dstats-buff-camp' + campid;
+        plateContent.appendChild(dstatsBuffBadge);
+
+        plate.appendChild(plateContent);
+
+        /* Player name sits below, centred in the seat-unit */
+        var nameEl = document.createElement('div');
+        nameEl.className = 'player-name';
+        nameEl.id = 'name-' + key;
+
+        seatUnit.appendChild(plate);
+        seatUnit.appendChild(nameEl);
+        container.appendChild(seatUnit);
+
+        pickEls[key] = {
+          key: key, campid: campid,
+          seatUnit: seatUnit, plate: plate, pickVid: vid, pickAnim: pickAnim,
+          heroVid: heroVid, pickGrad: pickGrad,
+          canvasEl: cvs, ctx2d: ctx2d,
+          matteVid: matteVid, heroMatteVid: heroMatteVid,
+          glowDiv: glowDiv, banner: banner, bannerName: bannerName,
+          roleImg: roleImg, nameEl: nameEl,
+          triTop: triTop, triBottom: triBottom,
+          photoImg: photoImg, photoCanvas: photoCanvas, photoCtx: photoCtx,
+          photoMatteCtx: photoMatteCtx, photoOrigAlpha: null, photoH: null,
+          dstatsRect: dstatsRect, dstatsText: dstatsText, dstatsPickRow: dstatsPickRow,
+          dstatsContentionRow: dstatsContentionRow, dstatsWinrateRow: dstatsWinrateRow,
+          dstatsPickValue: dstatsPickRow.querySelector('.dstats-pick-value'),
+          dstatsContentionValue: dstatsContentionRow.querySelector('.dstats-contention-value'),
+          dstatsWinrateValue: dstatsWinrateRow.querySelector('.dstats-winrate-value'),
+          dstatsDebutLabel: dstatsDebutLabel, dstatsDebutValue: dstatsDebutValue,
+          dstatsBuffBadge: dstatsBuffBadge
+        };
+        prevPick[key] = {
+          heroid: undefined, picking: false, banning: false,
+          small: false, expanded: false, matteActive: false,
+          roleid: undefined, assignedRole: undefined,
+          photoName: undefined, photoPhase: 'none', photoErasing: false,
+          photoTimer0: null, photoTimer1: null, photoTimer2: null,
+          pickAnimTimer: null, dstatsTimers: null
+        };
+      }
+    }
+  }
+
+  /* ── Build ban plates ──────────────────────────────────────── */
+  function buildBanPlates() {
+    for (var ci = 0; ci < 2; ci++) {
+      var campid = ci + 1;
+      var xArr = campid === 1 ? C1_BAN_X : C2_BAN_X;
+      for (var i = 0; i < 5; i++) {
+        var key = campid + '_' + i;
+        var x = xArr[i];
+
+        var bp = document.createElement('div');
+        bp.className = 'banplate';
+        bp.id = 'bp-' + key;
+        bp.style.left = x + 'px';
+        bp.style.top  = BAN_TOP + 'px';
+
+        var bhi = document.createElement('img');
+        bhi.className = 'ban-hero';
+        bhi.id  = 'bhi-' + key;
+        bhi.alt = '';
+        bhi.style.opacity = '0';
+        bhi.onerror = function () { this.style.opacity = '0'; };
+        bp.appendChild(bhi);
+        scene.appendChild(bp);
+
+        banEls[key]  = { banplate: bp, bhi: bhi };
+        prevBan[key] = { ban_heroid: undefined, banning: false };
+      }
+    }
+  }
+
+  /* ── Score boxes ───────────────────────────────────────────── */
+  var scoreEls = {};
+
+  function buildScoreBoxes() {
+    [1, 2].forEach(function(c) {
+      var box = document.createElement('div');
+      box.id = 'score-c' + c;
+      box.className = 'score-box';
+      scene.appendChild(box);
+      scoreEls[c] = box;
+    });
+  }
+
+  function renderBars(container, total, scored, goldFromRight) {
+    container.innerHTML = '';
+    for (var i = 0; i < total; i++) {
+      var bar = document.createElement('div');
+      bar.className = 'score-bar';
+      var isGold = goldFromRight ? (i >= total - scored) : (i < scored);
+      if (isGold) bar.classList.add('scored');
+      container.appendChild(bar);
+    }
+  }
+
+  function pollMatchState() {
+    fetch('/match/state', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(s) {
+        var maxWins = Math.ceil(parseInt((s.series || 'BO3').replace('BO', '')) / 2);
+        var home    = s.home || s.teamA;
+        var away    = s.away || s.teamB;
+        var swapped = s.swapped !== undefined ? s.swapped : (s.blueTeam === 'B');
+        var c1Team  = swapped ? away : home;
+        var c2Team  = swapped ? home : away;
+        renderBars(scoreEls[1], maxWins, c1Team.score, true);
+        renderBars(scoreEls[2], maxWins, c2Team.score, false);
+
+        /* Match number is the manually-set /match/state field; game number
+           is derived the same way Match Board's computeGame() does —
+           total games played so far (both scores) + 1. */
+        var matchNum = s.match || 1;
+        var gameNum  = (home.score || 0) + (away.score || 0) + 1;
+        var mgTxt = document.querySelector('#draft-match-game .draft-match-game-text');
+        if (mgTxt) mgTxt.textContent = 'MATCH ' + matchNum + ' - GAME ' + gameNum;
+
+        /* dcoachSwapped only feeds pollCoachBpm()'s coach_home1/coach_away1
+           pairing now — coach NAME/headset come from the draft API's
+           coach_in instead (see poll() → updateCoachFromDraft), which is
+           already positional (campid 1=left/2=right) and needs no swap. */
+        dcoachSwapped = swapped;
+
+        /* Map bug — same source as the ingame scoreboard's #sb-map */
+        var mapVal     = s.map || 'Broken Walls';
+        var mapNameTxt = document.querySelector('#draft-map-name .draft-map-name-text');
+        var mapLogoImg = document.getElementById('draft-map-logo-img');
+        if (mapNameTxt) {
+          mapNameTxt.textContent = mapVal.toUpperCase();
+          draftFitText(mapNameTxt, 169, 26);
+        }
+        if (mapLogoImg && mapLogoImg.dataset.map !== mapVal) {
+          mapLogoImg.dataset.map = mapVal;
+          mapLogoImg.src = '/maps/' + encodeURIComponent(mapVal) + '.png';
+        }
+      })
+      .catch(function() {});
+  }
+
+  /* ── Build team tricode labels ─────────────────────────────── */
+  function buildTeamNames() {
+    [1, 2].forEach(function(c) {
+      var el = document.createElement('div');
+      el.id = 'team-c' + c;
+      scene.appendChild(el);
+      teamEls[c] = el;
+    });
+  }
+
+  /* ── Build team logos ──────────────────────────────────────── */
+  function buildTeamLogos() {
+    [1, 2].forEach(function(c) {
+      var wrap = document.createElement('div');
+      wrap.id = 'draft-logo-c' + c;
+      wrap.className = 'draft-team-logo';
+
+      var fb = document.createElement('div');
+      fb.className = 'draft-logo-fallback';
+
+      var img = document.createElement('img');
+      img.className = 'draft-logo-img';
+      img.alt = '';
+      img.style.display = 'none';
+      img.onload  = function() { img.style.display = 'block'; fb.style.display = 'none'; };
+      img.onerror = function() { img.style.display = 'none';  fb.style.display = ''; };
+
+      wrap.appendChild(fb);
+      wrap.appendChild(img);
+      scene.appendChild(wrap);
+
+      logoEls[c] = { img: img, fb: fb };
+    });
+  }
+
+  /* ── Build map bug ─────────────────────────────────────────── */
+  function buildDraftMap() {
+    var box = document.createElement('div');
+    box.id = 'draft-map';
+
+    var logo = document.createElement('div');
+    logo.id = 'draft-map-logo';
+    var logoImg = document.createElement('img');
+    logoImg.id  = 'draft-map-logo-img';
+    logoImg.alt = '';
+    logo.appendChild(logoImg);
+
+    var name = document.createElement('div');
+    name.id = 'draft-map-name';
+    name.innerHTML = '<span class="draft-map-name-text"></span>';
+
+    box.appendChild(logo);
+    box.appendChild(name);
+    scene.appendChild(box);
+  }
+
+  /* ── Build match/game indicator ──────────────────────────────── */
+  function buildDraftMatchGame() {
+    var box = document.createElement('div');
+    box.id = 'draft-match-game';
+    box.innerHTML = '<span class="draft-match-game-text"></span>';
+    scene.appendChild(box);
+  }
+
+  /* ── Draft Recap — previous game's pick/ban recap. Lives outside
+     #scene (own top-level layer, own show/hide) so it isn't affected by
+     the main draft scene's slide transform and can show independently
+     of whether the pick/ban UI itself is showing. campid convention:
+     camp_list[0] = camp1 = blue/left, camp_list[1] = camp2 = red/right
+     (same as every other MLBB feed this overlay consumes). ── */
+  var draftRecapPage = null;
+  var drBlue = null, drRed = null;
+  var drShouldShow = false;
+  var drOutTimer = null;
+  var drPollTimer = null;
+
+  /* pick_status → border/glow class + label text. Only "banned" and
+     "stolen" get special treatment — "repick"/"none"/anything else
+     renders as a plain slot (see drSetStatus). */
+  var DR_PICK_STATUS_CLASS = { banned: 'dr-status-banned', stolen: 'dr-status-stolen' };
+  var DR_PICK_STATUS_LABEL = { banned: 'BANNED', stolen: 'STOLEN' };
+  /* ban_status → border/glow class. No label on ban slots. */
+  var DR_BAN_STATUS_CLASS  = { ban_again: 'dr-status-ban-again', ban_to_pick: 'dr-status-ban-to-pick' };
+
+  function drBuildCard(side) {
+    var bg = document.createElement('div');
+    bg.className = 'dr-bg';
+    bg.id = 'dr-' + side + '-bg';
+
+    var title = document.createElement('div');
+    title.className = 'dr-title';
+    title.id = 'dr-' + side + '-title';
+    var titleText = document.createElement('span');
+    titleText.className = 'dr-title-text dr-' + side + '-title-text';
+    title.appendChild(titleText);
+    bg.appendChild(title);
+
+    var picks = [], bans = [];
+    for (var i = 1; i <= 5; i++) {
+      var pick = document.createElement('div');
+      pick.className = 'dr-pick';
+      pick.id = 'dr-' + side + '-pick-' + i;
+      var vid = document.createElement('video');
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.preload = 'none';
+      pick.appendChild(vid);
+
+      var pickStatus = document.createElement('div');
+      pickStatus.className = 'dr-status';
+      var pickLabel = document.createElement('span');
+      pickLabel.className = 'dr-status-label';
+      pickStatus.appendChild(pickLabel);
+      pick.appendChild(pickStatus);
+
+      bg.appendChild(pick);
+      picks.push({ vid: vid, statusEl: pickStatus, labelEl: pickLabel, prevStatus: '', prevHeroid: undefined });
+
+      var ban = document.createElement('div');
+      ban.className = 'dr-ban';
+      ban.id = 'dr-' + side + '-ban-' + i;
+      var img = document.createElement('img');
+      img.alt = '';
+      img.onerror = function () { this.style.visibility = 'hidden'; };
+      ban.appendChild(img);
+
+      var banStatus = document.createElement('div');
+      banStatus.className = 'dr-status';
+      ban.appendChild(banStatus);
+
+      bg.appendChild(ban);
+      bans.push({ img: img, statusEl: banStatus, labelEl: null, prevStatus: '', prevBanId: undefined });
+    }
+
+    return { bg: bg, titleText: titleText, picks: picks, bans: bans };
+  }
+
+  function buildDraftRecap() {
+    draftRecapPage = document.createElement('div');
+    draftRecapPage.id = 'draftrecap-page';
+    drBlue = drBuildCard('blue');
+    drRed  = drBuildCard('red');
+    draftRecapPage.appendChild(drBlue.bg);
+    draftRecapPage.appendChild(drRed.bg);
+    document.body.appendChild(draftRecapPage);
+  }
+
+  /* Applies (or clears) a status border/glow/label on one slot, and
+     plays a one-shot "in" flourish exactly when the status actually
+     changes — draft recap data can be re-fetched while the panel is
+     already showing (see drPollTimer below), so a status can appear or
+     change live, not just on first reveal. Never relies on
+     animationend (memory: feedback_overlay_animations.md) — the
+     .dr-status-in class is added, then removed on a plain timer. */
+  function drSetStatus(slot, statusKey, classMap, labelMap) {
+    var cls = classMap[statusKey] || '';
+    if (slot.prevStatus === cls) return;
+
+    for (var k in classMap) { slot.statusEl.classList.remove(classMap[k]); }
+    slot.statusEl.classList.remove('dr-status-in');
+
+    if (cls) {
+      slot.statusEl.classList.add(cls);
+      if (slot.labelEl) slot.labelEl.textContent = (labelMap && labelMap[statusKey]) || '';
+      void slot.statusEl.offsetWidth; /* force reflow so the animation replays every time */
+      slot.statusEl.classList.add('dr-status-in');
+      setTimeout(function () { slot.statusEl.classList.remove('dr-status-in'); }, 400);
+    } else if (slot.labelEl) {
+      slot.labelEl.textContent = '';
+    }
+    slot.prevStatus = cls;
+  }
+
+  function drApplySide(card, camp, gameNum, reversePickOrder) {
+    var teamAbbr = (camp && camp.team_name_simple) || '';
+    card.titleText.textContent = teamAbbr + ' DRAFT RECAP - GAME ' + gameNum;
+    var players = (camp && camp.player_list) || [];
+    /* Blue's player_list is already left-to-right in display order
+       (6,7,8,9,10). Red's is reversed to display right-to-left
+       (10,9,8,7,6) — see drFetchAndApply's reversePickOrder arg. */
+    for (var i = 0; i < 5; i++) {
+      var p        = players[reversePickOrder ? (4 - i) : i] || {};
+      var heroid   = p.hero_recap     || 0;
+      var banId    = p.ban_hero_recap || 0;
+      var pickSlot = card.picks[i];
+      var banSlot  = card.bans[i];
+
+      /* Only touch the video element when the hero actually changes —
+         drFetchAndApply() re-runs every 3s via drPollTimer, and
+         re-assigning .src + currentTime=0 + play() on every tick
+         (even to the SAME hero) restarted the clip from frame 0 each
+         time, which is what was reading as flickering/restarting. */
+      if (heroid !== pickSlot.prevHeroid) {
+        pickSlot.prevHeroid = heroid;
+        if (heroid > 0) {
+          pickSlot.vid.src = 'assets/draft/webm/HERO_PICK_DRAFT_' + heroid + '.webm';
+          pickSlot.vid.currentTime = 0;
+          pickSlot.vid.play().catch(function () {});
+        } else {
+          pickSlot.vid.removeAttribute('src');
+          pickSlot.vid.load();
+        }
+      }
+      drSetStatus(pickSlot, p.pick_status, DR_PICK_STATUS_CLASS, DR_PICK_STATUS_LABEL);
+
+      if (banId !== banSlot.prevBanId) {
+        banSlot.prevBanId = banId;
+        if (banId > 0) {
+          banSlot.img.style.visibility = '';
+          banSlot.img.src = 'hero/HERO_' + banId + '_KOTAK.png';
+        } else {
+          banSlot.img.removeAttribute('src');
+          banSlot.img.style.visibility = 'hidden';
+        }
+      }
+      drSetStatus(banSlot, p.ban_status, DR_BAN_STATUS_CLASS, null);
+    }
+  }
+
+  /* Recap's game number is "current game minus 1" (the game that JUST
+     finished) — same computation Match Board / pollMatchState() use for
+     the current game number (both scores + 1), just without the +1. */
+  function drFetchGameNum() {
+    return fetch('/match/state', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        var home = s.home || s.teamA || {};
+        var away = s.away || s.teamB || {};
+        return Math.max(1, (home.score || 0) + (away.score || 0));
+      })
+      .catch(function () { return 1; });
+  }
+
+  function drFetchAndApply() {
+    return Promise.all([
+      fetch(draftRecapApiUrl, { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      drFetchGameNum(),
+    ]).then(function (results) {
+      var data    = results[0];
+      var gameNum = results[1];
+      var camps   = (data && data.camp_list) || [];
+      drApplySide(drBlue, camps[0], gameNum, false);
+      drApplySide(drRed,  camps[1], gameNum, true);
+    });
+  }
+
+  function drAnimateIn() {
+    drShouldShow = true;
+    clearTimeout(drOutTimer);
+    draftRecapPage.style.display = 'block';
+
+    /* Fire-and-forget — data populates whenever this resolves. The
+       reveal below does NOT wait on it: draftRecapApiUrl is a
+       third-party scorekeeping feed with no timeout on this fetch, so
+       gating visibility behind it meant one slow/unreachable API call
+       could leave the panel silently stuck off-screen (display:block
+       but never getting draftrecap-visible) with no retry — hide
+       always "worked" since it has no fetch dependency, which is what
+       made this look like show/hide were asymmetrically broken. */
+    drFetchAndApply().catch(function () {});
+
+    /* Double rAF so the browser commits display:block at the
+       off-screen transform before adding the "visible" class (which
+       switches to the slide-in transition) — see icAnimateIn() for
+       why the extra frame matters. */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (drShouldShow) draftRecapPage.classList.add('draftrecap-visible');
+      });
+    });
+
+    /* Keep polling while shown — pick_status/ban_status can still
+       change live even though the game itself is over (corrections
+       from the scorekeeping tool), and drSetStatus() only replays the
+       "in" flourish when a status actually changes, so this doesn't
+       re-animate anything that's already settled. */
+    clearInterval(drPollTimer);
+    drPollTimer = setInterval(function () {
+      if (drShouldShow) drFetchAndApply().catch(function () {});
+    }, 3000);
+  }
+
+  function drAnimateOut() {
+    drShouldShow = false;
+    clearInterval(drPollTimer);
+    draftRecapPage.classList.remove('draftrecap-visible');
+    clearTimeout(drOutTimer);
+    drOutTimer = setTimeout(function () {
+      draftRecapPage.style.display = 'none';
+    }, 460); /* matches .dr-bg's 0.45s "out" transition above */
+  }
+
+  /* Dashboard Edit-tab force-show (see EDIT_CONFIGS' draft_recap in
+     dashboard.html) — fetches live data once so the hero/ban slots and
+     title text sit at realistic sizes while dragging. */
+  window.showDraftRecapForEdit = function () {
+    drShouldShow = true;
+    clearTimeout(drOutTimer);
+    draftRecapPage.style.display = 'block';
+    draftRecapPage.classList.add('draftrecap-visible');
+    drFetchAndApply().catch(function () {});
+  };
+
+  /* Restore real server-side shown/hidden state on load (checkOverlays.
+     draftrecap), so a (re)loaded page picks up an already-shown recap
+     instead of guessing — default is hidden (CSS default), matching the
+     server default of false, so there's no flash either way. */
+  fetch('/overlay/check-overlays', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) { if (d && d.draftrecap) drAnimateIn(); })
+    .catch(function () {});
+
+  /* ── Build coach BPM + headset + name (home + away) ──────────── */
+  var DCOACH_HEART_SVG =
+    '<svg viewBox="0 0 24 22" xmlns="http://www.w3.org/2000/svg">' +
+    '<path fill="currentColor" d="M12 20.5C12 20.5 1.5 13.8 1.5 7.2 1.5 3.6 4.3 1 7.6 1c1.9 0 3.6.9 4.4 2.4C12.8 1.9 14.5 1 16.4 1c3.3 0 6.1 2.6 6.1 6.2 0 6.6-10.5 13.3-10.5 13.3z"/>' +
+    '<path fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" d="M0 11h5l2.2-4.5L11 15l2-7.5 1.6 3.5H24"/>' +
+    '</svg>';
+  var DCOACH_HEADSET_SVG =
+    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/>' +
+    '<rect x="2" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
+    '<rect x="16" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
+    '</svg>';
+
+  var dcoachRefs = {};   /* CSS position key ('home'=left, 'away'=right) -> { heartEl, numEl, nameTextEl } */
+  var dcoachSwapped = false; /* mirrors /match/state's swapped flag — see pollMatchState() */
+
+  function buildCoachSide(side) {
+    var bpm = document.createElement('div');
+    bpm.className = 'dcoach-bpm dcoach-' + side;
+    var heart = document.createElement('div');
+    heart.className = 'dcoach-bpm-heart';
+    heart.innerHTML = DCOACH_HEART_SVG;
+    var num = document.createElement('div');
+    num.className = 'dcoach-bpm-num';
+    num.textContent = '--';
+    var unit = document.createElement('div');
+    unit.className = 'dcoach-bpm-unit';
+    unit.textContent = 'BPM';
+    bpm.appendChild(heart);
+    bpm.appendChild(num);
+    bpm.appendChild(unit);
+    scene.appendChild(bpm);
+
+    var headset = document.createElement('div');
+    headset.className = 'dcoach-headset dcoach-' + side;
+    headset.innerHTML = DCOACH_HEADSET_SVG;
+    /* Hidden until the draft API confirms a real coach_in (see poll() /
+       updateCoachFromDraft) — starting hidden avoids a flash of a headset
+       icon with no coach name next to it before the first poll tick. */
+    headset.style.display = 'none';
+    scene.appendChild(headset);
+
+    var name = document.createElement('div');
+    name.className = 'dcoach-name dcoach-' + side;
+    var nameText = document.createElement('span');
+    nameText.className = 'dcoach-name-text';
+    name.appendChild(nameText);
+    scene.appendChild(name);
+
+    dcoachRefs[side] = { heartEl: heart, numEl: num, nameTextEl: nameText, headsetEl: headset, phase: Math.random(), bpm: 0, connected: false };
+  }
+
+  /* Coach name fit — maximize a single line to fill the 27px-tall box;
+     only wrap to two (smaller) lines when a name genuinely doesn't fit
+     on one, e.g. "MASTER THE BASICS" vs. the usual short coach names. */
+  function dcoachFitName(el, nameStr) {
+    var maxW = 129, maxH = 27;
+
+    function fitsOneLine(size) {
+      el.textContent      = nameStr;
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize   = size + 'px';
+      el.style.lineHeight = maxH + 'px';
+      return el.scrollWidth <= maxW;
+    }
+
+    /* Single line, maximized: the largest size — down to a floor below
+       which it'd look too small — that fits the width at full box
+       height. Covers the common case ("most coaches have short names"). */
+    var ceiling = maxH - 3, floor = 15;
+    for (var s = ceiling; s >= floor; s--) {
+      if (fitsOneLine(s)) return;
+    }
+
+    /* Doesn't fit on one line even at the floor size (e.g. "MASTER THE
+       BASICS") — force an explicit two-line break at the most balanced
+       word boundary (rather than relying on natural reflow, which can
+       coincidentally settle back onto one cramped line at this box's
+       width). Keep the SAME size range single-line uses instead of
+       shrinking further just because it wrapped — each line only needs
+       to fit the box WIDTH; the stacked pair is allowed to exceed the
+       box's height. */
+    var words = nameStr.split(' ');
+    var line1 = nameStr, line2 = '';
+    if (words.length > 1) {
+      var best = 1, bestDiff = Infinity;
+      for (var i = 1; i < words.length; i++) {
+        var l1 = words.slice(0, i).join(' '), l2 = words.slice(i).join(' ');
+        var diff = Math.abs(l1.length - l2.length);
+        if (diff < bestDiff) { bestDiff = diff; best = i; }
+      }
+      line1 = words.slice(0, best).join(' ');
+      line2 = words.slice(best).join(' ');
+    }
+    function fitsTwoLines(size) {
+      el.innerHTML        = line1 + '<br>' + line2;
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize   = size + 'px';
+      el.style.lineHeight = (size + 1) + 'px';
+      return el.scrollWidth <= maxW;
+    }
+    for (var s2 = ceiling; s2 >= floor; s2--) {
+      if (fitsTwoLines(s2)) return;
+    }
+    /* Extremely long individual word(s) — only now drop below the
+       single-line floor, since the horizontal bound still can't be
+       crossed. */
+    for (var s3 = floor - 1; s3 >= 7; s3--) {
+      if (fitsTwoLines(s3)) return;
+    }
+    fitsTwoLines(7); /* smallest fallback if even that won't fit */
+  }
+
+  function buildCoachBpm() {
+    buildCoachSide('home');
+    buildCoachSide('away');
+    /* Left blank (and headset hidden, per buildCoachSide) until poll()
+       gets a real coach_in from the draft API — see updateCoachFromDraft. */
+  }
+
+  /* Coach name + headset visibility, driven by the draft API's per-camp
+     coach_in (see poll()). campid is already positional (1=blue/left,
+     2=red/right — same convention as everywhere else in this codebase),
+     so unlike the BPM feed's coach_home1/coach_away1 pairing this needs
+     no swap logic: camp1 always maps to 'home' (left), camp2 to 'away'
+     (right). "Unknown" (the API's not-yet-set sentinel) and any other
+     falsy value are treated the same — blank name, headset hidden. */
+  function updateCoachFromDraft(side, coachIn) {
+    var refs = dcoachRefs[side];
+    if (!refs) return;
+    var known = !!coachIn && coachIn !== 'Unknown';
+    dcoachFitName(refs.nameTextEl, known ? coachIn : '');
+    if (refs.headsetEl) refs.headsetEl.style.display = known ? '' : 'none';
+  }
+
+  /* Heartbeat scale bump, phase-driven by actual BPM — same easing curve
+     as ingame_blue.html's bpmAnimate so the coach heart beats in time. */
+  var dcoachLast = 0;
+  function dcoachAnimate(ts) {
+    var dt = (ts - (dcoachLast || ts)) / 1000;
+    dcoachLast = ts;
+    ['home', 'away'].forEach(function(side) {
+      var h = dcoachRefs[side];
+      if (!h) return;
+      var active = h.bpm > 0 && h.connected;
+      if (active) h.phase = (h.phase + (h.bpm / 60) * dt) % 1;
+      var beat = 0;
+      if (active && h.phase >= 0.22 && h.phase <= 0.50) {
+        beat = Math.pow(1 - (h.phase - 0.22) / 0.28, 4);
+      }
+      h.heartEl.style.transform = 'scale(' + (1 + beat * 0.4).toFixed(3) + ')';
+    });
+    requestAnimationFrame(dcoachAnimate);
+  }
+
+  function pollCoachBpm() {
+    fetch('/feed', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(list) {
+        if (!Array.isArray(list)) return;
+        /* LEFT box (home position) is camp1 — coach_home1 unless swapped,
+           matching pollMatchState()'s c1Team/c2Team logic. */
+        var pairs = dcoachSwapped
+          ? [['home', 'coach_away1'], ['away', 'coach_home1']]
+          : [['home', 'coach_home1'], ['away', 'coach_away1']];
+        pairs.forEach(function(pair) {
+          var side = pair[0], slot = pair[1];
+          var h = dcoachRefs[side];
+          if (!h) return;
+          var entry = list.find(function(e) { return e.slot === slot; });
+          var bpm = entry ? (parseInt(entry.bpm) || 0) : 0;
+          h.bpm = bpm;
+          h.connected = !!entry && bpm > 0;
+          h.numEl.textContent   = h.connected ? bpm : '--';
+          h.heartEl.style.color = h.connected ? '#e8121f' : '#999';
+        });
+      })
+      .catch(function() {});
+  }
+
+  /* Shrink-to-fit — same binary-search approach as overlay-scoreboard.js's
+     sbFitText, since "Expanding Rivers" runs much longer than "Flying
+     Cloud" inside the same fixed-width name box. */
+  function draftFitText(el, maxWidth, maxPx) {
+    maxPx = maxPx || 13;
+    el.style.fontSize = maxPx + 'px';
+    if (el.scrollWidth <= maxWidth) return;
+    var lo = 6, hi = maxPx;
+    while (hi - lo > 0.5) {
+      var mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      if (el.scrollWidth <= maxWidth) lo = mid; else hi = mid;
+    }
+    el.style.fontSize = lo + 'px';
+  }
+
+  /* ── Build status / countdown area ────────────────────────── */
+  function buildStatusArea() {
+    var area = document.createElement('div');
+    area.id = 'status-area';
+
+    var stxt = document.createElement('div');
+    stxt.id = 'status-text';
+    area.appendChild(stxt);
+
+    var row = document.createElement('div');
+    row.id = 'countdown-row';
+
+    var triL = document.createElement('div');
+    triL.className = 'tri';
+    triL.id = 'tri-camp1';
+
+    var cdown = document.createElement('div');
+    cdown.id = 'countdown-text';
+
+    var triR = document.createElement('div');
+    triR.className = 'tri';
+    triR.id = 'tri-camp2';
+
+    row.appendChild(triL);
+    row.appendChild(cdown);
+    row.appendChild(triR);
+    area.appendChild(row);
+
+    scene.appendChild(area);
+
+    var sponsorBox = document.createElement('div');
+    sponsorBox.id = 'sponsor-loop';
+    var sponsorImg = document.createElement('img');
+    sponsorImg.id = 'sponsor-img';
+    sponsorBox.appendChild(sponsorImg);
+    scene.appendChild(sponsorBox);
+  }
+
+
+  /* ── Sponsor loop ──────────────────────────────────────────── */
+  var SPONSORS = [];
+  var sponsorIdx = 0;
+
+  function startSponsorLoop() {
+    fetch('/api/sponsors')
+      .then(function(r) { return r.json(); })
+      .then(function(list) {
+        if (!list || !list.length) return;
+        SPONSORS = list;
+        runSponsorLoop();
+      })
+      .catch(function() {});
+  }
+
+  function runSponsorLoop() {
+    var img = document.getElementById('sponsor-img');
+    (function nextSponsor() {
+      var s = SPONSORS[sponsorIdx];
+      img.className = '';
+      img.src = s.src;
+      void img.offsetWidth;
+      img.classList.add('spon-in');
+
+      function onIn(ev) {
+        if (ev.propertyName !== 'transform') return;
+        img.removeEventListener('transitionend', onIn);
+        setTimeout(function() {
+          img.classList.remove('spon-in');
+          img.classList.add('spon-out');
+          function onExit(ev) {
+            if (ev.propertyName !== 'transform') return;
+            img.removeEventListener('transitionend', onExit);
+            sponsorIdx = (sponsorIdx + 1) % SPONSORS.length;
+            nextSponsor();
+          }
+          img.addEventListener('transitionend', onExit);
+        }, s.dur);
+      }
+      img.addEventListener('transitionend', onIn);
+    })();
+  }
+
+  /* ── Player photo sequence (FRONT → VICTORY) ───────────────── */
+  function clearPhotoTimers(p) {
+    if (p.photoTimer0) { clearTimeout(p.photoTimer0); p.photoTimer0 = null; }
+    if (p.photoTimer1) { clearTimeout(p.photoTimer1); p.photoTimer1 = null; }
+    if (p.photoTimer2) { clearTimeout(p.photoTimer2); p.photoTimer2 = null; }
+  }
+
+  function resetPlayerPhoto(e, p) {
+    clearPhotoTimers(p);
+    e.photoImg.className   = 'player-photo';
+    e.photoImg.style.display = 'none';
+    e.photoImg.style.opacity = '0';
+    e.photoImg.style.transform = '';
+    e.photoImg.src = '';
+    e.photoCanvas.style.opacity = '0';
+    e.photoCtx.clearRect(0, 0, e.photoCanvas.width, e.photoCanvas.height);
+    e.photoOrigAlpha = null;
+    e.photoH = null;
+    p.photoName    = undefined;
+    p.photoPhase   = 'none';
+    p.photoErasing = false;
+  }
+
+  var PHOTO_FRONT_EASE_MS = 600; /* matches .photo-entering CSS duration */
+  var PHOTO_FRONT_HOLD_MS = 500;
+  var PHOTO_QUICKOUT_MS   = 150; /* matches .photo-quick-out CSS duration */
+
+  /* Role icon takes 550ms to press + 900ms to fly to its corner (see the
+     'pressing' setTimeout below) — hold the photo off-screen until it has
+     mostly cleared the centre so the two don't overlap. Trimmed 550ms off
+     the full 1450ms clear time to keep the entrance snappier. */
+  var ROLE_ICON_DEPART_MS = 550 + 900 - 300 - 250;
+
+  /* Picking animation (pickingblue/red.webm) — same "wait for the role icon
+     to clear" delay as the player photo, then a plain opacity fade in
+     rather than popping straight to visible. */
+  function showPickAnimDelayed(e, p) {
+    clearTimeout(p.pickAnimTimer);
+    p.pickAnimTimer = setTimeout(function () {
+      e.pickAnim.currentTime = 0;
+      e.pickAnim.play().catch(function () {});
+      e.pickAnim.classList.add('pick-anim-visible');
+    }, ROLE_ICON_DEPART_MS);
+  }
+
+  function hidePickAnim(e, p) {
+    clearTimeout(p.pickAnimTimer);
+    p.pickAnimTimer = null;
+    e.pickAnim.classList.remove('pick-anim-visible');
+    e.pickAnim.pause();
+  }
+
+  /* Waits for the role icon to clear, then: FRONT fades+eases up → holds
+     0.5s → quick fade-out → VICTORY bounces in. 'live' mode matches the
+     seat's real player name to a photo (skips if no match yet); 'random'
+     mode picks any available name — for testing only. */
+  function startPlayerPhotoSequence(e, p, playerName) {
+    var name;
+    if (draftPhotoMode === 'random') {
+      if (!PLAYER_PHOTO_NAMES.length) return;
+      name = PLAYER_PHOTO_NAMES[Math.floor(Math.random() * PLAYER_PHOTO_NAMES.length)];
+    } else {
+      name = PLAYER_PHOTO_LOOKUP[(playerName || '').trim().toLowerCase()];
+      if (!name) return;
+    }
+    resetPlayerPhoto(e, p);
+    p.photoName = name;
+
+    p.photoTimer0 = setTimeout(function () {
+      beginPhotoFrontPhase(e, p, name);
+    }, ROLE_ICON_DEPART_MS);
+  }
+
+  function beginPhotoFrontPhase(e, p, name) {
+    p.photoPhase = 'front';
+
+    var img = e.photoImg;
+    img.src = 'photos/FRONT/' + name + '_FRONT_resized.png';
+    img.style.display = 'block';
+    img.style.opacity = '0';
+    img.className = 'player-photo photo-front-size';
+    void img.offsetWidth;
+    img.classList.add('photo-entering');
+
+    p.photoTimer1 = setTimeout(function () {
+      img.classList.remove('photo-entering');
+      /* Removing 'photo-entering' drops its animation-driven transform,
+         which would otherwise snap back to the base (pre-entrance, lower)
+         translateY — pin it at the settled position so the fade-out doesn't
+         visibly jump before it starts. */
+      img.style.transform = 'translateX(-50%) translateY(0)';
+      img.classList.add('photo-quick-out');
+      p.photoTimer2 = setTimeout(function () {
+        img.src = 'photos/VICTORY/' + name + '_VICTORY_resized.png';
+        img.className = 'player-photo';
+        img.style.opacity = '0';
+        void img.offsetWidth;
+        img.classList.add('photo-bounce-in');
+        p.photoPhase = 'victory';
+      }, PHOTO_QUICKOUT_MS);
+    }, PHOTO_FRONT_EASE_MS + PHOTO_FRONT_HOLD_MS);
+  }
+
+  /* Draws the currently-visible photo into the erase canvas (at the photo's
+     own — larger — resolution) and shows it in place of the <img>, so
+     per-frame alpha updates can take over. */
+  function preparePhotoErase(e, p) {
+    if (!p.photoName || p.photoPhase === 'none') {
+      /* Hero was picked before the delayed front-phase ever showed anything
+         (faster than ROLE_ICON_DEPART_MS) — cancel the pending timer instead
+         of erasing a photo that was never drawn. */
+      resetPlayerPhoto(e, p);
+      return;
+    }
+    p.photoErasing = true;
+
+    var natW = e.photoImg.naturalWidth  || PHOTO_W;
+    var natH = e.photoImg.naturalHeight || Math.round(PHOTO_W * 1.6);
+    var Hp   = Math.round(natH * PHOTO_W / natW);
+
+    e.photoH = Hp;
+    e.photoCanvas.width  = PHOTO_W;
+    e.photoCanvas.height = Hp;
+    e.photoCanvas.style.height = Hp + 'px';
+    e.photoMatteCtx.canvas.width  = PHOTO_W;
+    e.photoMatteCtx.canvas.height = Hp;
+
+    e.photoCtx.clearRect(0, 0, PHOTO_W, Hp);
+    e.photoCtx.drawImage(e.photoImg, 0, 0, PHOTO_W, Hp);
+    var src = e.photoCtx.getImageData(0, 0, PHOTO_W, Hp).data;
+    var orig = new Uint8ClampedArray(src.length / 4);
+    for (var i = 3, ai = 0; i < src.length; i += 4, ai++) orig[ai] = src[i];
+    e.photoOrigAlpha = orig;
+    e.photoCanvas.style.opacity = '1';
+    e.photoImg.style.opacity = '0';
+  }
+
+  /* Erases the photo using the SAME matte mask that reveals the hero video —
+     resampled at the photo's own resolution so the wipe aligns with its size.
+     Wherever the mask reveals the hero, the photo fades by the complement. */
+  function updatePhotoErase(e, matteVid) {
+    if (!e.photoOrigAlpha) return;
+    var Hp = e.photoH;
+
+    e.photoMatteCtx.clearRect(0, 0, PHOTO_W, Hp);
+    e.photoMatteCtx.drawImage(matteVid, 0, 0, PHOTO_W, Hp);
+    var m = e.photoMatteCtx.getImageData(0, 0, PHOTO_W, Hp).data;
+
+    var pd = e.photoCtx.getImageData(0, 0, PHOTO_W, Hp);
+    var pdata = pd.data;
+    for (var i = 3, ai = 0; i < pdata.length; i += 4, ai++) {
+      pdata[i] = Math.min(e.photoOrigAlpha[ai], 255 - matteAlphaAt(m, i));
+    }
+    e.photoCtx.putImageData(pd, 0, 0);
+  }
+
+  function finishPhotoErase(e, p) {
+    p.photoErasing = false;
+    e.photoH = null;
+    e.photoCanvas.style.opacity = '0';
+    e.photoImg.style.display = 'none';
+    e.photoCtx.clearRect(0, 0, e.photoCanvas.width, e.photoCanvas.height);
+    e.photoOrigAlpha = null;
+    p.photoName  = undefined;
+    p.photoPhase = 'none';
+  }
+
+  /* ── Matte reveal over hero video ──────────────────────────── */
+  /* Per-pixel alpha derived from a matte-video sample at index i (RGBA offset).
+     Shared by the hero reveal and the photo erase so both read the same mask. */
+  function matteAlphaAt(m, i) {
+    return m[i + 3] < 254
+      ? 255 - m[i + 3]
+      : 255 - ((m[i] * 77 + m[i + 1] * 150 + m[i + 2] * 29) >> 8);
+  }
+
+  /* ── Draft Stats reveal ────────────────────────────────────────
+     Toggleable (Control tab → Draft Overlay → Feature Toggles →
+     "Draft Stats"); fires once per live hero pick, both sides. Real
+     numbers come straight from the draft API's pickCnt/contentionRate/
+     winRate fields (see normalizeDraftPayload() and updatePickSeat()) —
+     a pick count of 0 (hero never picked before) is a special case,
+     see startDraftStats()'s isDebut branch below. Buffstatus (NONE/
+     ADJUST/BUFF/NERF, from the same API) drives the small corner badge
+     that pops in once the whole reveal below has slid back out — see
+     showBuffBadge(). */
+  var draftStatsEnabled = true; /* confirmed by /overlay/features fetch + 'featuretoggle' SSE below */
+
+  /* Gear/cog — standard chunky 8-tooth gear silhouette (the FontAwesome
+     "gear" glyph outline), not a thin-spoked sun/asterisk shape. The
+     center hole is punched automatically by the inner circle subpath
+     winding the opposite direction from the outer gear body — default
+     nonzero fill-rule handles that with no separate cutout element
+     needed. viewBox fills edge-to-edge so this icon maximizes inside its
+     own box, in turn sized to nearly fill the 20px badge. */
+  var DBUFF_GEAR_SVG =
+    '<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="currentColor">' +
+    '<path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4l-55.6 17.6c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/>' +
+    '</svg>';
+  var BUFF_BADGE_CLASS = { NERF: 'dstats-buff-nerf', BUFF: 'dstats-buff-buff', ADJUST: 'dstats-buff-adjust' };
+  var BUFF_BADGE_ICON = {
+    NERF: '<div class="dstats-buff-arrow dstats-buff-arrow-down"></div>',
+    BUFF: '<div class="dstats-buff-arrow dstats-buff-arrow-up"></div>',
+    ADJUST: '<div class="dstats-buff-gear">' + DBUFF_GEAR_SVG + '</div>'
+  };
+
+  function showBuffBadge(e, status) {
+    var cls = BUFF_BADGE_CLASS[status];
+    if (!cls) return; /* NONE, or unrecognized — no badge */
+    e.dstatsBuffBadge.innerHTML = BUFF_BADGE_ICON[status];
+    e.dstatsBuffBadge.className = 'dstats-buff-badge dstats-buff-camp' + e.campid + ' ' + cls;
+    void e.dstatsBuffBadge.offsetWidth;
+    e.dstatsBuffBadge.classList.add('dstats-pop');
+  }
+
+  function hideBuffBadge(e) {
+    e.dstatsBuffBadge.classList.remove('dstats-pop');
+    e.dstatsBuffBadge.innerHTML = '';
+  }
+
+  /* Suppressed-reveal path (Final Changes seat swap — see the
+     draftStatsAllowed gate in poll()): skip the whole Draft Stats
+     slide-in/hold/slide-out entirely and just pop the buff badge in
+     right away, once the hero-reveal (matte wipe + glow + banner
+     slide-in) has already finished. Still cancels/resets any Draft
+     Stats visual that might be mid-flight from a previous, allowed
+     reveal on this same seat, so nothing gets stuck half-shown. */
+  function showBadgeOnly(e, p, status) {
+    if (p.dstatsTimers) { p.dstatsTimers.forEach(clearTimeout); p.dstatsTimers = null; }
+    dstatsSlideReset(e);
+    dstatsClearContent(e);
+    showBuffBadge(e, status);
+  }
+
+  /* Normal reveal — phase 1 (slide, 300ms) → phase 2 starts right after
+     (PICK pops in oversized and holds, ~750ms — 500ms longer than a plain
+     pop so the bigger count actually gets seen) → phase 3 starts shortly
+     after that (PICK shrinks back to normal size while settling into its
+     final row, ~450ms) — then a 1.8s hold, then a 400ms slide back out. */
+  var DSTATS_PHASE1_MS = 300;  // rect slide-in duration
+  var DSTATS_PHASE2_MS = 750;  // delay from phase 1 end to phase 3 start (oversized PICK hold)
+  var DSTATS_PHASE3_MS = 450;  // reserved for the settle transition before the hold begins
+  var DSTATS_HOLD_MS   = 1800;
+  var DSTATS_OUT_MS    = 400;
+
+  /* Debut reveal — same phase 1 slide, then "DEBUT" pops in, "PICK!" pops
+     in shortly after (each its own bouncy pop, no phase 3 — nothing to
+     settle into), then the same hold/out. */
+  var DSTATS_DEBUT_GAP_MS = 220; // delay between DEBUT popping and PICK! popping
+  var DSTATS_DEBUT_POP_MS = 400; // reserved for PICK!'s own pop transition before the hold begins
+
+  /* .dstatsRect and .dstatsText are separate siblings (see the CSS
+     comment above .dstats-slide for why) but always slide together —
+     this pair of helpers is the only place that needs to know that. */
+  function dstatsSlideIn(e) {
+    e.dstatsRect.classList.remove('dstats-out');
+    e.dstatsText.classList.remove('dstats-out');
+    e.dstatsRect.classList.add('dstats-in');
+    e.dstatsText.classList.add('dstats-in');
+  }
+  function dstatsSlideOut(e) {
+    e.dstatsRect.classList.remove('dstats-in');
+    e.dstatsText.classList.remove('dstats-in');
+    e.dstatsRect.classList.add('dstats-out');
+    e.dstatsText.classList.add('dstats-out');
+  }
+  function dstatsSlideReset(e) {
+    e.dstatsRect.classList.remove('dstats-in', 'dstats-out');
+    e.dstatsText.classList.remove('dstats-in', 'dstats-out');
+  }
+
+  function dstatsClearContent(e) {
+    e.dstatsPickRow.classList.remove('dstats-pop', 'dstats-settle');
+    e.dstatsContentionRow.classList.remove('dstats-pop', 'dstats-settle');
+    e.dstatsWinrateRow.classList.remove('dstats-pop', 'dstats-settle');
+    e.dstatsDebutLabel.classList.remove('dstats-pop');
+    e.dstatsDebutValue.classList.remove('dstats-pop');
+    hideBuffBadge(e);
+  }
+
+  function startDraftStats(e, p, stats) {
+    var isDebut = Number(stats.pick) === 0;
+    if (p.dstatsTimers) { p.dstatsTimers.forEach(clearTimeout); }
+    p.dstatsTimers = [];
+
+    /* Reset to the untriggered state before replaying, in case a
+       previous run is still mid-flight (e.g. rapid test-button clicks). */
+    dstatsSlideReset(e);
+    dstatsClearContent(e);
+    void e.dstatsRect.offsetWidth;
+
+    /* Phase 1 — blue rectangle (+ text layer riding along with it) slides
+       in from the left. Shared by both the normal and debut reveals. */
+    dstatsSlideIn(e);
+
+    var introEndMs; // when the intro content finishes animating, before the hold begins
+
+    if (isDebut) {
+      /* "DEBUT" pops in, then "PICK!" pops in right after — no stats to
+         show for a hero that's never been picked, so skip straight from
+         phase 1 to this instead of the usual PICK/CONTENTION/WIN RATE flow. */
+      p.dstatsTimers.push(setTimeout(function () {
+        e.dstatsDebutLabel.classList.add('dstats-pop');
+      }, DSTATS_PHASE1_MS));
+
+      p.dstatsTimers.push(setTimeout(function () {
+        e.dstatsDebutValue.classList.add('dstats-pop');
+      }, DSTATS_PHASE1_MS + DSTATS_DEBUT_GAP_MS));
+
+      introEndMs = DSTATS_PHASE1_MS + DSTATS_DEBUT_GAP_MS + DSTATS_DEBUT_POP_MS;
+    } else {
+      e.dstatsPickValue.textContent = stats.pick;
+      e.dstatsContentionValue.textContent = stats.contention;
+      e.dstatsWinrateValue.textContent = stats.winrate;
+
+      /* Phase 2 — PICK + its count pop in at the card's vertical centre. */
+      p.dstatsTimers.push(setTimeout(function () {
+        e.dstatsPickRow.classList.add('dstats-pop');
+      }, DSTATS_PHASE1_MS));
+
+      /* Phase 3 — PICK settles upward; CONTENTION RATE/WIN RATE fade in
+         from that same centre point and settle down into their own rows. */
+      p.dstatsTimers.push(setTimeout(function () {
+        e.dstatsPickRow.classList.add('dstats-settle');
+        e.dstatsContentionRow.classList.add('dstats-pop', 'dstats-settle');
+        e.dstatsWinrateRow.classList.add('dstats-pop', 'dstats-settle');
+      }, DSTATS_PHASE1_MS + DSTATS_PHASE2_MS));
+
+      introEndMs = DSTATS_PHASE1_MS + DSTATS_PHASE2_MS + DSTATS_PHASE3_MS;
+    }
+
+    /* Hold, then slide the whole assembly back out the way it came in. */
+    p.dstatsTimers.push(setTimeout(function () {
+      dstatsSlideOut(e);
+    }, introEndMs + DSTATS_HOLD_MS));
+
+    /* Fully offscreen — clear row state, then pop in the buff/nerf/adjust
+       corner badge (if any — NONE shows nothing). */
+    p.dstatsTimers.push(setTimeout(function () {
+      dstatsSlideReset(e);
+      dstatsClearContent(e);
+      showBuffBadge(e, stats.buffStatus);
+      p.dstatsTimers = null;
+    }, introEndMs + DSTATS_HOLD_MS + DSTATS_OUT_MS));
+  }
+
+  /* Cancels any in-flight reveal and snaps the layer back to fully
+     hidden — used when a seat's pick is cleared out from under it
+     (draft swap, auto-pick edge case) so a stale animation can't get
+     stuck mid-flight on the next occupant's card. */
+  function resetDraftStats(e, p) {
+    if (p.dstatsTimers) { p.dstatsTimers.forEach(clearTimeout); p.dstatsTimers = null; }
+    dstatsSlideReset(e);
+    dstatsClearContent(e);
+  }
+
+  function startMatteReveal(e, campid, p) {
+    var cvs          = e.canvasEl;
+    var ctx          = e.ctx2d;
+    var matteVid     = e.matteVid;
+    var heroMatteVid = e.heroMatteVid;
+    var heroVid      = e.heroVid;
+    var rafId        = null;
+
+    function fireGlow() {
+      var gd = e.glowDiv;
+      gd.classList.remove('picked');
+      cvs.classList.remove('brightening');
+      heroVid.classList.remove('brightening');
+      void gd.offsetWidth;
+      gd.classList.add('picked');
+      cvs.classList.add('brightening');
+      heroVid.classList.add('brightening');
+      /* picked-glow-gold runs 0.9s — use setTimeout instead of animationend */
+      setTimeout(function () {
+        /* Captured BEFORE resetting below — true only when this reveal
+           came from a genuine picking turn (the plate actually grew for
+           it). A Final Changes seat swap into an already-occupied seat
+           never sets this: `pick` stays false throughout (see the "Plate
+           expand" block in updatePickSeat), so the plate never grows in
+           the first place. This matters below: it decides whether there
+           are real CSS transitions worth waiting on at all. */
+        var wasExpanded = prevPick[e.key].expanded;
+        prevPick[e.key].expanded = false;
+        e.seatUnit.classList.remove('picking-expand');
+        updateCampPickerClass(campid);
+
+        /* Draft Stats / buff badge trigger — p.pickCnt/contentionRate/
+           winRate/buffStatus/draftStatsAllowed were stashed from the live
+           seat data in updatePickSeat() below. draftStatsAllowed false
+           means this reveal is a Final Changes swap, not a genuine pick
+           (see the gate in poll()) — skip the stats reveal and just pop
+           the badge for the hero now sitting in this seat. */
+        function triggerStatsOrBadge() {
+          if (!draftStatsEnabled) return;
+          if (p.draftStatsAllowed) {
+            startDraftStats(e, p, {
+              pick: String(p.pickCnt),
+              contention: Math.round(p.contentionRate) + '%',
+              winrate: Math.round(p.winRate) + '%',
+              buffStatus: p.buffStatus
+            });
+          } else {
+            showBadgeOnly(e, p, p.buffStatus);
+          }
+        }
+
+        if (wasExpanded) {
+          /* Genuine picking turn — the plate really did grow, so wait for
+             its real collapse transition, then the banner's own real
+             slide-in transition, before triggering (existing
+             choreography: keeps the reveal reading as one sequence
+             instead of everything popping in at once). */
+          function onCollapse(ev) {
+            if (ev.propertyName !== 'width') return;
+            e.seatUnit.removeEventListener('transitionend', onCollapse);
+            e.banner.classList.add('slide-in');
+            function onBannerIn(bev) {
+              if (bev.propertyName !== 'transform') return;
+              e.banner.removeEventListener('transitionend', onBannerIn);
+              triggerStatsOrBadge();
+            }
+            e.banner.addEventListener('transitionend', onBannerIn);
+          }
+          e.seatUnit.addEventListener('transitionend', onCollapse);
+        } else {
+          /* Not a genuine picking turn this cycle — a Final Changes seat
+             swap into an already-occupied seat. Neither the plate width
+             nor the banner's slide-in transform actually CHANGES value
+             here (the plate never expanded; the banner was already
+             showing from the hero this one replaced), so neither would
+             ever fire a transitionend — waiting on either, as the
+             wasExpanded branch does, would silently hang forever and the
+             badge would never appear. Nothing left to visually wait on,
+             so trigger immediately. */
+          e.banner.classList.add('slide-in'); // no-op if already present
+          triggerStatsOrBadge();
+        }
+      }, 900);
+    }
+
+    function done() {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      prevPick[e.key].matteActive = false;
+      cvs.style.opacity = '0';
+      cvs.classList.remove('brightening');
+      heroMatteVid.pause();
+      /* Stop pick video now that reveal is complete */
+      e.pickVid.style.display = 'none';
+      e.pickVid.pause();
+      hidePickAnim(e, p);
+      /* Hero video was hidden — show it now that matte has revealed it */
+      heroVid.style.display = 'block';
+      if (p.photoErasing) finishPhotoErase(e, p);
+      fireGlow();
+    }
+
+    /* GPU-only composite: heroMatteVid's alpha channel IS the mask
+       (pre-baked offline to the exact matteAlphaAt() value below), so
+       destination-in multiplies heroVid's opaque pixels by it directly —
+       no getImageData/putImageData round trip. clearRect isn't needed
+       first since the hero draw is a full opaque overwrite either way. */
+    function compositeFrame(H) {
+      ctx.drawImage(heroVid, 0, 0, 168, H);
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.drawImage(heroMatteVid, 0, 0, 168, H);
+      ctx.globalCompositeOperation = 'source-over';
+      if (p.photoErasing) updatePhotoErase(e, matteVid);
+    }
+
+    function composite(H) {
+      if (matteVid.ended) { done(); return; }
+      try { compositeFrame(H); } catch (err) { done(); return; }
+      rafId = requestAnimationFrame(function () { composite(H); });
+    }
+
+    function beginComposite() {
+      /* Size canvas to exactly match hero video's natural aspect ratio at 168 px wide */
+      var natW = heroVid.videoWidth  || 168;
+      var natH = heroVid.videoHeight || 300;
+      var H    = Math.round(natH * 168 / natW);
+      cvs.width = 168; cvs.height = H; cvs.style.height = H + 'px';
+
+      cvs.style.opacity = '1';
+      matteVid.currentTime = 0;
+      matteVid.addEventListener('ended', done, { once: true });
+
+      /* Same timeline as matteVid, started together — matteVid stays the
+         timing driver (ended/requestVideoFrameCallback below); this one
+         only ever gets drawn from, never inspected for state. */
+      heroMatteVid.currentTime = 0;
+      heroMatteVid.play().catch(function () {});
+
+      preparePhotoErase(e, p);
+
+      matteVid.play()
+        .then(function () {
+          if ('requestVideoFrameCallback' in matteVid) {
+            (function onVF() {
+              if (matteVid.ended) return;
+              try { compositeFrame(H); } catch (err) { done(); return; }
+              matteVid.requestVideoFrameCallback(onVF);
+            }());
+          } else {
+            composite(H);
+          }
+        })
+        .catch(done);
+    }
+
+    /* Start hero video playing (still hidden), wait for metadata before
+       sizing canvas — prevents the wrong-size-then-snap issue */
+    if (heroVid.readyState >= 1 /* HAVE_METADATA */) {
+      heroVid.play().catch(function () {});
+      beginComposite();
+    } else {
+      heroVid.addEventListener('loadedmetadata', function () {
+        heroVid.play().catch(function () {});
+        beginComposite();
+      }, { once: true });
+      heroVid.load(); /* trigger load since preload="none" */
+    }
+  }
+
+  /* ── Ban hero reveal ───────────────────────────────────────── */
+  function revealBanHero(bhi) {
+    bhi.style.opacity = '1';
+    bhi.style.transform = '';
+    bhi.style.filter = '';
+    bhi.classList.remove('ban-revealing');
+    void bhi.offsetWidth;
+    bhi.classList.add('ban-revealing');
+    /* ban-reveal runs 0.95s — use setTimeout instead of animationend */
+    setTimeout(function () {
+      bhi.classList.remove('ban-revealing');
+      bhi.style.transform = 'translateY(0)';
+      bhi.style.filter    = 'grayscale(1) brightness(0.5)';
+    }, 950);
+  }
+
+  /* ── Update pick seat ──────────────────────────────────────── */
+  function updatePickSeat(campid, seatIdx, seat) {
+    var key    = campid + '_' + seatIdx;
+    var e      = pickEls[key];
+    var p      = prevPick[key];
+    var heroid = seat.heroid  || 0;
+    var pick   = !!seat.picking;
+    var ban    = !!seat.banning;
+
+    e.nameEl.textContent = seat.name || '';
+
+    /* Idle edge triangles — only before this seat's own picking turn */
+    if (e.triTop) {
+      var showTri = heroid === 0 && !pick;
+      e.triTop.style.display    = showTri ? 'block' : 'none';
+      e.triBottom.style.display = showTri ? 'block' : 'none';
+    }
+
+    /* Keep banner name in sync */
+    if ((seat.hero_name && seat.hero_name[0]) && e.bannerName.textContent !== seat.hero_name[0]) {
+      e.bannerName.textContent = seat.hero_name[0];
+    }
+
+    /* Role icon — follows the player (roleid), not the seat slot.
+       Updates whenever a different player occupies this slot (e.g. draft swap). */
+    var roleid = seat.roleid || 0;
+    var assignedRole = (roleid && playerRoles[roleid]) ||
+      (seat.name && localDraftRoles[seat.name]) || null;
+    if (assignedRole !== p.assignedRole) {
+      if (assignedRole && ROLE_MAP[assignedRole]) {
+        e.roleImg.src = ROLE_MAP[assignedRole];
+        e.roleImg.style.opacity = '';
+      }
+      p.assignedRole = assignedRole;
+    }
+    p.roleid = roleid;
+
+    if (heroid !== p.heroid) {
+      if (heroid > 0) {
+        /* Load and play the hero WebM */
+        e.heroVid.src = 'assets/draft/webm/HERO_PICK_DRAFT_' + heroid + '.webm';
+        e.heroVid.currentTime = 0;
+
+        if (p.heroid !== undefined) {
+          /* Live pick: matte reveal drives play() and display. Stash this
+             pick's draft-stats fields now (straight from the API, see
+             normalizeDraftPayload()) so startMatteReveal()'s fireGlow()
+             has real numbers by the time it triggers startDraftStats(),
+             several steps and a couple of transitionend hops later. */
+          p.pickCnt        = seat.pickCnt || 0;
+          p.contentionRate = seat.contentionRate || 0;
+          p.winRate        = seat.winRate || 0;
+          p.buffStatus     = seat.buffStatus || 'NONE';
+          p.draftStatsAllowed = seat.draftStatsAllowed !== false;
+          e.heroVid.style.display = 'none'; /* hidden until canvas reveals it */
+          p.matteActive = true;
+          startMatteReveal(e, campid, p);
+        } else {
+          /* First load: show video directly, no matte, banner instant */
+          e.heroVid.style.display = 'block';
+          e.heroVid.play().catch(function () {});
+          e.banner.style.transition = 'none';
+          e.banner.classList.add('slide-in');
+          void e.banner.offsetWidth;
+          e.banner.style.transition = '';
+        }
+
+        e.roleImg.style.display = 'none';
+        e.roleImg.style.transform = '';
+      } else {
+        /* Slot reset */
+        e.banner.classList.remove('slide-in');
+        e.bannerName.textContent = '';
+        e.pickGrad.style.display = 'none';
+        e.heroVid.pause();
+        e.heroVid.src = '';
+        e.heroVid.style.display = 'none';
+        e.heroVid.classList.remove('brightening');
+        e.canvasEl.style.opacity = '0';
+        e.canvasEl.classList.remove('brightening');
+        e.ctx2d.clearRect(0, 0, e.canvasEl.width, e.canvasEl.height);
+        e.glowDiv.classList.remove('picked');
+        p.expanded = false;
+        e.seatUnit.classList.remove('picking-expand');
+        updateCampPickerClass(campid);
+        e.roleImg.style.display = '';
+        resetPlayerPhoto(e, p);
+        resetDraftStats(e, p);
+      }
+      p.heroid = heroid;
+    }
+
+    /* Plate expand: grows to 168 px when picking starts, squeezes others */
+    if (pick && !p.picking && !p.expanded) {
+      p.expanded = true;
+      e.seatUnit.classList.add('picking-expand');
+      updateCampPickerClass(campid);
+    }
+
+    /* Pick background video + anim + gradient */
+    if (pick && !p.picking) {
+      e.pickVid.currentTime = 0;
+      e.pickVid.style.display = 'block';
+      e.pickVid.play().catch(function () {});
+      showPickAnimDelayed(e, p);
+      e.pickGrad.style.display = 'block';
+      startPlayerPhotoSequence(e, p, seat.name);
+    } else if (!pick && p.picking) {
+      e.pickGrad.style.display = 'none';
+      if (!p.matteActive) {
+        e.pickVid.style.display = 'none';
+        e.pickVid.pause();
+        hidePickAnim(e, p);
+      }
+      /* if matteActive, done() in startMatteReveal will stop it */
+      /* Turn ended without a pick (e.g. timeout/auto-pick edge case) — don't
+         leave the photo sequence orphaned on screen */
+      if (heroid === 0) resetPlayerPhoto(e, p);
+    }
+
+
+    /* Role icon: press + fly to corner when picking starts */
+    var ri = e.roleImg;
+    if (pick && !p.picking && !p.small) {
+      p.small = true;
+      ri.classList.remove('pressing', 'small');
+      void ri.offsetWidth;
+      ri.classList.add('pressing');
+      /* role-press runs 0.55s — use setTimeout instead of animationend */
+      setTimeout(function () {
+        ri.classList.remove('pressing');
+        void ri.offsetWidth;
+        /* Calculate corner translate using the live plate width.
+           left:calc(50%-35px) centres the icon; after scale(0.343) the
+           visual half-size is 12px, so to land top-left at (5,5):
+           tx = 5 - (plate_w/2 - 12) = 17 - plate_w/2
+           ty = 5 - (plate_h/2 - 12) = 17 - 84 = -67 (constant) */
+        var pw = e.plate.offsetWidth;
+        var tx = 17 - pw / 2;
+        ri.style.transform = 'translate(' + tx + 'px, -67px) scale(0.343)';
+      }, 550);
+    }
+    /* Reset role icon to centre if the draft resets */
+    if (heroid === 0 && p.heroid > 0) {
+      p.small = false;
+      ri.style.display = '';
+      ri.style.transform = '';
+      ri.classList.remove('pressing');
+    }
+
+    p.picking = pick;
+    p.banning = ban;
+  }
+
+  /* ── Update ban seat ───────────────────────────────────────── */
+  function updateBanSeat(campid, seatIdx, seat) {
+    var key        = campid + '_' + seatIdx;
+    var e          = banEls[key];
+    var p          = prevBan[key];
+    var ban_heroid = seat.ban_heroid || 0;
+    var banning    = !!seat.banning;
+
+    if (ban_heroid !== p.ban_heroid) {
+      if (ban_heroid > 0) {
+        e.bhi.src = 'hero/HERO_' + ban_heroid + '_KOTAK.png';
+        if (p.ban_heroid !== undefined) {
+          revealBanHero(e.bhi);
+        } else {
+          /* First load: show already-banned hero silently */
+          e.bhi.style.opacity   = '1';
+          e.bhi.style.transform = 'translateY(0)';
+          e.bhi.style.filter    = 'grayscale(1) brightness(0.5)';
+        }
+      } else {
+        e.bhi.src = '';
+        e.bhi.style.opacity   = '0';
+        e.bhi.style.transform = '';
+        e.bhi.style.filter    = '';
+      }
+      p.ban_heroid = ban_heroid;
+    }
+
+    /* Ban plate red glow when banning */
+    if (banning !== p.banning) {
+      if (banning) {
+        e.banplate.classList.add('banning');
+      } else {
+        e.banplate.classList.remove('banning');
+      }
+      p.banning = banning;
+    }
+  }
+
+  /* ── Update status text + countdown + triangles ────────────── */
+  function fmtTime(s) {
+    s = Math.max(0, Math.round(s));
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    if (m > 0) return m + ':' + (r < 10 ? '0' : '') + r;
+    return String(s);
+  }
+
+  function updateStatus(gameData, allSeats) {
+    var anyBanning = allSeats.some(function (s) { return !!s.banning; });
+    var anyPicking = allSeats.some(function (s) { return !!s.picking; });
+    var allPicked  = allSeats
+      .filter(function (s) { return !s.judger; })
+      .every(function (s)  { return (s.heroid || 0) > 0; });
+
+    var txt = '';
+    if      (anyBanning) txt = 'BANNING';
+    else if (anyPicking) txt = 'PICKING';
+    else if (allPicked)  txt = 'FINAL CHANGES';
+
+    document.getElementById('status-text').textContent = txt;
+
+    var leftTime = gameData.state_left_time || 0;
+    document.getElementById('countdown-text').textContent =
+      (txt && leftTime > 0) ? fmtTime(leftTime) : '';
+
+    /* Triangle: show camp1 side if camp1 is active, camp2 side if camp2 */
+    var camp1Active = allSeats.some(function (s) {
+      return s.campid === 1 && (!!s.picking || !!s.banning);
+    });
+    var camp2Active = allSeats.some(function (s) {
+      return s.campid === 2 && (!!s.picking || !!s.banning);
+    });
+
+    var triL = document.getElementById('tri-camp1');
+    var triR = document.getElementById('tri-camp2');
+    triL.classList.toggle('active', camp1Active);
+    triR.classList.toggle('active', camp2Active);
+
+    /* Timer bar */
+    var activeCamp = camp1Active ? 1 : camp2Active ? 2 : 0;
+    tmSync(activeCamp, gameData.state_left_time || 0);
+
+  }
+
+  /* ── Poll ──────────────────────────────────────────────────── */
+  /* ── Full reset on new battleid ────────────────────────────── */
+  var currentBattleId = null;
+
+  function resetAll() {
+    /* Clear cached roles — server holds the lock, client will re-fetch on next poll */
+    playerRoles = {};
+
+    /* Pick seats */
+    Object.keys(pickEls).forEach(function (key) {
+      var e = pickEls[key];
+      var p = prevPick[key];
+
+      /* Videos */
+      e.heroVid.pause(); e.heroVid.src = ''; e.heroVid.style.display = 'none';
+      e.heroVid.classList.remove('brightening');
+      e.pickVid.pause(); e.pickVid.style.display = 'none';
+      hidePickAnim(e, p);
+      e.pickGrad.style.display = 'none';
+
+      /* Canvas */
+      e.ctx2d.clearRect(0, 0, e.canvasEl.width, e.canvasEl.height);
+      e.canvasEl.style.opacity = '0';
+      e.canvasEl.classList.remove('brightening');
+
+      /* Glow / banner / role */
+      e.glowDiv.classList.remove('picked');
+      e.banner.classList.remove('slide-in');
+      e.bannerName.textContent = '';
+      e.roleImg.src = '';
+      e.roleImg.style.opacity = '0';
+      e.roleImg.style.display = '';
+      e.roleImg.style.transform = '';
+      e.roleImg.classList.remove('pressing');
+
+      /* Plate / seat-unit state */
+      e.seatUnit.classList.remove('picking-expand');
+      e.nameEl.textContent = '';
+
+      /* Idle edge triangles */
+      if (e.triTop) { e.triTop.style.display = 'none'; e.triBottom.style.display = 'none'; }
+
+      /* Player photo */
+      resetPlayerPhoto(e, p);
+
+      /* Reset prev state */
+      prevPick[key] = {
+        heroid: undefined, picking: false, banning: false,
+        small: false, expanded: false, matteActive: false,
+        roleid: undefined, assignedRole: undefined,
+        photoName: undefined, photoPhase: 'none', photoErasing: false,
+        photoTimer0: null, photoTimer1: null, photoTimer2: null,
+        pickAnimTimer: null
+      };
+    });
+
+    /* Camp containers */
+    [1, 2].forEach(function (c) {
+      if (campContainers[c]) {
+        campContainers[c].classList.remove('has-picker', 'has-two-pickers');
+      }
+    });
+
+    /* Ban seats */
+    Object.keys(banEls).forEach(function (key) {
+      var e = banEls[key];
+      e.bhi.src = ''; e.bhi.style.opacity = '0';
+      e.bhi.style.transform = ''; e.bhi.style.filter = '';
+      e.bhi.classList.remove('ban-revealing');
+      e.banplate.classList.remove('banning');
+      prevBan[key] = { ban_heroid: undefined, banning: false };
+    });
+
+    /* Team names + logos */
+    if (teamEls[1]) teamEls[1].textContent = '';
+    if (teamEls[2]) teamEls[2].textContent = '';
+    [1, 2].forEach(function(c) {
+      var le = logoEls[c];
+      if (!le) return;
+      le.img.src = '';
+      le.img.style.display = 'none';
+      delete le.img.dataset.team;
+      le.fb.style.display = '';
+    });
+
+    /* Status / countdown / triangles */
+    document.getElementById('status-text').textContent  = '';
+    document.getElementById('countdown-text').textContent = '';
+    document.getElementById('tri-camp1').classList.remove('active');
+    document.getElementById('tri-camp2').classList.remove('active');
+
+    /* Timer bar */
+    tmHasStart = false;
+    tmSync(0, 0);
+  }
+
+  /* theapi.dpdns.org/sql/draft-info-only/ uses a different shape than the
+     general game-data feed (no code/data wrapper, BattleID instead of
+     battleid, camp_list entries hold a player_list[] instead of named
+     seat_1..seat_5 props, hero_name is a plain string not an array, and
+     there's no roleid). Rewrite it into the same { code, data } shape the
+     rest of poll()/updatePickSeat()/updateBanSeat()/updateStatus() already
+     expect, so none of that code needs to know which feed it's looking at.
+     Old-format payloads (data.camp_list present) pass through untouched. */
+  function normalizeDraftPayload(raw) {
+    if (!raw || !Array.isArray(raw.camp_list) || !raw.camp_list.length || !raw.camp_list[0].player_list) {
+      usingDraftInfoOnlyFormat = false;
+      return raw;
+    }
+    usingDraftInfoOnlyFormat = true;
+    var campList = raw.camp_list.map(function (camp, idx) {
+      var players = camp.player_list || [];
+      var out = {
+        campid: (players[0] && players[0].campid) || (idx + 1),
+        team_simple_name: camp.team_name_simple || camp.team_name || '',
+        coach_in: camp.coach_in || '',
+        /* Per-camp draft phase state (e.g. "waiting") — see the
+           draftStatsAllowed computation in poll() below, which uses this
+           to tell a genuine live pick apart from a Final Changes seat
+           swap (both look identical as a bare heroid change). */
+        state: camp.state || ''
+      };
+      players.forEach(function (p, seatIdx) {
+        /* No explicit seat/position field in this feed — player_list order
+           lines up with fixed seat order (seat_1..seat_5) in every draft
+           observed so far, same as ban_order/pick_order climbing in lockstep
+           with array order. */
+        out['seat_' + (seatIdx + 1)] = {
+          name: p.name || '',
+          campid: p.campid,
+          heroid: p.heroid || 0,
+          hero_name: p.hero_name ? [p.hero_name] : [],
+          ban_heroid: p.ban_heroid || 0,
+          banning: !!p.banning,
+          picking: !!p.picking,
+          role: p.role || '',
+          /* Draft Stats (see startDraftStats()) — pickCnt is this hero's
+             pick count for the current patch (0 = never picked, triggers
+             the Debut Pick reveal instead). contentionRate/winRate are
+             assumed already percentage-scale (e.g. 45.5 meaning 45.5%),
+             matching this feed's sibling pickRate/banRate fields — revisit
+             this assumption once real non-zero values are seen live. */
+          pickCnt: p.pickCnt || 0,
+          contentionRate: p.contentionRate || 0,
+          winRate: p.winRate || 0,
+          /* Patch balance status for this hero: NONE/ADJUST/BUFF/NERF.
+             Renamed from the API's oddly-cased "Buffstatus" to camelCase
+             for consistency with the fields above — see showBuffBadge(). */
+          buffStatus: p.Buffstatus || 'NONE'
+        };
+      });
+      return out;
+    });
+    return { code: 0, data: { battleid: raw.BattleID || null, state_left_time: raw.state_time || 0, camp_list: campList } };
+  }
+
+  function poll() {
+    fetch(apiUrl, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (json) {
+        json = normalizeDraftPayload(json);
+        if (json.code !== 0 || !json.data) throw new Error('unexpected payload');
+
+        /* Detect new battle → reset everything before processing new data */
+        var bid = json.data.battleid || null;
+        if (bid && bid !== currentBattleId) {
+          if (currentBattleId !== null) { window.location.reload(); return; }
+          currentBattleId = bid;
+        }
+
+        var campList = json.data.camp_list || [];
+        var camp1 = campList.find(function (c) { return c.campid === 1; });
+        var camp2 = campList.find(function (c) { return c.campid === 2; });
+
+        if (teamEls[1]) teamEls[1].textContent = (camp1 && camp1.team_simple_name) || '';
+        if (teamEls[2]) teamEls[2].textContent = (camp2 && camp2.team_simple_name) || '';
+
+        /* Coach name + headset — live from the draft API now, not the
+           manual /match/state field (see pollMatchState()). */
+        updateCoachFromDraft('home', camp1 && camp1.coach_in);
+        updateCoachFromDraft('away', camp2 && camp2.coach_in);
+
+        /* Team logos — only reload when team name changes */
+        [1, 2].forEach(function(campid) {
+          var camp = campid === 1 ? camp1 : camp2;
+          var le   = logoEls[campid];
+          if (!le) return;
+          var name = ((camp && camp.team_simple_name) || '').toUpperCase();
+          if (name && le.img.dataset.team !== name) {
+            le.img.dataset.team  = name;
+            le.img.style.display = 'none';
+            le.fb.style.display  = '';
+            le.img.src           = '/logos/' + name + '.png';
+          }
+        });
+
+        /* Role assignment: server-locked roles (keyed by roleid) for the general
+           feed, or a client-local name-keyed equivalent for draft-info-only,
+           which has no roleid at all (see normalizeDraftPayload). */
+        if (usingDraftInfoOnlyFormat) {
+          if (localDraftRolesBattleId !== currentBattleId) {
+            localDraftRoles = assignLocalDraftRoles(camp1, camp2);
+            localDraftRolesBattleId = currentBattleId;
+          }
+        } else if (Object.keys(playerRoles).length === 0 && currentBattleId) {
+          fetchAndApplyRoles(currentBattleId);
+        }
+
+        var allSeats = [];
+
+        /* Draft Stats gate — a bare heroid change on a seat that already
+           had a hero looks identical whether it's a genuine live pick or
+           a Final Changes seat swap between two already-picked heroes
+           (updatePickSeat() has no other way to tell them apart). Guard
+           on "every seat on this camp ALREADY had a hero before this
+           poll's incoming changes" — camp.state's "waiting" value was
+           tried as an additional signal here but turned out to not
+           reliably mean "done drafting, only swapping now" on the real
+           live feed (Draft Stats stopped firing at all), so it's been
+           dropped; this per-seat check is the only signal now. When
+           suppressed, the hero-reveal (matte wipe + glow) still plays as
+           normal — only the Draft Stats stats reveal is skipped, replaced
+           by the buff/nerf/adjust badge popping in immediately instead of
+           after a stats reveal — see onBannerIn() below.
+
+           campAllPreviouslyPicked() deliberately reads prevPick's cached
+           heroid (this camp's state as of the LAST poll), not the fresh
+           seat data about to be applied this tick — reading the fresh
+           data instead is a real bug that shipped once: the very poll
+           tick that fills a camp's last empty seat (a completely genuine,
+           deserved pick) makes "every seat now has a hero" true on that
+           SAME tick, which incorrectly suppressed that pick's own stats
+           reveal down to just the badge. Checking the PREVIOUS state
+           correctly excludes that tick — "already picked" only becomes
+           true starting the NEXT poll after the camp was actually
+           already fully picked, which is exactly the swap window. */
+        function campAllPreviouslyPicked(campid) {
+          for (var s = 0; s < 5; s++) {
+            var pp = prevPick[campid + '_' + s];
+            if (!pp || !(pp.heroid > 0)) return false;
+          }
+          return true;
+        }
+        var draftStatsAllowed1 = !(camp1 && campAllPreviouslyPicked(1));
+        var draftStatsAllowed2 = !(camp2 && campAllPreviouslyPicked(2));
+
+        for (var i = 1; i <= 5; i++) {
+          if (camp1 && camp1['seat_' + i]) {
+            camp1['seat_' + i].draftStatsAllowed = draftStatsAllowed1;
+            updatePickSeat(1, i - 1, camp1['seat_' + i]);
+            updateBanSeat (1, i - 1, camp1['seat_' + i]);
+            allSeats.push(camp1['seat_' + i]);
+          }
+          if (camp2 && camp2['seat_' + i]) {
+            camp2['seat_' + i].draftStatsAllowed = draftStatsAllowed2;
+            updatePickSeat(2, i - 1, camp2['seat_' + i]);
+            updateBanSeat (2, i - 1, camp2['seat_' + i]);
+            allSeats.push(camp2['seat_' + i]);
+          }
+        }
+
+        updateStatus(json.data, allSeats);
+      })
+      .catch(function () {});
+  }
+
+  /* ── Whole-scene show/hide — slides upward to show, downward to hide
+     (see #scene / #scene.draft-hidden in the <style> block above).
+     `instant` skips the transition, used only for the restore-on-load
+     fetch below so a reload doesn't visibly replay the slide. ── */
+  function showDraftScene(instant) {
+    var scene = document.getElementById('scene');
+    if (!scene) return;
+    if (instant) scene.style.transition = 'none';
+    scene.classList.remove('draft-hidden');
+    if (instant) requestAnimationFrame(function () { scene.style.transition = ''; });
+  }
+  function hideDraftScene(instant) {
+    var scene = document.getElementById('scene');
+    if (!scene) return;
+    if (instant) scene.style.transition = 'none';
+    scene.classList.add('draft-hidden');
+    if (instant) requestAnimationFrame(function () { scene.style.transition = ''; });
+  }
+
+  /* Restore-on-load — runs immediately (not gated behind the 2s SSE
+     delay below) since the default (no class) is visible; only need to
+     act if the server says it was explicitly hidden, so a reload never
+     shows a spurious blank frame while this resolves.
+     PREVIEW_ONLY skips this entirely — a preview instance starts hidden
+     regardless of real state and only reveals itself via
+     window.previewTrigger, never by guessing what's actually live. */
+  if (PREVIEW_ONLY) {
+    hideDraftScene(true);
+  } else {
+    fetch('/overlay/draft-state', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.active === false) hideDraftScene(true); })
+      .catch(function () {});
+  }
+
+  /* SSE — listen for global debug hide.
+     Opened after a short delay so Chrome's tab throbber settles on load. */
+  setTimeout(function() {
+    // Backed by the shared SharedWorker (html/js/overlay-shared-worker.js)
+    // — this page opens zero real connections of its own now, so having
+    // several overlay browser sources/tabs open at once no longer eats
+    // into the browser's shared connection pool per page.
+    var sse = createOverlaySSE();
+    /* Fired by routes/overlayStyles.js after any Edit-tab Save — force a
+       hard reload so new position/size overrides apply immediately
+       (see mplfs.html's connectSSE() for the identical pattern). */
+    sse.addEventListener('reload', function() { window.location.reload(); });
+    sse.addEventListener('draftphotomode', function(ev) {
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.mode) draftPhotoMode = d.mode;
+      } catch (e) {}
+    });
+    sse.addEventListener('draft', function(ev) {
+      if (PREVIEW_ONLY) return; /* decoupled from real state — see PREVIEW_ONLY above */
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.action === 'show') showDraftScene();
+        else if (d.action === 'hide') hideDraftScene();
+      } catch (e) {}
+    });
+    sse.addEventListener('draftrecap', function(ev) {
+      if (PREVIEW_ONLY) return;
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.action === 'show') drAnimateIn();
+        else if (d.action === 'hide') drAnimateOut();
+      } catch (e) {}
+    });
+    /* Draft Stats — arm/disarm toggle (Control tab → Draft Overlay →
+       Feature Toggles). Runs even in a preview instance — this only
+       gates a local visual reveal, no real broadcast state gets written. */
+    sse.addEventListener('featuretoggle', function(ev) {
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.feature === 'draftstats') draftStatsEnabled = !!d.enabled;
+      } catch (e) {}
+    });
+    /* Draft Stats — Control tab test trigger (fixed placeholder values,
+       Player 1 only). Fires regardless of draftStatsEnabled, same as any
+       other manual test action in this codebase — an explicit test click
+       shouldn't be silently swallowed by an armed/disarmed toggle. */
+    sse.addEventListener('draftstats', function(ev) {
+      try {
+        var d = JSON.parse(ev.data);
+        var key = d.campid + '_' + d.seatIdx;
+        var e2  = pickEls[key];
+        var p2  = prevPick[key];
+        if (e2 && p2) {
+          if (d.swapOnly) {
+            /* Final Changes swap test — badge pops in directly, no stats reveal. */
+            showBadgeOnly(e2, p2, d.buffStatus || 'NONE');
+          } else {
+            startDraftStats(e2, p2, {
+              pick: String(d.pick), contention: d.contention + '%', winrate: d.winrate + '%',
+              buffStatus: d.buffStatus || 'NONE'
+            });
+          }
+        }
+      } catch (e) {}
+    });
+    /* Catch-up re-sync — this SSE listener only exists as of NOW (the
+       2s startup delay above), but a Show/Hide click could have fired
+       and broadcast anytime before this point (e.g. a Control-tab
+       preview iframe reloads Draft.html fresh every time its sidebar
+       row is selected, and a click on "Draft Recap Show" right after
+       selecting it easily lands inside that 2s blind window — the
+       server state DID flip and broadcast, this page just wasn't
+       listening yet to catch it). Re-fetch the real state now and
+       reconcile instead of trusting the earlier restore-fetch, which
+       ran before any of this could have happened. */
+    if (!PREVIEW_ONLY) {
+      fetch('/overlay/check-overlays', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var shouldShow = !!(d && d.draftrecap);
+          if (shouldShow && !drShouldShow) drAnimateIn();
+          else if (!shouldShow && drShouldShow) drAnimateOut();
+        })
+        .catch(function () {});
+    }
+  }, 2000);
+
+  /* ── Local-only preview trigger — called directly by the dashboard's
+     Control-tab Preview button via this iframe's contentWindow, bypassing
+     the network/SSE entirely (same contract as mplfs.html's
+     window.previewTrigger). This is the ONLY thing that shows/hides this
+     page when PREVIEW_ONLY is set. ── */
+  window.previewTrigger = function (event, action) {
+    if (event === 'draft') {
+      if (action === 'show') showDraftScene();
+      else hideDraftScene();
+    } else if (event === 'draftrecap') {
+      if (action === 'show') drAnimateIn();
+      else drAnimateOut();
+    }
+  };
+
+  buildPickPlates();
+  buildBanPlates();
+  buildScoreBoxes();
+  buildTeamNames();
+  buildTeamLogos();
+  buildStatusArea();
+  buildDraftMap();
+  buildDraftMatchGame();
+  buildDraftRecap();
+  buildCoachBpm();
+  buildTimerBar();
+  startSponsorLoop();
+  pollMatchState();
+  setInterval(pollMatchState, 3000);
+  requestAnimationFrame(dcoachAnimate);
+  pollCoachBpm();
+  setInterval(pollCoachBpm, 1000);
+
+  /* Started from the /api/draft-url fetch above once apiUrl is confirmed —
+     not called here directly, so poll()'s first tick can't run against the
+     stale DEFAULT_URL before the real setting has loaded. */
+  function startPolling() {
+    poll();
+    setInterval(poll, POLL_MS);
+  }
+
+  /* ── Load saved position/size overrides from dashboard editor ── */
+  (function loadDraftOverrides() {
+    fetch('/api/overlay-styles?file=Draft')
+      .then(function(r) { return r.json(); })
+      .then(function(styles) {
+        if (!styles || !Object.keys(styles).length) return;
+        var css = Object.keys(styles).map(function(sel) {
+          var props = styles[sel];
+          var decls = Object.keys(props).map(function(prop) {
+            var cssProp = prop === 'fontSize' ? 'font-size' : prop;
+            return cssProp + ':' + props[prop] + ' !important';
+          }).join(';');
+          return sel + '{' + decls + '}';
+        }).join('\n');
+        var style = document.createElement('style');
+        style.id = 'draft-overrides';
+        style.textContent = css;
+        document.head.appendChild(style);
+      })
+      .catch(function() {});
+  })();
+})();
+</script>
+</body>
+</html>
