@@ -135,12 +135,55 @@ async function fetchData() {
   const json = await res.json();
   return json.data;
 }
+/* Dashboard "Arrangement" tab (routes/devapi.js's /api/seat-arrangement) —
+   a manual seat_1..seat_5 reorder per camp, independent of getPlayerByRole's
+   own role-based resolution below. Fetched once on load; kept live-synced
+   via the 'seat_arrangement' SSE listener in overlay-debug.js, since this
+   page fetches the upstream Game API directly (see fetchData() above) and
+   never goes through /api/gamedata-proxy, where Fullscreen.html's boards
+   get this same remap applied server-side instead. */
+var currentArrangement = { camp1: [1, 2, 3, 4, 5], camp2: [1, 2, 3, 4, 5] };
+fetch('/api/seat-arrangement').then(r => r.json()).then(d => {
+  if (d && d.camp1 && d.camp2) currentArrangement = d;
+}).catch(() => {});
+
+/* Safety blocker for a LIVE mid-game rearrangement (called from
+   overlay-debug.js's 'seat_arrangement' SSE listener, right after
+   currentArrangement itself updates). Kill events are immune to this —
+   lib/pollers.js detects those server-side from the untouched raw seat
+   data (never through getPlayer/currentArrangement) and broadcasts the
+   correct playerName/role/camp directly, no re-lookup by slot on this
+   end. But Level 15 / Item Pickup / Trinity / Quick Swap all compare
+   THIS poll's getPlayer(data, i) (now arrangement-aware) against
+   prevLevel[i]/prevEquipState[i]/prevTotalDamage[i] — a value fetched
+   for whichever player USED to be at slot i, from the poll before the
+   swap. Left alone, the very next tick after a rearrangement would read
+   as a wrong player's stats suddenly appearing at slot i (e.g. a level
+   jump, or every item slot changing), and get treated as a genuine
+   trigger event that never actually happened.
+   Clearing these lets the next poll re-baseline silently (same
+   "first poll — snapshot only, don't fire" cold-start guard every one
+   of these already has for a fresh game), instead of comparing across
+   the swap. trinityFired resets too — leaving the OLD player's flag set
+   would wrongly suppress the NEW player's own future trinity-complete
+   event for the rest of the game. */
+function resetReactiveBaselines() {
+  for (let i = 1; i <= 10; i++) {
+    delete prevLevel[i];
+    delete prevEquipState[i];
+    delete prevTotalDamage[i];
+    delete combatHistory[i];
+    trinityFired[i] = false;
+  }
+}
+
 function getPlayer(data, idx) {
   const campId  = idx <= 5 ? 1 : 2;
   const seatNum = idx <= 5 ? idx : idx - 5;
   const camp = data.camp_list?.find(c => c.campid === campId);
   if (!camp) return null;
-  const player = camp[`seat_${seatNum}`];
+  const arrangedSeat = (campId === 1 ? currentArrangement.camp1 : currentArrangement.camp2)[seatNum - 1];
+  const player = camp[`seat_${arrangedSeat}`];
   if (!player) return null;
   const equipIds = (player.equip_list || []).slice(0, 6).map(e => normalizeId(e?.value));
   return { player, equipIds };
@@ -160,7 +203,17 @@ function getPlayerByRole(data, campId, slotIdx) {
     const seat = camp[`seat_${s}`];
     if (seat && seat.role === role) return seat;
   }
-  return camp[`seat_${slotIdx}`] || null;
+  // Every seat's `role` came back blank/missing (some feeds do this) — the
+  // ONLY case where this function's result depends on seat_N order at all,
+  // same problem getPlayer() has generally. Apply the same Arrangement-tab
+  // remap here too (see getPlayer() / currentArrangement above) instead of
+  // the raw slotIdx, so a manual seat fix behaves consistently across
+  // every feature — Emblem Check included — not just the ones already
+  // going through getPlayer(). Has zero effect whenever role IS present
+  // (the loop above already returned), so this never changes anything for
+  // a feed where role-based resolution was already working correctly.
+  const arrangedSeat = (campId === 1 ? currentArrangement.camp1 : currentArrangement.camp2)[slotIdx - 1];
+  return camp[`seat_${arrangedSeat}`] || null;
 }
 
 function registerPollHandler(fn) { pollHandlers.push(fn); }

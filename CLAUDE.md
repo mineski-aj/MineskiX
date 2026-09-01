@@ -31,16 +31,16 @@ caller expected, until the restart actually happened.
 - `server.js` — Express app entrypoint, mounts everything in `routes/`.
 - `routes/*.js` — API endpoints (match state, positions, fights, overlay
   styles, dashboard data, etc).
-- `html/mplfs.html` — the main scoreboard/scene overlay (this is the file
+- `html/Fullscreen.html` — the main scoreboard/scene overlay (this is the file
   that gets extended with new "scenes" — MVP Highlights, MVP Scene, Final
   Team, Waiting Lobby, Team Line-Up, Casters, Hosts, Standings...).
-- `html/mpltag.html` — lower thirds and other "tag" overlays (small,
+- `html/LowerThirds.html` — lower thirds and other "tag" overlays (small,
   self-contained broadcast graphics that sit on top of the main feed —
-  e.g. Map Selection) as opposed to `mplfs.html`'s full-screen scenes.
+  e.g. Map Selection) as opposed to `Fullscreen.html`'s full-screen scenes.
   Same 1920x1080 transparent-canvas broadcast-overlay conventions as
-  `mplfs.html` (see "Scene architecture" below), but each tag is much
+  `Fullscreen.html` (see "Scene architecture" below), but each tag is much
   smaller and simpler than a full scene, and multiple tags can in
-  principle be on screen at once since they don't share `mplfs.html`'s
+  principle be on screen at once since they don't share `Fullscreen.html`'s
   mutually-exclusive `activeFeature` slot. New tags get added here.
 - `html/dashboard.html` — control panel: SHOW/HIDE/PREVIEW buttons per
   feature, plus the **Edit tab** (drag/resize/font-size editor for every
@@ -57,8 +57,8 @@ caller expected, until the restart actually happened.
   the ONE real `/overlay/events` connection for the entire browser,
   shared across every overlay page via `SharedWorker` (see "Dashboard
   architecture" below). Every overlay page's own SSE connection
-  (`dashboard.html`, `mplfs.html`, `ENTVC.html`, `mpltag.html`,
-  `Draft.html`, `DraftIndex.html`, `mploverlay_v7.html`) goes through
+  (`dashboard.html`, `Fullscreen.html`, `ENTVC.html`, `LowerThirds.html`,
+  `Draft.html`, `DraftIndex.html`, `ingame.html`) goes through
   this — use `createOverlaySSE()` for any new page, never
   `new EventSource(...)` directly.
 - `heromvp/`, `herohighlights/`, `hero/`, `items/`, `role/`, `logos/`,
@@ -129,14 +129,14 @@ still exist and still work, see below). This capped the
 low number — **but it only helped connections inside one page.** It
 did nothing for the case that actually matters most in production:
 **vMix (or a normal browser) loading several SEPARATE overlay pages as
-independent browser sources/tabs at once** — `mplfs.html`,
-`ENTVC.html`, `mploverlay_v7.html`, `mpltag.html`, `Draft.html`, etc.
+independent browser sources/tabs at once** — `Fullscreen.html`,
+`ENTVC.html`, `ingame.html`, `LowerThirds.html`, `Draft.html`, etc.
 The 6-connections-per-host cap is shared across the **whole browser**,
 not per-tab/per-source, so each of those pages still opened its own
 `EventSource('/overlay/events')`, and opening even a handful of them
 side by side reproduced the exact same hang — this is what actually
 happened: dashboard.html open on the control PC plus a single
-`mplfs.html` tab was enough to exhaust the pool.
+`Fullscreen.html` tab was enough to exhaust the pool.
 
 **The real fix — a `SharedWorker` holding the ONE real connection for
 the entire browser, no matter how many overlay pages are open.** A
@@ -152,9 +152,9 @@ event to every connected page over `postMessage`.
 real connection, so **no page's existing `sse.addEventListener('foo',
 fn)` call sites needed to change** — only the one line that used to
 say `new EventSource('/overlay/events')` became
-`createOverlaySSE()`. Migrated: `dashboard.html`, `mplfs.html`,
-`ENTVC.html`, `mpltag.html`, `Draft.html`, `DraftIndex.html`, and
-`html/js/overlay-debug.js` (mploverlay_v7.html's shared SSE block).
+`createOverlaySSE()`. Migrated: `dashboard.html`, `Fullscreen.html`,
+`ENTVC.html`, `LowerThirds.html`, `Draft.html`, `DraftIndex.html`, and
+`html/js/overlay-debug.js` (ingame.html's shared SSE block).
 Verified live: opening all 7 of those simultaneously in one browser
 produces exactly **one** `GET /overlay/events` request server-side,
 regardless of how many are open.
@@ -210,7 +210,7 @@ afterthought, when adding a feature to this server.
 toggle button AND the SSE round-trip actually work — not just that
 the server route returns 200.** `curl`ing `/overlay/<key>/show` only
 proves the route exists; it says nothing about whether a connected
-mplfs.html tab actually reacts, because that hop goes through the
+Fullscreen.html tab actually reacts, because that hop goes through the
 SharedWorker described above. Test it properly: load the page fresh
 (a brand-new Playwright/browser context has no stale worker to hide
 behind), click the real Control-tab toggle button, and confirm a
@@ -220,18 +220,18 @@ pressed the button in a real, already-open browser tab.
 
 ## ENTVC.html — the EN broadcast mirror of Waiting TVC/Lobby
 
-`html/ENTVC.html` is a separate, mostly-duplicate copy of `mplfs.html`'s
+`html/ENTVC.html` is a separate, mostly-duplicate copy of `Fullscreen.html`'s
 Waiting Screen TVC, Waiting Lobby, Today's Schedule, Tomorrow's Schedule,
 and Standings scenes, used for the English-language broadcast. It shares
-`mplfs.html`'s scene architecture, `showSceneVideo`/SSE wiring, and
+`Fullscreen.html`'s scene architecture, `showSceneVideo`/SSE wiring, and
 helpers like `msToMatchRows`/`buildTsMatches` almost byte-for-byte.
 
-**Standing rule: any change to Waiting TVC content in `mplfs.html` — new
+**Standing rule: any change to Waiting TVC content in `Fullscreen.html` — new
 features, CSS/animation fixes, graphics swaps, tunable settings,
 anything, including future updates not yet made — must be mirrored
 into `ENTVC.html` too. Waiting Lobby is NOT covered by this rule —
 despite ENTVC.html also having its own copy of that scene, edits to
-Waiting Lobby stay mplfs.html-only unless the user separately asks for
+Waiting Lobby stay Fullscreen.html-only unless the user separately asks for
 ENTVC.html to be updated too (confirmed explicitly after the
 Waiting Lobby `redcorner.webm` accent was mirrored in by mistake). The
 other deliberate exception is EN Casters positioning: it uses its own
@@ -244,7 +244,7 @@ How the mirroring actually happens, two different ways depending on
 what changed:
 - **Position/size edits** (dashboard Edit tab drag/resize) — automatic,
   no extra work needed. Both files write to and read from the SAME
-  `overlay_styles.json` bucket (`styleFile: 'mplfs'`) for any selector
+  `overlay_styles.json` bucket (`styleFile: 'fullscreen'`) for any selector
   that exists identically in both files' DOM — see
   `routes/overlayStyles.js`. A selector that only exists in one file
   (like EN Casters' `ws-encasters-slot-*`) only ever affects that file.
@@ -279,7 +279,7 @@ absolute-to-canvas sibling.
 ## Scene architecture (how every overlay page is built)
 
 Each "scene" (MVP Highlights, MVP Scene, Final Team, etc.) is one
-full-screen container in `mplfs.html`:
+full-screen container in `Fullscreen.html`:
 
 ```html
 <div id="foo-page">
@@ -342,7 +342,7 @@ reference the exact same selector string — miss one and the row is dead
 in `MV_ELEMENTS` but didn't exist in the DOM, so those Edit rows did
 nothing):
 
-1. **The DOM**, in `mplfs.html` — the real `id="..."` or `class="..."`.
+1. **The DOM**, in `Fullscreen.html` — the real `id="..."` or `class="..."`.
 2. **`..._DEFAULTS`** object, in `dashboard.html` — starting
    `{ left, top, width, height }` (add `fontSize` for text) keyed by that
    same CSS selector (`'#foo-el'` or `'.foo-el'`).
@@ -359,17 +359,17 @@ not).
 
 Then wire the new config into `EDIT_CONFIGS` in `dashboard.html`:
 ```js
-mplfs_foo: {
-  label: 'Foo Scene · mplfs', file: 'mplfs.html', styleFile: 'mplfs',
-  defaultsKey: 'sb_edit_defaults_mplfs_foo',
+fullscreen_foo: {
+  label: 'Foo Scene · Fullscreen', file: 'Fullscreen.html', styleFile: 'fullscreen',
+  defaultsKey: 'sb_edit_defaults_fullscreen_foo',
   elements: FOO_ELEMENTS, defaults: FOO_DEFAULTS,
   showFn: 'showFooScene',
 },
 ```
 
-## Adding a local debug SHOW/HIDE/PREVIEW card (inside `mplfs.html` itself)
+## Adding a local debug SHOW/HIDE/PREVIEW card (inside `Fullscreen.html` itself)
 
-`mplfs.html` has its own on-page debug bar (toggle with the `` ` ``
+`Fullscreen.html` has its own on-page debug bar (toggle with the `` ` ``
 key) for testing a scene without touching the network — its buttons call
 the local JS functions directly, bypassing SSE entirely:
 
@@ -384,7 +384,7 @@ the local JS functions directly, bypassing SSE entirely:
 </div>
 ```
 Also add `'foo'` to `toggleLocalPreview`'s and `window.previewTrigger`'s
-if-chains in `mplfs.html` so the preview button actually maps to
+if-chains in `Fullscreen.html` so the preview button actually maps to
 `showFooScene()`. **This card is local-only** — it does nothing for other
 open tabs or OBS. For real remote control, see the next section.
 
@@ -395,34 +395,34 @@ toggle — it must read real server state, never assume "Enabled".
 ## Live control (SSE) — wiring a feature into the real dashboard
 
 This is the part that actually lets you click SHOW/HIDE in
-`dashboard.html`'s **Control tab** and have every open `mplfs.html`
+`dashboard.html`'s **Control tab** and have every open `Fullscreen.html`
 tab/OBS-browser-source react at once. It's a 6-layer chain and every
 layer must use the exact same feature key (e.g. `'foo'`) or the chain
 silently breaks at that link:
 
 **1. Server route + broadcast — `routes/overlay.js`.** One `show` and one
-`hide` route. Both flip `state.mplfsScene.activeFeature` (so a
+`hide` route. Both flip `state.fullscreenScene.activeFeature` (so a
 freshly-loaded tab can restore it) and write an SSE event named after the
 feature key to every connected client in `state.overlayClients`:
 ```js
 router.get('/overlay/foo/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'foo';
+  state.fullscreenScene.activeFeature = 'foo';
   state.overlayClients.forEach(c => { try { c.write('event: foo\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 router.get('/overlay/foo/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: foo\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 ```
 No new SSE endpoint needed — every scene shares the one persistent
 connection at `GET /overlay/events` (`state.overlayClients`, heartbeat
-every 15s). `GET /overlay/mplfs-scene` returns `state.mplfsScene` as-is;
+every 15s). `GET /overlay/fullscreen-scene` returns `state.fullscreenScene` as-is;
 you don't need to touch it unless the new feature needs extra fields
 beyond `activeFeature`.
 
-**2. Client SSE listener — `mplfs.html`'s `connectSSE()`.** Add a
+**2. Client SSE listener — `Fullscreen.html`'s `connectSSE()`.** Add a
 listener for the same event name:
 ```js
 sseSource.addEventListener('foo', (e) => {
@@ -434,13 +434,13 @@ sseSource.addEventListener('foo', (e) => {
 });
 ```
 
-**3. Hide dispatch — `mplfs.html`'s `hideActiveFeature()`.** Add one line
+**3. Hide dispatch — `Fullscreen.html`'s `hideActiveFeature()`.** Add one line
 so hiding "whatever is currently active" reaches your scene:
 ```js
 if (prev === 'foo') return hideFooScene();
 ```
 
-**4. Restore-on-load — `mplfs.html`'s `restoreScene()`.** Add one line so
+**4. Restore-on-load — `Fullscreen.html`'s `restoreScene()`.** Add one line so
 a tab that (re)loads mid-broadcast comes up already showing the active
 feature instead of blank:
 ```js
@@ -448,7 +448,7 @@ else if (scene.activeFeature === 'foo') showFooScene();
 ```
 
 **5. Dashboard Control-tab button — `dashboard.html`'s `OVERLAYS` array**,
-inside the `id: 'mplfs'` entry's `features` list. Adding this entry
+inside the `id: 'fullscreen'` entry's `features` list. Adding this entry
 generates the real SHOW/HIDE buttons on the Control tab, which just
 `fetch()` the two routes from step 1:
 ```js
@@ -456,7 +456,7 @@ generates the real SHOW/HIDE buttons on the Control tab, which just
 ```
 
 **6. Dashboard "Showing" indicator — `dashboard.html`'s
-`MPLFS_ACTIVE_FEATURE_MAP`.** A *separate* map from step 5 — easy to
+`FULLSCREEN_ACTIVE_FEATURE_MAP`.** A *separate* map from step 5 — easy to
 forget because step 5 alone is enough to make SHOW/HIDE work, so nothing
 looks broken. This map is what the Control-tab toggle button reads to
 decide `'● Showing'` vs `'○ Hidden'`; the key is auto-extracted from the
@@ -468,17 +468,17 @@ Skip this and SHOW/HIDE both work fine, but the toggle button silently
 never flips to "Showing" — no error, just a permanently-wrong indicator
 (exactly what happened when Credit Reel first shipped).
 
-If a feature only ever needs to be triggered from within `mplfs.html`
+If a feature only ever needs to be triggered from within `Fullscreen.html`
 itself (no cross-tab/remote control), you can skip this whole section and
 use only the local debug card above. If it needs to work from the real
 dashboard on a different machine than the OBS tab, you need all 6 steps.
 
 ## Simpler show/hide — the checkOverlays pattern
 
-Not every show/hide feature needs the full 6-layer mplfs-scene wiring
-above — that's specifically for scenes that share mplfs.html's mutually
+Not every show/hide feature needs the full 6-layer fullscreen-scene wiring
+above — that's specifically for scenes that share Fullscreen.html's mutually
 exclusive `activeFeature` slot. For a single independent on/off panel
-(Draft.html's whole-scene toggle; mploverlay_v7.html's scoreboard,
+(Draft.html's whole-scene toggle; ingame.html's scoreboard,
 player UI, item-check, emblem-check, gold-diff-check, and the four
 side-*-checks), use this simpler pattern instead:
 
@@ -495,7 +495,7 @@ side-*-checks), use this simpler pattern instead:
    whole `state.checkOverlays` object as-is; both the overlay page and
    the dashboard fetch it once on load instead of guessing.
 4. **Client listener** — in the overlay's own JS (or
-   `overlay-debug.js`'s shared SSE block for mploverlay_v7.html),
+   `overlay-debug.js`'s shared SSE block for ingame.html),
    `sse.addEventListener('<key>', ...)` toggling a CSS class that
    drives the animation.
 5. **Dashboard control** — add `{ name, key }` to that overlay's
@@ -543,7 +543,7 @@ fire-and-forget action with no "showing/hidden" indicator of its own.
 ### The dashboard must live-sync via SSE too — this is the part that bit us
 
 `dashboard.html` keeps its own local cache of every toggle's state
-(`featureStates`, `checkOverlayStates`, `mplfsSceneState`) so a button
+(`featureStates`, `checkOverlayStates`, `fullscreenSceneState`) so a button
 can show "● Showing"/"○ Hidden" without re-fetching on every render. The
 first version of this only updated that cache when the dashboard's OWN
 button was clicked (an optimistic local flip on click) — so a universal
@@ -552,7 +552,7 @@ real server state while the dashboard's indicator kept showing the
 stale value forever, until a full page reload.
 
 The fix: `dashboard.html` opens its own `EventSource('/overlay/events')`
-(`dashboardSSE`, declared right after `toggleMplfsFeature`) and listens
+(`dashboardSSE`, declared right after `toggleFullscreenFeature`) and listens
 for every toggle-relevant event, updating the cached state + button
 straight from the SSE payload instead of from whichever button was
 clicked. **Any new show/hide feature you add MUST get a matching
@@ -560,12 +560,12 @@ listener added to this same `dashboardSSE` block**, or its toggle button
 will silently drift out of sync the exact same way — no error, it'll
 just be wrong forever after the first change that didn't come from that
 button. The click handlers (`toggleFeature`, `toggleCheckOverlay`,
-`toggleMplfsFeature`) no longer flip local state at all — they only
+`toggleFullscreenFeature`) no longer flip local state at all — they only
 fire the request and let the SSE echo-back update the UI.
 
-## `mploverlay_v7.html` — modular per-feature files, two very different feature shapes
+## `ingame.html` — modular per-feature files, two very different feature shapes
 
-Unlike `mplfs.html` (one giant file/script), `mploverlay_v7.html` is a
+Unlike `Fullscreen.html` (one giant file/script), `ingame.html` is a
 thin HTML shell that loads one `<script>` per feature —
 `overlay-lvl15.js`, `overlay-items.js`, `overlay-trinity.js`,
 `overlay-swap.js`, `overlay-conceal.js`, `overlay-killevents.js`,
@@ -578,7 +578,7 @@ thin HTML shell that loads one `<script>` per feature —
 and — today — most features' actual auto-trigger *detection* logic, even
 though each feature has its own file for everything else). New features
 get their own new `.js` file, included as one more `<script>` tag in
-`mploverlay_v7.html`.
+`ingame.html`.
 
 There are **two unrelated feature shapes** here — figure out which one a
 new feature is before wiring anything, since they don't share a
@@ -589,7 +589,7 @@ Gold Diff Check, the four side-\*-checks, Scoreboard, Player UI). This is
 just the **checkOverlays pattern** documented above, nothing new: a
 `state.checkOverlays[key]` boolean, `/overlay/<key>/show|hide` routes, an
 SSE listener in `overlay-debug.js`'s IIFE at the bottom, a `checkToggles`
-entry in `dashboard.html`. The only `mploverlay_v7.html`-specific
+entry in `dashboard.html`. The only `ingame.html`-specific
 convention is naming: each panel's build/animate functions share a
 short prefix matching its abbreviation (`icBuildPanel`/`icAnimateIn`/
 `icAnimateOut` for **i**tem**c**heck, `eccBuildPanel`/`eccAnimateIn`/
@@ -656,9 +656,9 @@ parts than a simple show/hide toggle:
 5. **Debug bar** — a `▶ Pn` button per player in `overlay-debug.js`'s
    loop (same shape as the existing Level 15/Item/Trinity/Swap loops),
    plus a `<div id="tab-yourfeature">`/`<button data-tab="yourfeature">`
-   pair in `mploverlay_v7.html`'s debug area markup.
+   pair in `ingame.html`'s debug area markup.
 6. **Preview Tester** (`previewDebugTester: true` on the dashboard's
-   `mploverlay7` entry) — the "Player / Feature / ▶ Test" widget calls
+   `ingame_scoreboard` entry) — the "Player / Feature / ▶ Test" widget calls
    `window.iframeTest(playerIdx, feature)`, which is its own manually
    maintained `if (feature === '...')` dispatch chain in
    `overlay-debug.js` — same silent-no-op risk as `previewTrigger`
@@ -683,8 +683,8 @@ triggering it for real (OBS/vMix). Two different patterns exist,
 depending on whether the overlay page is cheap enough to always keep
 loaded:
 
-- **`previewButton: true`** (per-feature, e.g. `mplfs.html`'s scenes, or
-  overlay-level like `mpltag`) — the page is *already* sitting loaded in
+- **`previewButton: true`** (per-feature, e.g. `Fullscreen.html`'s scenes, or
+  overlay-level like `LowerThirds.html`) — the page is *already* sitting loaded in
   the iframe (selecting its sidebar row loads it, same as any other
   overlay). The "◈ Preview" button just calls
   `iw.contentWindow.previewTrigger(eventName, 'show'|'hide')` directly —
@@ -713,15 +713,15 @@ hit, both worth checking for in any new preview-capable page:
    and, when true, skips the real SSE listeners' show/hide calls AND the
    restore-on-load fetch entirely — visibility is driven *exclusively* by
    `window.previewTrigger(event, action)`, which every preview-capable
-   page must expose (same contract mplfs.html already used: dispatch on
+   page must expose (same contract Fullscreen.html already used: dispatch on
    `event`/`action` to the same internal show/hide functions the real SSE
-   listener calls). `mplfs.html` has an equivalent existing flag,
+   listener calls). `Fullscreen.html` has an equivalent existing flag,
    `isPreviewFrame` (`new URLSearchParams(location.search).get('preview') === '1'`,
    originally added for its SSE-leader-election exemption) — reuse it,
    don't add a second differently-named flag for the same check.
 2. **A side effect inside the preview instance reaching the real
    server.** Any code that does more than a purely-local visual change —
-   e.g. `mplfs.html`'s `syncBoard()`, which reports Matchboard/
+   e.g. `Fullscreen.html`'s `syncBoard()`, which reports Matchboard/
    Middleboard/Playerboard visibility to the server so the dashboard
    stays accurate — must check `isPreviewFrame`/`PREVIEW_ONLY` and skip
    the real `fetch()` when true, or clicking Preview silently flips real
@@ -740,7 +740,7 @@ completeness.** When adding a new feature that should be previewable,
 add its branch here too, or Preview silently does nothing for it (no
 error). This has shipped incomplete twice: Credit Reel, Post Stats,
 Consolidated Post, and Consolidated Post 2 were all missing from
-`mplfs.html`'s `previewTrigger` despite being fully wired for real
+`Fullscreen.html`'s `previewTrigger` despite being fully wired for real
 Show/Hide. **The external event name (derived from the route,
 `feat.show.split('/')[2]`) often does NOT match the page's own internal
 `activeFeature`/`transitionTo()` name** — e.g. the route is
@@ -776,7 +776,7 @@ setter per `eventName`; the dashboard's `message` listener looks it up
 and calls it directly.
 
 Both `activePreviewOff` and `previewToggleRegistry` (and
-`draftPreviewActive`, `mplfsLiveBadge`, `mapSelectTagBadge` — anything
+`draftPreviewActive`, `fullscreenLiveBadge`, `mapSelectTagBadge` — anything
 holding a reference into the just-replaced `#control-panel-body`) get
 reset to `null`/`{}` at the top of `buildControlBody()`, since
 `body.innerHTML = ''` just destroyed whatever DOM they pointed at.
@@ -813,7 +813,7 @@ If you add a 4th mode (or rename one), update the `API_MODES` array in
 `lib/apiMode.js` **and** the hardcoded `API_MODES` array + the 3
 `.api-mode-seg-btn[data-mode="..."]` buttons in `dashboard.html` — these
 are two independent, unenforced copies of the same list, matching the
-existing `MPLFS_ACTIVE_FEATURE_MAP` precedent of "this codebase manually
+existing `FULLSCREEN_ACTIVE_FEATURE_MAP` precedent of "this codebase manually
 mirrors small config tables between server and client rather than
 sharing them."
 
@@ -822,7 +822,7 @@ sharing them."
 Full-resolution (1920×1080) 60fps VP9 loops that `autoplay`+`loop` and
 are never explicitly paused are a genuine, sustained GPU/CPU cost for
 as long as the page is open — not a one-time thing. This bit
-`mplfs.html` twice:
+`Fullscreen.html` twice:
 
 1. **`#bg-video`** (`bgloop.webm`, the idle-state fallback background)
    had `autoplay` in its HTML tag and was never referenced again anywhere
@@ -949,7 +949,7 @@ compositing operators and was deliberately left on the JS path.
 ## Master checklist — adding any new feature (this is a moving target — use this every time, don't rely on memory)
 
 This project is under continuous, incremental development across
-`mplfs.html`, `mpltag.html` ("MPL L3"), and `Draft.html`. Every miss
+`Fullscreen.html`, `LowerThirds.html` ("Lower Thirds"), and `Draft.html`. Every miss
 below has actually shipped at least once and cost a real round trip to
 diagnose, because each one is **silent** — no error, no crash, just a
 button/preview/copy-icon that quietly does nothing or a "Showing"
@@ -958,7 +958,7 @@ whichever file you're extending; don't skip steps because "it's a small
 feature" — the small features are exactly the ones where a skipped step
 goes unnoticed longest.
 
-### A. New `mplfs.html` scene (full-screen, shares the `activeFeature` slot)
+### A. New `Fullscreen.html` scene (full-screen, shares the `activeFeature` slot)
 
 1. Copy the structure of an existing scene closest to what you need (MVP
    Scene is the most fully-featured reference) rather than starting blank.
@@ -990,18 +990,18 @@ goes unnoticed longest.
    correct for a scene that covers the whole frame.
 7. Dashboard Edit tab: add `FOO_DEFAULTS`, `FOO_ELEMENTS`, register in
    `EDIT_CONFIGS`.
-8. Local debug card in `mplfs.html` (optional, for testing while you
+8. Local debug card in `Fullscreen.html` (optional, for testing while you
    build — see "Adding a local debug SHOW/HIDE/PREVIEW card" above).
 9. Live control wiring (needed for the real dashboard to trigger it
    remotely — see "Live control (SSE)" above): server show/hide routes in
    `routes/overlay.js` → SSE listener in `connectSSE()` → line in
    `hideActiveFeature()` → line in `restoreScene()` → button entry in
    `dashboard.html`'s `OVERLAYS[...].features` → line in
-   `MPLFS_ACTIVE_FEATURE_MAP`. All six must use the exact same feature-key
+   `FULLSCREEN_ACTIVE_FEATURE_MAP`. All six must use the exact same feature-key
    string. **The last one is the one that gets forgotten** — everything
    still shows/hides fine without it, only the Control-tab "Showing"
    indicator is silently wrong.
-10. **Preview** — add a branch to `mplfs.html`'s `window.previewTrigger`
+10. **Preview** — add a branch to `Fullscreen.html`'s `window.previewTrigger`
     for the SAME event name used in step 9's `connectSSE()` listener
     (verify it's the same string — see "Control-tab Preview" above for
     why the external route name and the internal `activeFeature` name
@@ -1023,7 +1023,7 @@ goes unnoticed longest.
     browser-source already open keeps talking to the old worker forever,
     no matter how many times it's refreshed.
 12. Sanity-check before calling it done: grep every id/class used in the new
-    `FOO_ELEMENTS`/`FOO_DEFAULTS` against the actual `mplfs.html` markup —
+    `FOO_ELEMENTS`/`FOO_DEFAULTS` against the actual `Fullscreen.html` markup —
     a mismatch is silent (no error, the Edit row just does nothing). Same
     goes for the feature-key string across all wiring spots in steps 9–10.
 13. Validate JS syntax on every file you touched (a fresh `<script>` block
@@ -1031,7 +1031,7 @@ goes unnoticed longest.
     ```
     node -e "
     const fs=require('fs');
-    for (const f of ['html/mplfs.html','html/dashboard.html']) {
+    for (const f of ['html/Fullscreen.html','html/dashboard.html']) {
       const src = fs.readFileSync(f,'utf8');
       [...src.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)]
         .forEach((m,i) => { try { new Function(m[1]); }
@@ -1044,26 +1044,26 @@ goes unnoticed longest.
       *separate* tab/instance picks up the change over SSE.
     - Click "◈ Preview" and confirm the SAME scene shows **only** in the
       preview iframe, and confirm the real broadcast state (`curl
-      /overlay/mplfs-scene`) did NOT change as a result.
+      /overlay/fullscreen-scene`) did NOT change as a result.
     - If the scene touches boards (step 6), confirm the board copy of
       "shown" actually reflects reality afterward
-      (`curl /overlay/mplfs-scene`) even after switching to a *different*
+      (`curl /overlay/fullscreen-scene`) even after switching to a *different*
       scene — this is exactly the class of bug `syncBoard()` exists to
       prevent, and a new special-cased board branch is a new place it
       can be missed.
     - Click each copy-route button and confirm the copied text is the
       URL you expect.
 
-### B. New `mpltag.html` tag ("MPL L3" — independent, no `activeFeature` slot)
+### B. New `LowerThirds.html` tag ("Lower Thirds" — independent, no `activeFeature` slot)
 
-Tags don't share `mplfs.html`'s mutual exclusion, so most use the
+Tags don't share `Fullscreen.html`'s mutual exclusion, so most use the
 simpler **checkOverlays pattern** (see that section above) rather than
 the 6-layer SSE wiring:
 
 1. HTML/CSS for the tag, same "every element independently editable" rule.
 2. Server: one boolean in `state.checkOverlays`, `GET /overlay/<key>/show`
    and `/hide` routes broadcasting a named SSE event.
-3. Client listener in `mpltag.html` toggling a CSS class/animation.
+3. Client listener in `LowerThirds.html` toggling a CSS class/animation.
 4. Dashboard: add `{ name, key }` to the overlay's `checkToggles` array —
    this alone generates the toggle button and both copy-route buttons.
 5. **If the tag needs its own real Show/Hide buttons instead of a single
@@ -1072,13 +1072,13 @@ the 6-layer SSE wiring:
    time), use the plain `show`/`hide` fields on the `OVERLAYS` entry
    instead of `checkToggles`, plus a `mapSelectTagStatus`-style read-only
    pill if you need to show *what* state it's in beyond shown/hidden.
-6. **Preview** — `mpltag.html` has its own separate `window.previewTrigger`
+6. **Preview** — `LowerThirds.html` has its own separate `window.previewTrigger`
    (only handles `mapselecttag` today). Add a branch for your new tag's
    event name, and set `previewButton: true` on its `OVERLAYS` entry if
    you want a "◈ Preview" button at all (optional for tags — many don't
    need cross-tab preview since they're small and quick to check live).
-   **`mpltag.html` has no preview-mode isolation flag at all** (unlike
-   `mplfs.html`'s `isPreviewFrame` / `Draft.html`'s `PREVIEW_ONLY`) — if
+   **`LowerThirds.html` has no preview-mode isolation flag at all** (unlike
+   `Fullscreen.html`'s `isPreviewFrame` / `Draft.html`'s `PREVIEW_ONLY`) — if
    your new tag's show/hide logic does anything beyond local DOM/CSS
    changes (a `fetch()`, writing shared state, anything like
    `syncBoard()`), it WILL leak into real broadcast state when previewed
@@ -1120,10 +1120,10 @@ For a standalone on/off panel that isn't part of a "family" (like
    (not just visually hidden) when Preview is toggled off, if you used
    `deferredPreview`.
 
-### D. New `mploverlay_v7.html` feature
+### D. New `ingame.html` feature
 
 First decide which of the two shapes it is (see the
-"`mploverlay_v7.html`" section above — a persistent on/off panel vs. an
+"`ingame.html`" section above — a persistent on/off panel vs. an
 automatic per-player reactive effect; they use completely different
 checklists, and guessing wrong wastes the whole implementation):
 
@@ -1131,7 +1131,7 @@ checklists, and guessing wrong wastes the whole implementation):
   A/B above, plus this file's `icBuildPanel`/`icAnimateIn`-style naming
   convention and (if it's a side-\*-check) the shared `sidecheck` event.
 - **Automatic reactive effect** → the 7-step checklist in the
-  "`mploverlay_v7.html`" section above (arm/disarm toggle → detection
+  "`ingame.html`" section above (arm/disarm toggle → detection
   logic in `overlay-debug.js`'s poll handler → the `triggerYourFeature`
   build/cleanup/safety-timeout shape → wiring into `isAnyPlaying`/
   `playNextQueued` → debug bar → `iframeTest` dispatch branch → verify
@@ -1165,13 +1165,13 @@ does not advance video decode/playback consistently, which produces
 confusing false negatives that look like a real bug.
 
 **Never let a test touch real state that a live show depends on
-without restoring it.** `state.mplfsScene`/`state.checkOverlays`/
+without restoring it.** `state.fullscreenScene`/`state.checkOverlays`/
 `state.draftActive`/`api_mode.json`/the 9 `*_api_url.json` files are all
 real, shared, persistent server state — hitting their real routes from
 a test is fine (often necessary — see the Preview section's `syncBoard`
 example, which could only be caught this way), but capture the
 pre-test value first and restore it after (`curl .../fs/hide` to fully
-reset `mplfs.html`'s scene state is the fastest full reset). Prefer an
+reset `Fullscreen.html`'s scene state is the fastest full reset). Prefer an
 isolated harness when the code under test doesn't strictly need the
 real server: extract the actual `<script>` content from the real file
 (`fs.readFileSync` + regex, not hand-retyped) into a scratch HTML page,

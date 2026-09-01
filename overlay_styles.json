@@ -1,5 +1,5 @@
 {
-  "mploverlay_v7": {
+  "ingame_scoreboard": {
     "#scoreboard-gametime": {
       "top": "-1px",
       "fontSize": "25px"
@@ -130,7 +130,7 @@
       "height": "115.2px"
     }
   },
-  "mplfs": {
+  "fullscreen": {
     ".lu-title": {
       "left": "660px",
       "top": "31px",
@@ -1659,7 +1659,7 @@
       "height": "861.4px"
     }
   },
-  "mpltag": {
+  "lowerthirds": {
     ".ms-sidebox": {
       "left": "29px",
       "top": "747px",

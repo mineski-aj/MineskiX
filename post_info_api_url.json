@@ -1,1 +1,1 @@
-{"live":"http://10.88.120.60:5001/api/post-info/","debug":"http://10.88.120.60:5001/api/post-info/","web":"https://theapi.dpdns.org/api/post-info/"}
+{"live":"http://10.88.120.60:5001/api/post-info/","debug":"http://localhost:5001/api/postdata","web":"https://theapi.dpdns.org/api/post-info/"}

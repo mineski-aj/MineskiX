@@ -21,6 +21,7 @@ app.use((req, res, next) => {
 const fs         = require('fs');
 const matchState = require('./lib/matchState');
 const teamLineups = require('./lib/teamLineups');
+const projects   = require('./lib/projects');
 
 function getMatchPassword() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8')).dashboard_password || ''; }
@@ -178,6 +179,18 @@ app.post('/match/team-lineups', function (req, res) {
   res.json({ ok: true });
 });
 
+// Sponsor logos — project-scoped (see lib/projects.js / routes/devapi.js),
+// so this has to intercept ahead of the generic static mount below instead
+// of just letting it fall through to the literal repo-root sponsors/
+// folder. Keeps every existing consumer's `/sponsors/<file>` URL
+// (/api/sponsors' playlist, sponsors-dashboard.html's logoUrl()) working
+// unchanged — only which folder it resolves to changes, per active project.
+app.get('/sponsors/:filename', function (req, res, next) {
+  var dir = projects.getProjectScopedFilePath('sponsors');
+  var filePath = path.join(dir, path.basename(req.params.filename));
+  res.sendFile(filePath, { maxAge: '1d' }, function (err) { if (err) next(); });
+});
+
 // Static assets — HTML files served fresh, other assets cached for 1 day
 app.use(express.static(path.join(__dirname), {
   maxAge: '1d',
@@ -200,6 +213,7 @@ app.use(require('./routes/postgame'));
 app.use(require('./routes/proxy'));
 app.use(require('./routes/dashboard'));
 app.use(require('./routes/overlayStyles'));
+app.use(require('./routes/projects'));
 app.use(require('./routes/devapi'));
 
 // Debug: log unmatched routes

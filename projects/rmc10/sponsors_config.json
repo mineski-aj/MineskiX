@@ -1,0 +1,31 @@
+{
+  "categories": [
+    {
+      "id": "cat_main",
+      "name": "OFFICIAL SPONSOR",
+      "duration": 4,
+      "logos": [
+        "SMART.png"
+      ]
+    },
+    {
+      "id": "cat_msofvnao999",
+      "name": "PARTNER IN ESPORTS",
+      "duration": 2,
+      "logos": [
+        "CLEAR.png"
+      ]
+    },
+    {
+      "id": "cat_msofvrqo889",
+      "name": "STRATEGIC PARTNER",
+      "duration": 2,
+      "logos": [
+        "TTRACING.png"
+      ]
+    }
+  ],
+  "hiddenInIngame": [
+    "JOYTIFY.png"
+  ]
+}

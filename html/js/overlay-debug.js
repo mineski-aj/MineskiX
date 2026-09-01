@@ -193,8 +193,21 @@ window.iframeTest = async function(playerIdx, feature) {
   } catch(e) { console.warn('[iframeTest]', e); }
 };
 
+/* Item Pickup, Trinity, Quick Swap, Level 15, and Conceal all pop up
+   attached to a player's Player UI card — if that panel itself is
+   hidden, firing them shows a popup over nothing. Gate their detection
+   below on Player UI's own current shown state (puiShouldShow,
+   overlay-playerui.js) instead of touching each one's own featureEnabled
+   toggle — that keeps every dashboard toggle's OWN state untouched, so
+   whichever of these were individually enabled just resume automatically
+   the moment Player UI comes back on, with nothing to manually re-arm.
+   Kill Events and objective-spawn detection are NOT gated by this —
+   neither is tied to the Player UI panel. */
+const reactiveFxEnabled = () => typeof puiShouldShow === 'undefined' || puiShouldShow;
+
 /* ── Unified poll handler ── */
 registerPollHandler(function(data) {
+  const fxOk = reactiveFxEnabled();
   for (let pidx = 1; pidx <= 10; pidx++) {
     const result = getPlayer(data, pidx);
     if (!result) continue;
@@ -216,7 +229,7 @@ registerPollHandler(function(data) {
       const currentT3 = equipIds.filter(id => TIER3_IDS.has(id));
       const prevT3    = prev.filter(id => TIER3_IDS.has(id));
 
-      if (featureEnabled.trinity && !trinityFired[pidx]) {
+      if (fxOk && featureEnabled.trinity && !trinityFired[pidx]) {
         if (currentT3.length === 3 && prevT3.length === 2) {
           trinityFired[pidx] = true;
           const lbl = trinityLabel(seatNum, currentT3);
@@ -243,7 +256,7 @@ registerPollHandler(function(data) {
 
       const soldT3   = prevT3.filter(id => !currentT3.includes(id));
       const boughtT3 = currentT3.filter(id => !prevT3.includes(id));
-      if (featureEnabled.swap && soldT3.length === 1 && boughtT3.length === 1) {
+      if (fxOk && featureEnabled.swap && soldT3.length === 1 && boughtT3.length === 1) {
         const inCombat = combatHistory[pidx] && combatHistory[pidx].some(d => d > 0);
         if (inCombat) {
           if (isAnyPlaying(pidx)) {
@@ -263,7 +276,7 @@ registerPollHandler(function(data) {
     const { player } = result;
     const lvl  = parseInt(player.level) || 0;
     const prev = prevLevel[pidx];
-    if (featureEnabled.lvl15 && prev !== undefined && prev < 15 && lvl >= 15) {
+    if (fxOk && featureEnabled.lvl15 && prev !== undefined && prev < 15 && lvl >= 15) {
       const timeStr = formatTime(data.game_time || 0);
       if (isAnyPlaying(pidx)) {
         lvl15Queue[pidx] = { timeStr, heroId: player.heroid };
@@ -279,7 +292,7 @@ registerPollHandler(function(data) {
     if (!camp) return;
     const bg   = camp.blessing_gold || 0;
     const prev = prevBlessingGold[side];
-    if (featureEnabled.conceal && prev !== undefined && prev < 1000 && bg >= 1000) {
+    if (fxOk && featureEnabled.conceal && prev !== undefined && prev < 1000 && bg >= 1000) {
       const cat     = getCampRoamingCategory(camp);
       const timeStr = formatTime(data.game_time || 0);
       if (isAnyPlaying(playerIdx)) { concealQueue[side] = { cat, timeStr }; }
@@ -332,15 +345,27 @@ masterPoll();
   // Backed by the shared SharedWorker (html/js/overlay-shared-worker.js) —
   // this page opens zero real connections of its own now, so having
   // several overlay browser sources/tabs open at once no longer eats into
-  // the browser's shared connection pool per page. mploverlay_v7.html must
+  // the browser's shared connection pool per page. ingame.html must
   // load html/js/overlay-sse-shim.js before this file for createOverlaySSE
   // to exist.
   var sse = createOverlaySSE();
 
+  /* Dashboard Edit tab's own live preview (loadIframe() always appends
+     ?preview=1) — used below to exempt this instance from the 'reload'
+     SSE event. ingame.html has no other preview-mode isolation today
+     (unlike Draft.html's PREVIEW_ONLY / Fullscreen.html's isPreviewFrame). */
+  var isPreviewFrame = /[?&]preview=1(?:&|$)/.test(window.location.search);
+
   /* Fired by routes/overlayStyles.js after any Edit-tab Save — force a
      hard reload so new position/size overrides apply immediately (see
-     mplfs.html's connectSSE() for the identical pattern). */
-  sse.addEventListener('reload', function() { window.location.reload(); });
+     Fullscreen.html's connectSSE() for the identical pattern).
+     isPreviewFrame is exempt — this IS the Edit tab's own live preview,
+     already showing the just-saved values; reloading it would only wipe
+     the dashboard's click-to-select wiring with nothing left to
+     re-attach it (a reload triggered from in here — not from
+     dashboard.html's own loadIframe() — never gets a matching 'load'
+     listener to re-run injectEditInteraction()). */
+  sse.addEventListener('reload', function() { if (isPreviewFrame) return; window.location.reload(); });
 
   sse.addEventListener('fights', function(e) {
     try {
@@ -363,6 +388,25 @@ masterPoll();
     try {
       var d = JSON.parse(e.data);
       if (d.feature in featureEnabled) featureEnabled[d.feature] = !!d.enabled;
+    } catch {}
+  });
+  /* Dashboard "Arrangement" tab (see routes/devapi.js's POST
+     /api/seat-arrangement) — updates currentArrangement (overlay-core.js)
+     in place so getPlayer()'s seat_N remap takes effect on the very next
+     masterPoll tick, no reload. Needed because ingame.html fetches the
+     upstream Game API directly (see fetchData()), never through
+     /api/gamedata-proxy, so it can't just pick this up from that proxy's
+     own response the way Fullscreen.html's boards do.
+     resetReactiveBaselines() is the blocker against a live mid-game
+     rearrangement misfiring Level 15/Item/Trinity/Swap for the wrong
+     player — see its own comment in overlay-core.js for why. */
+  sse.addEventListener('seat_arrangement', function(e) {
+    try {
+      var d = JSON.parse(e.data);
+      if (d.camp1 && d.camp2) {
+        currentArrangement = d;
+        resetReactiveBaselines();
+      }
     } catch {}
   });
   sse.addEventListener('scoreboard', function(e) {

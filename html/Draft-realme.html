@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <script src="html/js/overlay-sse-shim.js"></script>
+  <title>Draft Overlay (realme)</title>
+  <style>
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 600;
+      font-display: block;
+      src: local('GeneralSans-Semibold'), local('GeneralSans-SemiBold'), local('General Sans Semibold');
+    }
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 700;
+      font-display: block;
+      src: local('GeneralSans-Bold'), local('General Sans Bold'), url('/fonts/GeneralSans-Bold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'Anton';
+      font-weight: 400;
+      font-display: block;
+      src: local('Anton'), local('Anton Regular'), url('fonts/Anton-Regular.ttf') format('truetype');
+    }
+    @font-face {
+      font-family: 'Exima';
+      font-weight: 400;
+      font-display: block;
+      src: url('fonts/Exima-Regular.otf') format('opentype');
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    /* ── Scene ─────────────────────────────────────────────────── */
+    #scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      background: url('assets/draftrealme/realme_draftbg.png') no-repeat 0 0 / 1920px 1080px;
+      transform: translateY(0);
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* Hidden state slides fully below the frame; base rule above carries
+       the "in" transition (slides upward to show), this carries the
+       "out" transition (slides downward to hide). Default (no class) is
+       visible, so a page load never flashes blank while the real state
+       is still being fetched — see the restore-on-load fetch below. */
+    #scene.draft-hidden {
+      transform: translateY(1080px);
+      transition: transform 0.45s cubic-bezier(0.4, 0, 1, 1);
+    }
+
+    /* ── Draft timer (single central digit readout) ──────────────
+       Rectangle_6 from the realme design CSS. Replaces the old
+       status-text/countdown-row combo — this skin has no BANNING/
+       PICKING/FINAL CHANGES label, just the number. */
+    #rtimer-box {
+      position: absolute;
+      left: 907px; top: 983px;
+      width: 106px; height: 69px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #rtimer-text {
+      font-family: 'Exima', 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 88px; /* 21pt @ 300dpi */
+      color: #fff;
+      line-height: 1;
+      text-align: center;
+    }
+
+    /* ── Turn indicator — realme_goldtri.png flanking the timer box,
+       instead of the old green clip-path triangles. Layer_1 (blue) /
+       Layer_1_copy (red) from the design CSS. Each side is a small
+       container holding TWO stacked copies of the triangle image,
+       staggered half a cycle apart, so one is always mid-slide while
+       the other is just arriving — that overlap is what reads as "one
+       moves away as another enters" instead of a single triangle
+       resetting/snapping. ── */
+    .rturn-tri {
+      position: absolute;
+      top: 1009px;
+      width: 19px; height: 22px;
+      /* visibility, not display:none — the old (proven) #tri-camp1/2
+         triangles used the same trick: keeps the child copies' infinite
+         animation ticking continuously in the background at all times,
+         so there's nothing to "resume" or "restart" at the instant this
+         becomes visible — it just reveals whatever phase the loop is
+         already in. display:none would fully stop the animation while
+         hidden, and different Chromium builds (OBS's embedded CEF browser
+         can lag well behind a normal Chrome/Edge install) aren't all
+         equally reliable about resuming an already-declared infinite
+         animation cleanly when an ancestor's display flips back on. */
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .rturn-tri.active { visibility: visible; }
+    #rturn-blue { left: 870px; }
+    #rturn-red  { left: 1029px; }
+    .rturn-tri-copy {
+      position: absolute;
+      top: 0; left: 0;
+      width: 19px; height: 22px;
+      opacity: 0;
+    }
+    /* Single triangle, looping forever: fades in at its original (rest)
+       position, then eases out — sliding toward its own side while
+       fading out — and loops back to fade in at the original position
+       again. The reset from 100% back to 0% is invisible since opacity
+       is 0 at both ends of the loop. ease-out (fast start, slow
+       deceleration) runs across the whole slide-and-fade phase. Red is
+       the mirror of blue (same shape via scaleX(-1), opposite direction). */
+    #rturn-blue .rturn-tri-copy { animation: rturn-cycle-blue 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+    #rturn-red  .rturn-tri-copy { animation: rturn-cycle-red  1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+
+    @keyframes rturn-cycle-blue {
+      0%   { opacity: 0; transform: translateX(0);   }
+      12%  { opacity: 1; transform: translateX(0);   }
+      100% { opacity: 0; transform: translateX(-9px); }
+    }
+    @keyframes rturn-cycle-red {
+      0%   { opacity: 0; transform: scaleX(-1) translateX(0);   }
+      12%  { opacity: 1; transform: scaleX(-1) translateX(0);   }
+      100% { opacity: 0; transform: scaleX(-1) translateX(9px); }
+    }
+
+
+    /* ── Pick plates — fixed absolute positions, no resize-on-pick
+       (realme design: cards never grow/shrink). Rectangle_2 from the
+       design CSS; positions computed in JS (C1_PICK_X/C2_PICK_X, mirror
+       of each other about screen centre) and set inline per plate. ── */
+    .plate {
+      position: absolute;
+      top: 832px;
+      width: 147px; height: 181px;
+      overflow: hidden;
+    }
+
+    /* Content wrapper — same box as .plate, just the clipping layer for
+       everything drawn on top of the hero video */
+    .plate-content {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+    }
+
+    /* Hero WebM video — fills the card, cropping top/bottom (or
+       sides, whichever the source video's aspect requires) via
+       object-fit:cover, per the design spec's "scale accordingly, crop
+       from the top and bottom". transform-origin centred so the
+       button-in pop (see .hero-pop-in below) scales from the middle,
+       staying clipped by this element's own overflow:hidden. */
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: none;
+      pointer-events: none;
+      z-index: 1;
+      transform-origin: center center;
+    }
+
+    /* Simple "button-in" pop — replaces the old matte-wipe reveal.
+       Bounces past 100% slightly then settles; overflow:hidden on the
+       card clips the overshoot so it never escapes the 147×181 bounds. */
+    @keyframes hero-pop-in {
+      0%   { transform: scale(0.55); opacity: 0; }
+      60%  { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1);    opacity: 1; }
+    }
+    .hero-video.hero-pop-in { animation: hero-pop-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+    /* Player name — separate box below the card (Rectangle_4), NOT
+       nested inside the plate; positioned inline in JS at the same X as
+       its card, matching CLAUDE.md's "every element independently
+       editable" rule. */
+    .rname-box {
+      position: absolute;
+      top: 1016px;
+      width: 147px; height: 39px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rname-text {
+      font-family: 'Exima', 'General Sans', sans-serif;
+      font-weight: 400;
+      font-size: 21px; /* 5pt @ 300dpi */
+      color: #fff;
+      text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* ── Post-pick glow overlay (div above canvas, z-index 3) ──── */
+    .plate-glow {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    /* Flash on then fade back out — gold for both camps. */
+    @keyframes picked-glow-gold {
+      0%   { box-shadow: none; }
+      25%  { box-shadow: inset 0 0 0 3px rgba(255,215,80,1),
+                         inset 0 0 40px 16px rgba(255,200,60,0.75); }
+      100% { box-shadow: none; }
+    }
+    .plate-glow.picked { animation: picked-glow-gold 0.9s ease-out forwards; }
+
+    /* ── Role icons ────────────────────────────────────────────── */
+    /* Anchored at left:5 top:5; default transform centres it in the plate.
+       (151-70)/2 - 5 = 35.5   (168-70)/2 - 5 = 44                        */
+    .role-icon {
+      position: absolute;
+      width: 70px; height: 70px;
+      /* always centred regardless of plate-content width */
+      left: calc(50% - 35px); top: calc(50% - 35px);
+      object-fit: contain;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Center logo — RMC badge, sits centered between the pick rows
+       and the score bar (Rectangle_1: 898,832,124×124). ── */
+    #draft-center-logo {
+      position: absolute;
+      left: 898px; top: 832px;
+      width: 124px; height: 124px;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── Ban plates ────────────────────────────────────────────── */
+    /* overflow:hidden clips the hero tween to the banplate area.
+       The element's own box-shadow (outer glow) is NOT clipped by
+       its own overflow:hidden — it renders outside the bounds. */
+    .banplate {
+      position: absolute;
+      width: 86px; height: 65px;
+      overflow: hidden;
+    }
+
+    /* Inset border on top of hero via ::after (same size → no overflow clipping) */
+    .banplate::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Red glow when banning — inset only, slow pulse */
+    @keyframes ban-inner {
+      0%, 100% { box-shadow: inset 0 0 0 0 rgba(255,50,50,0),
+                             inset 0 0 0 0 rgba(255,50,50,0); }
+      50%       { box-shadow: inset 0 0 0 3px rgba(255,50,50,1),
+                              inset 0 0 14px 3px rgba(255,50,50,0.55); }
+    }
+    .banplate.banning::after { animation: ban-inner 1.8s ease-in-out infinite; }
+
+    /* Ban hero image */
+    .ban-hero {
+      width: 86px; height: 65px;
+      object-fit: cover; display: block;
+      opacity: 0;
+    }
+
+    /* Ban reveal: slides up from below (masked by overflow:hidden),
+       then fades to greyscale + 50% brightness */
+    @keyframes ban-reveal {
+      0%   { transform: translateY(65px); filter: none; }
+      55%  { transform: translateY(0);    filter: none; }
+      100% { transform: translateY(0);    filter: grayscale(1) brightness(0.5); }
+    }
+    .ban-hero.ban-revealing { animation: ban-reveal 0.95s ease-out forwards; }
+
+    /* ── Pick gradient overlay — gold for both camps (realme design:
+       no blue/red split any more), pulsing while a seat is picking. ── */
+    .pick-gradient {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      display: none;
+      z-index: 2;
+      animation: grad-pulse 1.4s ease-in-out infinite;
+      /* screen (not normal) blending — lightens/brightens the hero video
+         underneath by its own color instead of just tinting over it */
+      mix-blend-mode: screen;
+      background: linear-gradient(to top, rgba(255,215,80,0.85) 0%, transparent 70%);
+    }
+    @keyframes grad-pulse {
+      0%, 100% { opacity: 0.25; }
+      50%       { opacity: 0.9;  }
+    }
+
+    /* ── Pick background video (inside each plate) ── */
+    .plate-pick-video {
+      position: absolute;
+      top: 27px; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: none;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Timer bar — Rectangle_1 from the design CSS. Gold for both
+       camps (no blue/red split) — see tmSync() below. ── */
+    #timer-bar {
+      position: absolute;
+      left: 0px; top: 1065px;
+      width: 1920px; height: 9px;
+      background: linear-gradient(to bottom, #f6ea8d, #dea943);
+      transform-origin: center center;
+      transform: scaleX(1);
+      display: none;
+    }
+
+    /* ── Score bars — Rectangle_2 from the design CSS (given for camp1;
+       camp2 mirrors: mirror(781,158) = 1920 − 781 − 158 = 981). Bars are
+       horizontal (35×9), 6px apart, centered inside this 158px-wide box —
+       see renderBars() for how the bar count/centering is computed. */
+    .score-box {
+      position: absolute;
+      top: 968px;
+      width: 158px;
+      height: 9px;
+    }
+    #score-c1 { left: 781px; }
+    #score-c2 { left: 981px; }
+    .score-bar {
+      position: absolute;
+      top: 0;
+      width: 35px;
+      height: 9px;
+      background: #2b2b2b;
+      /* Same gold as Fullscreen.html's .mb-score-bar (Matchboard), but
+         thinner (2px vs its 3px) — these bars are only 9px tall vs
+         Matchboard's 87px, so a literal 3px copy left barely any visible
+         center on the unscored bar. */
+      box-shadow: inset 0 0 0 2px #e4ba54;
+    }
+    .score-bar.scored { background: linear-gradient(to bottom, #f6ea8d, #dea943); }
+
+    /* ── Team logos — Rectangle_5 / Rectangle_5_copy from the design
+       CSS (given explicitly for both sides, not derived by mirroring). */
+    .draft-team-logo {
+      position: absolute;
+      top: 990px;
+      width: 56px; height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #draft-logo-c1 { left: 775px; }
+    #draft-logo-c2 { left: 1088px; }
+    #draft-logo-c1 .draft-logo-fallback {
+      position: absolute;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgb(42, 0, 255);
+    }
+    #draft-logo-c2 .draft-logo-fallback {
+      position: absolute;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: rgb(210, 30, 30);
+    }
+    .draft-logo-img {
+      position: absolute;
+      width: 56px; height: 56px;
+      object-fit: contain;
+    }
+
+
+    /* ── Coach name + headset — Rectangle_1 from the design CSS.
+       home=blue/left (left:27), away=red/right mirrored:
+       mirror(27, 251) = 1920 − 27 − 251 = 1642. Single box (no separate
+       BPM heart-rate readout in this skin — dropped along with the rest
+       of the matte-wipe-era coach UI). Headset sits outward of the name
+       (left of it on the home/blue side, right of it on the away/red
+       side, per the mirrored DOM order buildCoachSide() builds). ── */
+    .rcoach {
+      position: absolute;
+      top: 761px;
+      width: 251px; height: 65px;
+      display: flex;
+      align-items: center;
+      gap: 18px; /* more breathing room between headset and name */
+      overflow: hidden;
+    }
+    .rcoach-home { left: 27px;   justify-content: flex-start; }
+    .rcoach-away { left: 1642px; justify-content: flex-end; }
+    .rcoach-headset {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      color: #ffce54; /* gold */
+    }
+    .rcoach-headset svg { width: 100%; height: 100%; display: block; }
+    .rcoach-name {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+    .rcoach-name-text {
+      display: block;
+      font-family: 'Exima', 'General Sans', sans-serif;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .rcoach-home .rcoach-name-text { text-align: left; }
+    .rcoach-away .rcoach-name-text { text-align: right; }
+
+    /* ── Draft Recap — previous game's pick/ban recap. Independent of
+       #scene (shown/hidden via its own toggle, not tied to the main
+       draft scene's slide state). Blue card mirrors the red card;
+       every hero/ban slot inside a card is positioned relative to that
+       card's own background box, so moving the card carries its 5
+       picks + 5 bans + title along, while each slot stays individually
+       draggable/resizable on top of that (see CLAUDE.md's "every
+       element is independently editable" rule). ── */
+    #draftrecap-page {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* Slide in/out — blue enters from off-screen left, red from
+       off-screen right, both sliding back out the same way they came
+       in. Two-rule direction split (base = "out" easing, .draftrecap-
+       visible = "in" easing) is the same technique #scene/#scene.draft-
+       hidden use above, just on transform instead of opacity. */
+    .dr-bg {
+      position: absolute;
+      width: 398px; height: 218px;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      transition: transform 0.45s cubic-bezier(0.4, 0, 1, 1);
+    }
+    #dr-blue-bg {
+      left: 0px; top: 562px;
+      background-image: url('assets/draft/recapblue.png');
+      transform: translateX(-450px);
+    }
+    #dr-red-bg {
+      left: 1522px; top: 562px;
+      background-image: url('assets/draft/recapred.png');
+      transform: translateX(450px);
+    }
+    #draftrecap-page.draftrecap-visible #dr-blue-bg,
+    #draftrecap-page.draftrecap-visible #dr-red-bg {
+      transform: translateX(0);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .dr-title {
+      position: absolute;
+      left: 7px; top: 0px;
+      width: 384px; height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+    #dr-red-title { justify-content: flex-end; }
+    .dr-title-text {
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 19px; /* 4.5pt @ 300dpi */
+      color: #ffffff;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .dr-red-title-text { text-align: right; }
+
+    /* Hero pick slot — video fills/crops the box (portrait, matches the
+       pick-reveal video's own aspect ratio) instead of the object-fit:cover
+       stretching that would distort the ban-hero KOTAK still below. */
+    .dr-pick {
+      position: absolute;
+      top: 50px;
+      width: 74px; height: 117px;
+      overflow: hidden;
+      background: #000;
+    }
+    .dr-pick video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #dr-blue-pick-1, #dr-red-pick-1 { left: 7px; }
+    #dr-blue-pick-2, #dr-red-pick-2 { left: 84.5px; }
+    #dr-blue-pick-3, #dr-red-pick-3 { left: 162px; }
+    #dr-blue-pick-4, #dr-red-pick-4 { left: 239.5px; }
+    #dr-blue-pick-5, #dr-red-pick-5 { left: 317px; }
+
+    /* Ban slot — square KOTAK portrait cropped top/bottom by object-fit:
+       cover into this short, wide box (same crop technique as the live
+       ban plate's .ban-hero, just a different box ratio). */
+    .dr-ban {
+      position: absolute;
+      top: 172px;
+      width: 73px; height: 39px;
+      overflow: hidden;
+      background: #000;
+    }
+    .dr-ban img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(1) brightness(0.5);
+    }
+    #dr-blue-ban-1, #dr-red-ban-1 { left: 8px; }
+    #dr-blue-ban-2, #dr-red-ban-2 { left: 85.5px; }
+    #dr-blue-ban-3, #dr-red-ban-3 { left: 163px; }
+    #dr-blue-ban-4, #dr-red-ban-4 { left: 240.5px; }
+    #dr-blue-ban-5, #dr-red-ban-5 { left: 318px; }
+
+    /* ── Pick/ban status badges (banned/stolen/ban_again/ban_to_pick) —
+       drawn on a full-cover overlay div rather than on .dr-pick/.dr-ban
+       directly so the border+glow live at the slot's own bounds
+       (box-sizing:border-box keeps them from ever getting clipped by
+       the slot's overflow:hidden). Entrance animation replays by
+       adding .dr-status-in then removing it on a timer (see
+       drSetStatus() in the script below) rather than relying on
+       animationend, matching this file's usual reveal convention. ── */
+    .dr-status {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      border: 0 solid transparent;
+      z-index: 4;
+    }
+    .dr-status-label {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-family: 'General Sans', sans-serif;
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: 0.4px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    /* pick_status: "banned" */
+    .dr-status-banned {
+      border: 3px solid #e8121f;
+      box-shadow: inset 0 0 12px rgba(232, 18, 31, 0.85);
+    }
+    .dr-status-banned .dr-status-label { display: flex; background: #e8121f; }
+
+    /* pick_status: "stolen" */
+    .dr-status-stolen {
+      border: 3px solid #3a3a3a;
+      box-shadow: inset 0 0 12px rgba(58, 58, 58, 0.85);
+    }
+    .dr-status-stolen .dr-status-label { display: flex; background: #3a3a3a; }
+
+    /* ban_status: "ban_again" (ban slots only — no label) */
+    .dr-status-ban-again {
+      border: 2px solid #e8121f;
+      box-shadow: inset 0 0 10px rgba(232, 18, 31, 0.85);
+    }
+
+    /* ban_status: "ban_to_pick" (ban slots only — no label) */
+    .dr-status-ban-to-pick {
+      border: 2px solid #ffcc00;
+      box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.85);
+    }
+
+    @keyframes dr-status-in {
+      0%   { opacity: 0; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .dr-status.dr-status-in { animation: dr-status-in 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+  </style>
+</head>
+<body>
+
+<div id="scene"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* Dashboard Control-tab preview iframe loads this page with ?preview=1
+     (same convention as the Edit tab and Fullscreen.html-style previewButton
+     entries). When set, this instance is fully decoupled from the REAL
+     broadcast show/hide state — it never auto-shows/hides itself based on
+     what's actually live, only in response to window.previewTrigger(...)
+     calls the dashboard makes directly. Without this, a preview iframe
+     would react to the same live SSE events as the real vMix instance,
+     doubling video-decode/canvas-compositing load exactly when this scene
+     is heaviest (see CLAUDE.md-adjacent perf notes on this page). */
+  var PREVIEW_ONLY = /[?&]preview=1(?:&|$)/.test(window.location.search);
+
+  var DEFAULT_URL = window.location.protocol + '//' + window.location.hostname + ':5001/api/gamedata';
+  var STORAGE_KEY = 'draft_overlay_api_url';
+  var POLL_MS     = 1000;
+
+  /* Fetch draft API URL from server, override default if set.
+     Dedicated setting (Settings → Draft (Pick/Ban) API) — separate from the
+     general /api/game-url used by the rest of the overlay, since the draft
+     feed uses its own response format (see normalizeDraftPayload below).
+     poll() isn't started (see startPolling below) until this resolves —
+     otherwise an early poll() tick could hit DEFAULT_URL first, latch onto
+     whatever battleid that reports, then flip to the real apiUrl and see a
+     different battleid, forcing a reload loop the instant the two sources
+     disagree (e.g. DEFAULT_URL's local game client vs. a remote draft feed
+     watching a different match entirely). */
+  fetch('/api/draft-url').then(function(r){ return r.json(); }).then(function(d){
+    if (d.url) apiUrl = d.url;
+    startPolling();
+  }).catch(function(){ startPolling(); });
+
+  /* Draft Recap API URL (Settings → Draft Recap API) — previous-draft
+     format, separate feed from the live draft-info-only apiUrl above. */
+  var draftRecapApiUrl = 'https://theapi.dpdns.org/api/previous-draft/';
+  fetch('/api/draft-recap-url').then(function(r){ return r.json(); }).then(function(d){
+    if (d.url) draftRecapApiUrl = d.url;
+  }).catch(function(){});
+
+  /* Pick plate layout — Rectangle_2/Rectangle_4 from the design CSS.
+     Fixed positions, no resize-on-pick. Seat index 0 = the seat nearest
+     that camp's own screen edge (matches the old row/row-reverse
+     convention): camp1 arrays left→right from x=3; camp2 mirrors camp1
+     about screen centre (mirror(x,w) = 1920 − x − w). */
+  var PICK_W = 147, PICK_H = 181, PICK_TOP = 832, PICK_GAP = 6;
+  var NAME_TOP = 1016, NAME_H = 39;
+  var C1_PICK_X = [0,1,2,3,4].map(function(i){ return 3 + i * (PICK_W + PICK_GAP); });
+  var C2_PICK_X = [0,1,2,3,4].map(function(i){ return (1920 - 3 - PICK_W) - i * (PICK_W + PICK_GAP); });
+  /* RMC logo — replaces the old per-role icon (see .role-icon below) and
+     also used standalone as the center badge (#draft-center-logo).
+     Project-scoped (projects/<active>/assets/rmc_logo.png); resolved
+     fresh from the active project instead of hardcoding "rmc10", same
+     convention as overlay-emblemcheck.js's eccBgUrl(). Falls back to the
+     rmc10 copy directly since this page is itself an RMC10-specific
+     template, not a generic one used across arbitrary projects. */
+  var DRAFT_LOGO_URL = '/projects/rmc10/assets/rmc_logo.png';
+  fetch('/api/projects', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) { if (d && d.active) DRAFT_LOGO_URL = '/projects/' + encodeURIComponent(d.active) + '/assets/rmc_logo.png'; })
+    .catch(function() {});
+
+  /* role string → icon filename (kept as the "is this a known role"
+     gate below; the icon itself now always shows DRAFT_LOGO_URL) */
+  var ROLE_MAP = {
+    'exp_laner':  'role/EXP LANER.png',
+    'jungler':    'role/JUNGLER.png',
+    'mid_laner':  'role/MID LANER.png',
+    'roamer':     'role/ROAMER.png',
+    'gold_laner': 'role/GOLD LANER.png',
+  };
+  /* ordered list — seat index fallback when all roles missing */
+  var ALL_ROLES = ['exp_laner', 'jungler', 'mid_laner', 'roamer', 'gold_laner'];
+  /* ROLE_FILES[i] used only as initial placeholder before first poll */
+  var ROLE_FILES = ALL_ROLES.map(function(r) { return ROLE_MAP[r]; });
+
+  /* roleid → role string; fetched from server (locked per battleid, survives page reload) */
+  var playerRoles = {};
+
+  /* Fetch role assignments locked by the server for this battleid.
+     Retried every poll until server confirms matching battleid with non-empty roles. */
+  function fetchAndApplyRoles(bid) {
+    fetch('/api/draft-roles', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.battleid === bid && data.roles && Object.keys(data.roles).length > 0) {
+          playerRoles = data.roles;
+          Object.keys(prevPick).forEach(function(k) { prevPick[k].roleid = undefined; });
+        }
+      })
+      .catch(function() {});
+  }
+
+  /* The draft-info-only feed has no roleid field (server-locked roles are
+     keyed by roleid from the *general* game API, which this feed doesn't
+     share), so role icons need a client-local equivalent, keyed by player
+     name instead, only used when normalizeDraftPayload() below is actually
+     rewriting a draft-info-only response. Locked per battleid like the
+     server-side version, mirroring its "keep explicit real roles, randomize
+     the rest" heuristic. */
+  var usingDraftInfoOnlyFormat = false;
+  var localDraftRoles          = {};
+  var localDraftRolesBattleId  = null;
+  var ROLE_ALIASES = {
+    'exp_laner': 'exp_laner', 'exp': 'exp_laner', 'exp laner': 'exp_laner',
+    'jungler': 'jungler', 'jungle': 'jungler',
+    'mid_laner': 'mid_laner', 'mid': 'mid_laner', 'mid laner': 'mid_laner',
+    'roamer': 'roamer', 'roam': 'roamer', 'support': 'roamer',
+    'gold_laner': 'gold_laner', 'gold': 'gold_laner', 'gold laner': 'gold_laner', 'marksman': 'gold_laner'
+  };
+
+  function assignLocalDraftRoles(camp1, camp2) {
+    var result = {};
+    [camp1, camp2].forEach(function (camp) {
+      if (!camp) return;
+      var seats = [];
+      for (var s = 1; s <= 5; s++) { var seat = camp['seat_' + s]; if (seat && seat.name) seats.push(seat); }
+      if (!seats.length) return;
+
+      var claimed = {};
+      seats.forEach(function (seat) {
+        var mapped = ROLE_ALIASES[(seat.role || '').toLowerCase().trim()];
+        if (mapped && !claimed[mapped]) { claimed[mapped] = true; result[seat.name] = mapped; }
+      });
+
+      var remaining = ALL_ROLES.filter(function (r) { return !claimed[r]; });
+      for (var j = remaining.length - 1; j > 0; j--) {
+        var k = Math.floor(Math.random() * (j + 1));
+        var tmp = remaining[j]; remaining[j] = remaining[k]; remaining[k] = tmp;
+      }
+      var ri = 0;
+      seats.forEach(function (seat) {
+        if (result[seat.name]) return;
+        result[seat.name] = remaining[ri++];
+      });
+    });
+    return result;
+  }
+
+  /* Ban plate layout — Rectangle_7 from the design CSS, 6px gap between
+     seats (mirrors the pick-card spacing). Mirror formula as above. */
+  var BAN_W = 86, BAN_H = 65, BAN_TOP = 761, BAN_GAP = 6;
+  var C1_BAN_X = [0,1,2,3,4].map(function(i){ return 309 + i * (BAN_W + BAN_GAP); });
+  var C2_BAN_X = [0,1,2,3,4].map(function(i){ return (1920 - 309 - BAN_W) - i * (BAN_W + BAN_GAP); });
+
+  /* ── DOM refs ──────────────────────────────────────────────── */
+  var scene    = document.getElementById('scene');
+
+  var apiUrl = DEFAULT_URL;
+
+  /* ── Timer bar (smooth rAF countdown) ─────────────────────── */
+  var TIMER_MAX    = 50;   /* max seconds per pick/ban turn */
+  var timerEl      = null;
+  var tmSyncAt     = 0;    /* performance.now() when this turn's value was locked in */
+  var tmSyncVal    = 0;    /* leftTime locked in at the start of this turn */
+  var tmCampid     = 0;    /* 0 = hidden, 1/2 = active camp */
+  var tmRAF        = null;
+  var tmHasStart   = false; /* true once first value is locked for the current turn */
+
+  function tmGetCurrent() {
+    return Math.max(0, tmSyncVal - (performance.now() - tmSyncAt) / 1000);
+  }
+
+  function tmFrame() {
+    var t     = tmGetCurrent();
+    var scale = Math.min(1, Math.max(0, t / TIMER_MAX));
+    timerEl.style.transform = 'scaleX(' + scale + ')';
+    if (t > 0) {
+      tmRAF = requestAnimationFrame(tmFrame);
+    } else {
+      tmRAF = null;
+      tmHasStart = false; /* unlock so the next non-zero value starts a fresh turn */
+    }
+  }
+
+  function tmSync(campid, leftTime) {
+    if (!timerEl) return;
+    if (campid === 0 || leftTime <= 0) {
+      timerEl.style.display = 'none';
+      if (tmRAF) { cancelAnimationFrame(tmRAF); tmRAF = null; }
+      tmCampid   = 0;
+      tmHasStart = false;
+      return;
+    }
+    timerEl.style.display    = 'block'; /* color is fixed gold in CSS, same for both camps */
+
+    /* Decide if this is a genuinely new turn:
+       - camp switched sides, OR
+       - no starting value locked yet for this turn, OR
+       - API reports significantly MORE time than our prediction (timer reset for new phase) */
+    var predicted = tmGetCurrent();
+    var isNewTurn = (campid !== tmCampid) || !tmHasStart || (leftTime > predicted + 5);
+
+    if (isNewTurn) {
+      tmSyncAt   = performance.now();
+      tmSyncVal  = leftTime;
+      tmCampid   = campid;
+      tmHasStart = true;
+      if (!tmRAF) tmRAF = requestAnimationFrame(tmFrame);
+    }
+    /* Otherwise: client countdown runs uninterrupted — API inconsistencies ignored */
+  }
+
+  function buildTimerBar() {
+    timerEl = document.createElement('div');
+    timerEl.id = 'timer-bar';
+    scene.appendChild(timerEl);
+  }
+
+
+  /* ── Element / state maps ──────────────────────────────────── */
+  var pickEls  = {};
+  var prevPick = {};
+  var banEls   = {};  /* campid_i → { banplate, bhi } */
+  var prevBan  = {};  /* campid_i → { ban_heroid, banning } */
+  var logoEls  = {};  /* campid → { img, fb } */
+
+  /* ── Build pick plates ─────────────────────────────────────── */
+  function buildPickPlates() {
+    for (var ci = 0; ci < 2; ci++) {
+      var campid = ci + 1;
+      var xArr = campid === 1 ? C1_PICK_X : C2_PICK_X;
+
+      for (var i = 0; i < 5; i++) {
+        var key = campid + '_' + i;
+        var x = xArr[i];
+
+        /* Plate — fixed position/size, never resizes on pick */
+        var plate = document.createElement('div');
+        plate.id = 'plate-' + key;
+        plate.className = 'plate';
+        plate.style.left = x + 'px';
+        scene.appendChild(plate);
+
+        var plateContent = document.createElement('div');
+        plateContent.className = 'plate-content';
+
+        var vid = document.createElement('video');
+        vid.className   = 'plate-pick-video';
+        vid.src         = 'assets/draft/motion/realme_picking.webm';
+        vid.loop = true; vid.muted = true;
+        vid.playsInline = true; vid.preload = 'none';
+        plate.appendChild(vid); /* direct child of plate so it scales with the full width */
+
+        var pickGrad = document.createElement('div');
+        pickGrad.className = 'pick-gradient';
+        plate.appendChild(pickGrad);
+
+        var heroVid = document.createElement('video');
+        heroVid.className   = 'hero-video';
+        heroVid.loop        = true;
+        heroVid.muted       = true;
+        heroVid.playsInline = true;
+        heroVid.preload     = 'none';
+        plateContent.appendChild(heroVid);
+
+        var glowDiv = document.createElement('div');
+        glowDiv.className = 'plate-glow';
+        plateContent.appendChild(glowDiv);
+
+        var roleImg = document.createElement('img');
+        roleImg.className = 'role-icon';
+        roleImg.alt = ''; roleImg.style.opacity = '0';
+        plateContent.appendChild(roleImg);
+
+        plate.appendChild(plateContent);
+
+        /* Player name — separate box below the card (Rectangle_4), same
+           X position as its card, own top-level element (not nested
+           inside .plate). */
+        var nameBox = document.createElement('div');
+        nameBox.className = 'rname-box';
+        nameBox.id = 'name-' + key;
+        nameBox.style.left = x + 'px';
+        var nameEl = document.createElement('span');
+        nameEl.className = 'rname-text';
+        nameBox.appendChild(nameEl);
+        scene.appendChild(nameBox);
+
+        pickEls[key] = {
+          key: key, campid: campid,
+          plate: plate, pickVid: vid,
+          heroVid: heroVid, pickGrad: pickGrad,
+          glowDiv: glowDiv,
+          roleImg: roleImg, nameEl: nameEl
+        };
+        prevPick[key] = {
+          heroid: undefined, picking: false, banning: false,
+          roleid: undefined, assignedRole: undefined
+        };
+      }
+    }
+  }
+
+  /* ── Build ban plates ──────────────────────────────────────── */
+  function buildBanPlates() {
+    for (var ci = 0; ci < 2; ci++) {
+      var campid = ci + 1;
+      var xArr = campid === 1 ? C1_BAN_X : C2_BAN_X;
+      for (var i = 0; i < 5; i++) {
+        var key = campid + '_' + i;
+        var x = xArr[i];
+
+        var bp = document.createElement('div');
+        bp.className = 'banplate';
+        bp.id = 'bp-' + key;
+        bp.style.left = x + 'px';
+        bp.style.top  = BAN_TOP + 'px';
+
+        var bhi = document.createElement('img');
+        bhi.className = 'ban-hero';
+        bhi.id  = 'bhi-' + key;
+        bhi.alt = '';
+        bhi.style.opacity = '0';
+        bhi.onerror = function () { this.style.opacity = '0'; };
+        bp.appendChild(bhi);
+        scene.appendChild(bp);
+
+        banEls[key]  = { banplate: bp, bhi: bhi };
+        prevBan[key] = { ban_heroid: undefined, banning: false };
+      }
+    }
+  }
+
+  /* ── Score boxes ───────────────────────────────────────────── */
+  var scoreEls = {};
+
+  function buildScoreBoxes() {
+    [1, 2].forEach(function(c) {
+      var box = document.createElement('div');
+      box.id = 'score-c' + c;
+      box.className = 'score-box';
+      scene.appendChild(box);
+      scoreEls[c] = box;
+    });
+  }
+
+  /* Horizontal bars, centered inside the 158px-wide .score-box (matches
+     the CSS .score-box width) — each 35px wide with a 6px gap, so total
+     bar count changes the centering offset, not the bar/gap size. */
+  var SCORE_BAR_W = 35, SCORE_BAR_GAP = 6, SCORE_BOX_W = 158;
+
+  function renderBars(container, total, scored, goldFromRight) {
+    container.innerHTML = '';
+    var totalW = total * SCORE_BAR_W + (total - 1) * SCORE_BAR_GAP;
+    var startX = (SCORE_BOX_W - totalW) / 2;
+    for (var i = 0; i < total; i++) {
+      var bar = document.createElement('div');
+      bar.className = 'score-bar';
+      bar.style.left = (startX + i * (SCORE_BAR_W + SCORE_BAR_GAP)) + 'px';
+      var isGold = goldFromRight ? (i >= total - scored) : (i < scored);
+      if (isGold) bar.classList.add('scored');
+      container.appendChild(bar);
+    }
+  }
+
+  function pollMatchState() {
+    fetch('/match/state', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(s) {
+        var maxWins = Math.ceil(parseInt((s.series || 'BO3').replace('BO', '')) / 2);
+        var home    = s.home || s.teamA;
+        var away    = s.away || s.teamB;
+        var swapped = s.swapped !== undefined ? s.swapped : (s.blueTeam === 'B');
+        var c1Team  = swapped ? away : home;
+        var c2Team  = swapped ? home : away;
+        renderBars(scoreEls[1], maxWins, c1Team.score, true);
+        renderBars(scoreEls[2], maxWins, c2Team.score, false);
+
+        /* Coach name — realme skin sources this from the Match Board
+           dashboard's manually-set home/away.coach field, NOT the draft
+           API's coach_in (unlike the original Draft.html). c1Team/c2Team
+           are already swap-aware from the score-bar logic above, so no
+           extra swap handling needed here. */
+        updateCoachDisplay('home', c1Team.coach);
+        updateCoachDisplay('away', c2Team.coach);
+      })
+      .catch(function() {});
+  }
+
+  /* ── Build team logos ──────────────────────────────────────── */
+  function buildTeamLogos() {
+    [1, 2].forEach(function(c) {
+      var wrap = document.createElement('div');
+      wrap.id = 'draft-logo-c' + c;
+      wrap.className = 'draft-team-logo';
+
+      var fb = document.createElement('div');
+      fb.className = 'draft-logo-fallback';
+
+      var img = document.createElement('img');
+      img.className = 'draft-logo-img';
+      img.alt = '';
+      img.style.display = 'none';
+      img.onload  = function() { img.style.display = 'block'; fb.style.display = 'none'; };
+      img.onerror = function() { img.style.display = 'none';  fb.style.display = ''; };
+
+      wrap.appendChild(fb);
+      wrap.appendChild(img);
+      scene.appendChild(wrap);
+
+      logoEls[c] = { img: img, fb: fb };
+    });
+  }
+
+  /* ── Build center logo — RMC badge (Rectangle_1), standalone, not
+     per-side/per-seat. ── */
+  function buildCenterLogo() {
+    var img = document.createElement('img');
+    img.id = 'draft-center-logo';
+    img.alt = '';
+    img.src = DRAFT_LOGO_URL;
+    scene.appendChild(img);
+  }
+
+  /* ── Draft Recap — previous game's pick/ban recap. Lives outside
+     #scene (own top-level layer, own show/hide) so it isn't affected by
+     the main draft scene's slide transform and can show independently
+     of whether the pick/ban UI itself is showing. campid convention:
+     camp_list[0] = camp1 = blue/left, camp_list[1] = camp2 = red/right
+     (same as every other MLBB feed this overlay consumes). ── */
+  var draftRecapPage = null;
+  var drBlue = null, drRed = null;
+  var drShouldShow = false;
+  var drOutTimer = null;
+  var drPollTimer = null;
+
+  /* pick_status → border/glow class + label text. Only "banned" and
+     "stolen" get special treatment — "repick"/"none"/anything else
+     renders as a plain slot (see drSetStatus). */
+  var DR_PICK_STATUS_CLASS = { banned: 'dr-status-banned', stolen: 'dr-status-stolen' };
+  var DR_PICK_STATUS_LABEL = { banned: 'BANNED', stolen: 'STOLEN' };
+  /* ban_status → border/glow class. No label on ban slots. */
+  var DR_BAN_STATUS_CLASS  = { ban_again: 'dr-status-ban-again', ban_to_pick: 'dr-status-ban-to-pick' };
+
+  function drBuildCard(side) {
+    var bg = document.createElement('div');
+    bg.className = 'dr-bg';
+    bg.id = 'dr-' + side + '-bg';
+
+    var title = document.createElement('div');
+    title.className = 'dr-title';
+    title.id = 'dr-' + side + '-title';
+    var titleText = document.createElement('span');
+    titleText.className = 'dr-title-text dr-' + side + '-title-text';
+    title.appendChild(titleText);
+    bg.appendChild(title);
+
+    var picks = [], bans = [];
+    for (var i = 1; i <= 5; i++) {
+      var pick = document.createElement('div');
+      pick.className = 'dr-pick';
+      pick.id = 'dr-' + side + '-pick-' + i;
+      var vid = document.createElement('video');
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.preload = 'none';
+      pick.appendChild(vid);
+
+      var pickStatus = document.createElement('div');
+      pickStatus.className = 'dr-status';
+      var pickLabel = document.createElement('span');
+      pickLabel.className = 'dr-status-label';
+      pickStatus.appendChild(pickLabel);
+      pick.appendChild(pickStatus);
+
+      bg.appendChild(pick);
+      picks.push({ vid: vid, statusEl: pickStatus, labelEl: pickLabel, prevStatus: '', prevHeroid: undefined });
+
+      var ban = document.createElement('div');
+      ban.className = 'dr-ban';
+      ban.id = 'dr-' + side + '-ban-' + i;
+      var img = document.createElement('img');
+      img.alt = '';
+      img.onerror = function () { this.style.visibility = 'hidden'; };
+      ban.appendChild(img);
+
+      var banStatus = document.createElement('div');
+      banStatus.className = 'dr-status';
+      ban.appendChild(banStatus);
+
+      bg.appendChild(ban);
+      bans.push({ img: img, statusEl: banStatus, labelEl: null, prevStatus: '', prevBanId: undefined });
+    }
+
+    return { bg: bg, titleText: titleText, picks: picks, bans: bans };
+  }
+
+  function buildDraftRecap() {
+    draftRecapPage = document.createElement('div');
+    draftRecapPage.id = 'draftrecap-page';
+    drBlue = drBuildCard('blue');
+    drRed  = drBuildCard('red');
+    draftRecapPage.appendChild(drBlue.bg);
+    draftRecapPage.appendChild(drRed.bg);
+    document.body.appendChild(draftRecapPage);
+  }
+
+  /* Applies (or clears) a status border/glow/label on one slot, and
+     plays a one-shot "in" flourish exactly when the status actually
+     changes — draft recap data can be re-fetched while the panel is
+     already showing (see drPollTimer below), so a status can appear or
+     change live, not just on first reveal. Never relies on
+     animationend (memory: feedback_overlay_animations.md) — the
+     .dr-status-in class is added, then removed on a plain timer. */
+  function drSetStatus(slot, statusKey, classMap, labelMap) {
+    var cls = classMap[statusKey] || '';
+    if (slot.prevStatus === cls) return;
+
+    for (var k in classMap) { slot.statusEl.classList.remove(classMap[k]); }
+    slot.statusEl.classList.remove('dr-status-in');
+
+    if (cls) {
+      slot.statusEl.classList.add(cls);
+      if (slot.labelEl) slot.labelEl.textContent = (labelMap && labelMap[statusKey]) || '';
+      void slot.statusEl.offsetWidth; /* force reflow so the animation replays every time */
+      slot.statusEl.classList.add('dr-status-in');
+      setTimeout(function () { slot.statusEl.classList.remove('dr-status-in'); }, 400);
+    } else if (slot.labelEl) {
+      slot.labelEl.textContent = '';
+    }
+    slot.prevStatus = cls;
+  }
+
+  function drApplySide(card, camp, gameNum, reversePickOrder) {
+    var teamAbbr = (camp && camp.team_name_simple) || '';
+    card.titleText.textContent = teamAbbr + ' DRAFT RECAP - GAME ' + gameNum;
+    var players = (camp && camp.player_list) || [];
+    /* Blue's player_list is already left-to-right in display order
+       (6,7,8,9,10). Red's is reversed to display right-to-left
+       (10,9,8,7,6) — see drFetchAndApply's reversePickOrder arg. */
+    for (var i = 0; i < 5; i++) {
+      var p        = players[reversePickOrder ? (4 - i) : i] || {};
+      var heroid   = p.hero_recap     || 0;
+      var banId    = p.ban_hero_recap || 0;
+      var pickSlot = card.picks[i];
+      var banSlot  = card.bans[i];
+
+      /* Only touch the video element when the hero actually changes —
+         drFetchAndApply() re-runs every 3s via drPollTimer, and
+         re-assigning .src + currentTime=0 + play() on every tick
+         (even to the SAME hero) restarted the clip from frame 0 each
+         time, which is what was reading as flickering/restarting. */
+      if (heroid !== pickSlot.prevHeroid) {
+        pickSlot.prevHeroid = heroid;
+        if (heroid > 0) {
+          pickSlot.vid.src = 'assets/draft/webm/HERO_PICK_DRAFT_' + heroid + '.webm';
+          pickSlot.vid.currentTime = 0;
+          pickSlot.vid.play().catch(function () {});
+        } else {
+          pickSlot.vid.removeAttribute('src');
+          pickSlot.vid.load();
+        }
+      }
+      drSetStatus(pickSlot, p.pick_status, DR_PICK_STATUS_CLASS, DR_PICK_STATUS_LABEL);
+
+      if (banId !== banSlot.prevBanId) {
+        banSlot.prevBanId = banId;
+        if (banId > 0) {
+          banSlot.img.style.visibility = '';
+          banSlot.img.src = 'hero/HERO_' + banId + '_KOTAK.png';
+        } else {
+          banSlot.img.removeAttribute('src');
+          banSlot.img.style.visibility = 'hidden';
+        }
+      }
+      drSetStatus(banSlot, p.ban_status, DR_BAN_STATUS_CLASS, null);
+    }
+  }
+
+  /* Recap's game number is "current game minus 1" (the game that JUST
+     finished) — same computation Match Board / pollMatchState() use for
+     the current game number (both scores + 1), just without the +1. */
+  function drFetchGameNum() {
+    return fetch('/match/state', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        var home = s.home || s.teamA || {};
+        var away = s.away || s.teamB || {};
+        return Math.max(1, (home.score || 0) + (away.score || 0));
+      })
+      .catch(function () { return 1; });
+  }
+
+  function drFetchAndApply() {
+    return Promise.all([
+      fetch(draftRecapApiUrl, { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      drFetchGameNum(),
+    ]).then(function (results) {
+      var data    = results[0];
+      var gameNum = results[1];
+      var camps   = (data && data.camp_list) || [];
+      drApplySide(drBlue, camps[0], gameNum, false);
+      drApplySide(drRed,  camps[1], gameNum, true);
+    });
+  }
+
+  function drAnimateIn() {
+    drShouldShow = true;
+    clearTimeout(drOutTimer);
+    draftRecapPage.style.display = 'block';
+
+    /* Fire-and-forget — data populates whenever this resolves. The
+       reveal below does NOT wait on it: draftRecapApiUrl is a
+       third-party scorekeeping feed with no timeout on this fetch, so
+       gating visibility behind it meant one slow/unreachable API call
+       could leave the panel silently stuck off-screen (display:block
+       but never getting draftrecap-visible) with no retry — hide
+       always "worked" since it has no fetch dependency, which is what
+       made this look like show/hide were asymmetrically broken. */
+    drFetchAndApply().catch(function () {});
+
+    /* Double rAF so the browser commits display:block at the
+       off-screen transform before adding the "visible" class (which
+       switches to the slide-in transition) — see icAnimateIn() for
+       why the extra frame matters. */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (drShouldShow) draftRecapPage.classList.add('draftrecap-visible');
+      });
+    });
+
+    /* Keep polling while shown — pick_status/ban_status can still
+       change live even though the game itself is over (corrections
+       from the scorekeeping tool), and drSetStatus() only replays the
+       "in" flourish when a status actually changes, so this doesn't
+       re-animate anything that's already settled. */
+    clearInterval(drPollTimer);
+    drPollTimer = setInterval(function () {
+      if (drShouldShow) drFetchAndApply().catch(function () {});
+    }, 3000);
+  }
+
+  function drAnimateOut() {
+    drShouldShow = false;
+    clearInterval(drPollTimer);
+    draftRecapPage.classList.remove('draftrecap-visible');
+    clearTimeout(drOutTimer);
+    drOutTimer = setTimeout(function () {
+      draftRecapPage.style.display = 'none';
+    }, 460); /* matches .dr-bg's 0.45s "out" transition above */
+  }
+
+  /* Dashboard Edit-tab force-show (see EDIT_CONFIGS' draft_recap in
+     dashboard.html) — fetches live data once so the hero/ban slots and
+     title text sit at realistic sizes while dragging. */
+  window.showDraftRecapForEdit = function () {
+    drShouldShow = true;
+    clearTimeout(drOutTimer);
+    draftRecapPage.style.display = 'block';
+    draftRecapPage.classList.add('draftrecap-visible');
+    drFetchAndApply().catch(function () {});
+  };
+
+  /* Restore real server-side shown/hidden state on load (checkOverlays.
+     draftrecap), so a (re)loaded page picks up an already-shown recap
+     instead of guessing — default is hidden (CSS default), matching the
+     server default of false, so there's no flash either way. */
+  fetch('/overlay/check-overlays', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) { if (d && d.draftrecap) drAnimateIn(); })
+    .catch(function () {});
+
+  /* ── Build coach name + headset (home + away) ──────────────────
+     realme design drops the BPM heart-rate readout entirely — just a
+     gold headset icon next to the coach name, mirrored per side. Icon
+     sits OUTWARD of the name (left of it on home/blue, right of it on
+     away/red) — built via DOM order (icon-then-name for home, name-
+     then-icon for away) rather than flex-direction tricks, so it's
+     unambiguous which element ends up on which visual side. */
+  var DCOACH_HEADSET_SVG =
+    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/>' +
+    '<rect x="2" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
+    '<rect x="16" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
+    '</svg>';
+
+  var dcoachRefs = {};   /* 'home'|'away' -> { nameTextEl, headsetEl } */
+  var RCOACH_NAME_MAXW = 251 - 34 - 18; /* box width minus headset + gap */
+
+  function buildCoachSide(side) {
+    var box = document.createElement('div');
+    box.className = 'rcoach rcoach-' + side;
+
+    var headset = document.createElement('div');
+    headset.className = 'rcoach-headset';
+    headset.innerHTML = DCOACH_HEADSET_SVG;
+    /* Hidden until pollMatchState() confirms a real coach name (see
+       updateCoachDisplay) — starting hidden avoids a flash of a headset
+       icon with no coach name next to it before the first poll. */
+    headset.style.display = 'none';
+
+    var name = document.createElement('div');
+    name.className = 'rcoach-name';
+    var nameText = document.createElement('span');
+    nameText.className = 'rcoach-name-text';
+    name.appendChild(nameText);
+
+    /* Home: icon then name (icon ends up at the left/outer edge).
+       Away: name then icon (icon ends up at the right/outer edge) —
+       mirror of home, per the "headset to the right on red side" spec. */
+    if (side === 'away') { box.appendChild(name); box.appendChild(headset); }
+    else                 { box.appendChild(headset); box.appendChild(name); }
+    scene.appendChild(box);
+
+    dcoachRefs[side] = { nameTextEl: nameText, headsetEl: headset };
+  }
+
+  /* Coach name fit — maximize a single line to fill the box height;
+     only wrap to two (smaller) lines when a name genuinely doesn't fit
+     on one ("if it doesn't fit, move to second row" per spec). Same
+     binary-shrink shape as the original dcoachFitName, resized for the
+     bigger 9.5pt/40px ceiling and wider box. */
+  function dcoachFitName(el, nameStr) {
+    var maxW = RCOACH_NAME_MAXW, maxH = 65, ceilingPx = 40;
+
+    function fitsOneLine(size) {
+      el.textContent      = nameStr;
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize   = size + 'px';
+      el.style.lineHeight = maxH + 'px';
+      return el.scrollWidth <= maxW;
+    }
+
+    var floor = 18;
+    for (var s = ceilingPx; s >= floor; s--) {
+      if (fitsOneLine(s)) return;
+    }
+
+    /* Doesn't fit on one line even at the floor size — break at the most
+       balanced word boundary and stack two lines instead. */
+    var words = nameStr.split(' ');
+    var line1 = nameStr, line2 = '';
+    if (words.length > 1) {
+      var best = 1, bestDiff = Infinity;
+      for (var i = 1; i < words.length; i++) {
+        var l1 = words.slice(0, i).join(' '), l2 = words.slice(i).join(' ');
+        var diff = Math.abs(l1.length - l2.length);
+        if (diff < bestDiff) { bestDiff = diff; best = i; }
+      }
+      line1 = words.slice(0, best).join(' ');
+      line2 = words.slice(best).join(' ');
+    }
+    function fitsTwoLines(size) {
+      el.innerHTML        = line1 + '<br>' + line2;
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize   = size + 'px';
+      el.style.lineHeight = (size + 1) + 'px';
+      return el.scrollWidth <= maxW;
+    }
+    for (var s2 = ceilingPx; s2 >= floor; s2--) {
+      if (fitsTwoLines(s2)) return;
+    }
+    for (var s3 = floor - 1; s3 >= 9; s3--) {
+      if (fitsTwoLines(s3)) return;
+    }
+    fitsTwoLines(9); /* smallest fallback if even that won't fit */
+  }
+
+  function buildCoachUI() {
+    buildCoachSide('home');
+    buildCoachSide('away');
+    /* Left blank (and headset hidden, per buildCoachSide) until
+       pollMatchState() gets a real coach name — see updateCoachDisplay. */
+  }
+
+  /* Coach name + headset visibility. realme sources this from the Match
+     Board dashboard's home/away.coach field (see pollMatchState()) —
+     NOT the draft API's coach_in like the original Draft.html — so
+     casters/producers can set it from the same panel they already use
+     for team names/scores. campid is already positional (1=blue/left,
+     2=red/right), so camp1 always maps to 'home', camp2 to 'away'. Any
+     falsy value (including the unset default '') means blank name,
+     headset hidden. */
+  function updateCoachDisplay(side, coachName) {
+    var refs = dcoachRefs[side];
+    if (!refs) return;
+    var known = !!coachName;
+    dcoachFitName(refs.nameTextEl, known ? coachName : '');
+    if (refs.headsetEl) refs.headsetEl.style.display = known ? '' : 'none';
+  }
+
+  /* ── Build draft timer + turn indicator ───────────────────────
+     Replaces the old status-text/countdown-row/tri triangles with the
+     realme design's single digit readout (Rectangle_6) flanked by two
+     gold turn-indicator images (Layer_1 / Layer_1_copy). ── */
+  function buildStatusArea() {
+    var timerBox = document.createElement('div');
+    timerBox.id = 'rtimer-box';
+    var timerTxt = document.createElement('div');
+    timerTxt.id = 'rtimer-text';
+    timerBox.appendChild(timerTxt);
+    scene.appendChild(timerBox);
+
+    /* Each side is a small container holding one triangle image — see
+       .rturn-tri-copy above for the loop animation. */
+    function buildTurnTri(id) {
+      var wrap = document.createElement('div');
+      wrap.id = id;
+      wrap.className = 'rturn-tri';
+      var img = document.createElement('img');
+      img.className = 'rturn-tri-copy';
+      img.src = 'assets/draftrealme/realme_goldtri.png';
+      img.alt = '';
+      wrap.appendChild(img);
+      scene.appendChild(wrap);
+    }
+    buildTurnTri('rturn-blue');
+    buildTurnTri('rturn-red');
+  }
+
+
+  /* Simple "button-in" pop reveal — replaces the old matte-wipe reveal
+     (canvas compositing + FRONT/VICTORY photo sequence + hero-name
+     banner slide). No card resize either: cards are fixed size in this
+     skin, so there's no collapse/slide-in transition to wait on — the
+     glow trigger just waits out the pop animation's own duration instead. */
+  var HERO_POP_MS = 450; /* matches .hero-pop-in's 0.42s CSS animation, +buffer */
+
+  function startPickReveal(e, campid, p) {
+    var heroVid = e.heroVid;
+
+    heroVid.style.display = 'block';
+    heroVid.classList.remove('hero-pop-in');
+    void heroVid.offsetWidth; /* force reflow so the animation replays every time */
+    heroVid.classList.add('hero-pop-in');
+    heroVid.play().catch(function () {});
+
+    setTimeout(function () {
+      /* Stop the "picking" visuals now that the hero has revealed */
+      e.pickVid.style.display = 'none';
+      e.pickVid.pause();
+      e.pickGrad.style.display = 'none';
+
+      /* Gold flash-and-fade glow (.picked-glow-gold — same for both camps). */
+      var gd = e.glowDiv;
+      gd.classList.remove('picked');
+      void gd.offsetWidth;
+      gd.classList.add('picked');
+    }, HERO_POP_MS);
+  }
+
+  /* ── Ban hero reveal ───────────────────────────────────────── */
+  function revealBanHero(bhi) {
+    bhi.style.opacity = '1';
+    bhi.style.transform = '';
+    bhi.style.filter = '';
+    bhi.classList.remove('ban-revealing');
+    void bhi.offsetWidth;
+    bhi.classList.add('ban-revealing');
+    /* ban-reveal runs 0.95s — use setTimeout instead of animationend */
+    setTimeout(function () {
+      bhi.classList.remove('ban-revealing');
+      bhi.style.transform = 'translateY(0)';
+      bhi.style.filter    = 'grayscale(1) brightness(0.5)';
+    }, 950);
+  }
+
+  /* ── Update pick seat ──────────────────────────────────────── */
+  function updatePickSeat(campid, seatIdx, seat) {
+    var key    = campid + '_' + seatIdx;
+    var e      = pickEls[key];
+    var p      = prevPick[key];
+    var heroid = seat.heroid  || 0;
+    var pick   = !!seat.picking;
+    var ban    = !!seat.banning;
+
+    e.nameEl.textContent = seat.name || '';
+
+    /* Role icon — follows the player (roleid), not the seat slot.
+       Updates whenever a different player occupies this slot (e.g. draft swap). */
+    var roleid = seat.roleid || 0;
+    var assignedRole = (roleid && playerRoles[roleid]) ||
+      (seat.name && localDraftRoles[seat.name]) || null;
+    if (assignedRole !== p.assignedRole) {
+      if (assignedRole && ROLE_MAP[assignedRole]) {
+        e.roleImg.src = DRAFT_LOGO_URL;
+        e.roleImg.style.opacity = '';
+      }
+      p.assignedRole = assignedRole;
+    }
+    p.roleid = roleid;
+
+    if (heroid !== p.heroid) {
+      if (heroid > 0) {
+        /* Load and play the hero WebM */
+        e.heroVid.src = 'assets/draft/webm/HERO_PICK_DRAFT_' + heroid + '.webm';
+        e.heroVid.currentTime = 0;
+
+        if (p.heroid !== undefined) {
+          /* Live pick: button-in pop drives play() and display. */
+          startPickReveal(e, campid, p);
+        } else {
+          /* First load: show video directly, no pop-in */
+          e.heroVid.style.display = 'block';
+          e.heroVid.play().catch(function () {});
+        }
+
+        e.roleImg.style.display = 'none';
+      } else {
+        /* Slot reset */
+        e.pickGrad.style.display = 'none';
+        e.heroVid.pause();
+        e.heroVid.src = '';
+        e.heroVid.style.display = 'none';
+        e.heroVid.classList.remove('hero-pop-in');
+        e.glowDiv.classList.remove('picked');
+        e.roleImg.style.display = '';
+      }
+      p.heroid = heroid;
+    }
+
+    /* Pick background video + gradient */
+    if (pick && !p.picking) {
+      e.pickVid.currentTime = 0;
+      e.pickVid.style.display = 'block';
+      e.pickVid.play().catch(function () {});
+      e.pickGrad.style.display = 'block';
+    } else if (!pick && p.picking) {
+      e.pickGrad.style.display = 'none';
+      if (heroid === 0) {
+        e.pickVid.style.display = 'none';
+        e.pickVid.pause();
+      }
+      /* else: startPickReveal()'s setTimeout will stop the pick visuals
+         once the reveal pop finishes */
+    }
+
+
+    /* Role icon: hide immediately when picking starts */
+    var ri = e.roleImg;
+    if (pick && !p.picking) {
+      ri.style.display = 'none';
+    }
+    /* Reset role icon to visible if the draft resets */
+    if (heroid === 0 && p.heroid > 0) {
+      ri.style.display = '';
+    }
+
+    p.picking = pick;
+    p.banning = ban;
+  }
+
+  /* ── Update ban seat ───────────────────────────────────────── */
+  function updateBanSeat(campid, seatIdx, seat) {
+    var key        = campid + '_' + seatIdx;
+    var e          = banEls[key];
+    var p          = prevBan[key];
+    var ban_heroid = seat.ban_heroid || 0;
+    var banning    = !!seat.banning;
+
+    if (ban_heroid !== p.ban_heroid) {
+      if (ban_heroid > 0) {
+        e.bhi.src = 'hero/HERO_' + ban_heroid + '_KOTAK.png';
+        if (p.ban_heroid !== undefined) {
+          revealBanHero(e.bhi);
+        } else {
+          /* First load: show already-banned hero silently */
+          e.bhi.style.opacity   = '1';
+          e.bhi.style.transform = 'translateY(0)';
+          e.bhi.style.filter    = 'grayscale(1) brightness(0.5)';
+        }
+      } else {
+        e.bhi.src = '';
+        e.bhi.style.opacity   = '0';
+        e.bhi.style.transform = '';
+        e.bhi.style.filter    = '';
+      }
+      p.ban_heroid = ban_heroid;
+    }
+
+    /* Ban plate red glow when banning */
+    if (banning !== p.banning) {
+      if (banning) {
+        e.banplate.classList.add('banning');
+      } else {
+        e.banplate.classList.remove('banning');
+      }
+      p.banning = banning;
+    }
+  }
+
+  /* ── Update status text + countdown + triangles ────────────── */
+  function fmtTime(s) {
+    s = Math.max(0, Math.round(s));
+    var m = Math.floor(s / 60);
+    var r = s % 60;
+    if (m > 0) return m + ':' + (r < 10 ? '0' : '') + r;
+    return String(s);
+  }
+
+  function updateStatus(gameData, allSeats) {
+    var anyBanning = allSeats.some(function (s) { return !!s.banning; });
+    var anyPicking = allSeats.some(function (s) { return !!s.picking; });
+    var allPicked  = allSeats
+      .filter(function (s) { return !s.judger; })
+      .every(function (s)  { return (s.heroid || 0) > 0; });
+
+    var txt = '';
+    if      (anyBanning) txt = 'BANNING';
+    else if (anyPicking) txt = 'PICKING';
+    else if (allPicked)  txt = 'FINAL CHANGES';
+
+    /* realme design has no BANNING/PICKING/FINAL CHANGES label — just
+       the plain countdown digits in the new #rtimer-text box. */
+    var leftTime = gameData.state_left_time || 0;
+    document.getElementById('rtimer-text').textContent =
+      (txt && leftTime > 0) ? fmtTime(leftTime) : '';
+
+    /* Turn indicator: show blue's gold triangle if camp1 is active,
+       red's if camp2 is active. */
+    var camp1Active = allSeats.some(function (s) {
+      return s.campid === 1 && (!!s.picking || !!s.banning);
+    });
+    var camp2Active = allSeats.some(function (s) {
+      return s.campid === 2 && (!!s.picking || !!s.banning);
+    });
+
+    document.getElementById('rturn-blue').classList.toggle('active', camp1Active);
+    document.getElementById('rturn-red').classList.toggle('active', camp2Active);
+
+    /* Timer bar */
+    var activeCamp = camp1Active ? 1 : camp2Active ? 2 : 0;
+    tmSync(activeCamp, gameData.state_left_time || 0);
+
+  }
+
+  /* ── Poll ──────────────────────────────────────────────────── */
+  /* ── Full reset on new battleid ────────────────────────────── */
+  var currentBattleId = null;
+
+  function resetAll() {
+    /* Clear cached roles — server holds the lock, client will re-fetch on next poll */
+    playerRoles = {};
+
+    /* Pick seats */
+    Object.keys(pickEls).forEach(function (key) {
+      var e = pickEls[key];
+      var p = prevPick[key];
+
+      /* Videos */
+      e.heroVid.pause(); e.heroVid.src = ''; e.heroVid.style.display = 'none';
+      e.heroVid.classList.remove('hero-pop-in');
+      e.pickVid.pause(); e.pickVid.style.display = 'none';
+      e.pickGrad.style.display = 'none';
+
+      /* Glow / role */
+      e.glowDiv.classList.remove('picked');
+      e.roleImg.src = '';
+      e.roleImg.style.opacity = '0';
+      e.roleImg.style.display = '';
+
+      e.nameEl.textContent = '';
+
+      /* Reset prev state */
+      prevPick[key] = {
+        heroid: undefined, picking: false, banning: false,
+        roleid: undefined, assignedRole: undefined
+      };
+    });
+
+    /* Ban seats */
+    Object.keys(banEls).forEach(function (key) {
+      var e = banEls[key];
+      e.bhi.src = ''; e.bhi.style.opacity = '0';
+      e.bhi.style.transform = ''; e.bhi.style.filter = '';
+      e.bhi.classList.remove('ban-revealing');
+      e.banplate.classList.remove('banning');
+      prevBan[key] = { ban_heroid: undefined, banning: false };
+    });
+
+    /* Team logos */
+    [1, 2].forEach(function(c) {
+      var le = logoEls[c];
+      if (!le) return;
+      le.img.src = '';
+      le.img.style.display = 'none';
+      delete le.img.dataset.team;
+      le.fb.style.display = '';
+    });
+
+    /* Timer readout / turn indicator */
+    document.getElementById('rtimer-text').textContent = '';
+    document.getElementById('rturn-blue').classList.remove('active');
+    document.getElementById('rturn-red').classList.remove('active');
+
+    /* Timer bar */
+    tmHasStart = false;
+    tmSync(0, 0);
+  }
+
+  /* theapi.dpdns.org/sql/draft-info-only/ uses a different shape than the
+     general game-data feed (no code/data wrapper, BattleID instead of
+     battleid, camp_list entries hold a player_list[] instead of named
+     seat_1..seat_5 props, hero_name is a plain string not an array, and
+     there's no roleid). Rewrite it into the same { code, data } shape the
+     rest of poll()/updatePickSeat()/updateBanSeat()/updateStatus() already
+     expect, so none of that code needs to know which feed it's looking at.
+     Old-format payloads (data.camp_list present) pass through untouched. */
+  function normalizeDraftPayload(raw) {
+    if (!raw || !Array.isArray(raw.camp_list) || !raw.camp_list.length || !raw.camp_list[0].player_list) {
+      usingDraftInfoOnlyFormat = false;
+      return raw;
+    }
+    usingDraftInfoOnlyFormat = true;
+    var campList = raw.camp_list.map(function (camp, idx) {
+      var players = camp.player_list || [];
+      var out = {
+        campid: (players[0] && players[0].campid) || (idx + 1),
+        team_simple_name: camp.team_name_simple || camp.team_name || ''
+      };
+      players.forEach(function (p, seatIdx) {
+        /* No explicit seat/position field in this feed — player_list order
+           lines up with fixed seat order (seat_1..seat_5) in every draft
+           observed so far, same as ban_order/pick_order climbing in lockstep
+           with array order. */
+        out['seat_' + (seatIdx + 1)] = {
+          name: p.name || '',
+          campid: p.campid,
+          heroid: p.heroid || 0,
+          hero_name: p.hero_name ? [p.hero_name] : [],
+          ban_heroid: p.ban_heroid || 0,
+          banning: !!p.banning,
+          picking: !!p.picking,
+          role: p.role || ''
+        };
+      });
+      return out;
+    });
+    return { code: 0, data: { battleid: raw.BattleID || null, state_left_time: raw.state_time || 0, camp_list: campList } };
+  }
+
+  function poll() {
+    fetch(apiUrl, { cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (json) {
+        json = normalizeDraftPayload(json);
+        if (json.code !== 0 || !json.data) throw new Error('unexpected payload');
+
+        /* Detect new battle → reset everything before processing new data */
+        var bid = json.data.battleid || null;
+        if (bid && bid !== currentBattleId) {
+          if (currentBattleId !== null) { window.location.reload(); return; }
+          currentBattleId = bid;
+        }
+
+        var campList = json.data.camp_list || [];
+        var camp1 = campList.find(function (c) { return c.campid === 1; });
+        var camp2 = campList.find(function (c) { return c.campid === 2; });
+
+        /* Team logos — only reload when team name changes. No team NAME
+           text in this skin (logo only) and coach comes from Match Board
+           now (pollMatchState → updateCoachDisplay), not this feed. */
+        [1, 2].forEach(function(campid) {
+          var camp = campid === 1 ? camp1 : camp2;
+          var le   = logoEls[campid];
+          if (!le) return;
+          var name = ((camp && camp.team_simple_name) || '').toUpperCase();
+          if (name && le.img.dataset.team !== name) {
+            le.img.dataset.team  = name;
+            le.img.style.display = 'none';
+            le.fb.style.display  = '';
+            le.img.src           = '/logos/' + name + '.png';
+          }
+        });
+
+        /* Role assignment: server-locked roles (keyed by roleid) for the general
+           feed, or a client-local name-keyed equivalent for draft-info-only,
+           which has no roleid at all (see normalizeDraftPayload). */
+        if (usingDraftInfoOnlyFormat) {
+          if (localDraftRolesBattleId !== currentBattleId) {
+            localDraftRoles = assignLocalDraftRoles(camp1, camp2);
+            localDraftRolesBattleId = currentBattleId;
+          }
+        } else if (Object.keys(playerRoles).length === 0 && currentBattleId) {
+          fetchAndApplyRoles(currentBattleId);
+        }
+
+        var allSeats = [];
+
+        for (var i = 1; i <= 5; i++) {
+          if (camp1 && camp1['seat_' + i]) {
+            updatePickSeat(1, i - 1, camp1['seat_' + i]);
+            updateBanSeat (1, i - 1, camp1['seat_' + i]);
+            allSeats.push(camp1['seat_' + i]);
+          }
+          if (camp2 && camp2['seat_' + i]) {
+            updatePickSeat(2, i - 1, camp2['seat_' + i]);
+            updateBanSeat (2, i - 1, camp2['seat_' + i]);
+            allSeats.push(camp2['seat_' + i]);
+          }
+        }
+
+        updateStatus(json.data, allSeats);
+      })
+      .catch(function () {});
+  }
+
+  /* ── Whole-scene show/hide — slides upward to show, downward to hide
+     (see #scene / #scene.draft-hidden in the <style> block above).
+     `instant` skips the transition, used only for the restore-on-load
+     fetch below so a reload doesn't visibly replay the slide. ── */
+  function showDraftScene(instant) {
+    var scene = document.getElementById('scene');
+    if (!scene) return;
+    if (instant) scene.style.transition = 'none';
+    scene.classList.remove('draft-hidden');
+    if (instant) requestAnimationFrame(function () { scene.style.transition = ''; });
+  }
+  function hideDraftScene(instant) {
+    var scene = document.getElementById('scene');
+    if (!scene) return;
+    if (instant) scene.style.transition = 'none';
+    scene.classList.add('draft-hidden');
+    if (instant) requestAnimationFrame(function () { scene.style.transition = ''; });
+  }
+
+  /* Restore-on-load — runs immediately (not gated behind the 2s SSE
+     delay below) since the default (no class) is visible; only need to
+     act if the server says it was explicitly hidden, so a reload never
+     shows a spurious blank frame while this resolves.
+     PREVIEW_ONLY skips this entirely — a preview instance starts hidden
+     regardless of real state and only reveals itself via
+     window.previewTrigger, never by guessing what's actually live. */
+  if (PREVIEW_ONLY) {
+    hideDraftScene(true);
+  } else {
+    fetch('/overlay/draftrealme-state', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.active === false) hideDraftScene(true); })
+      .catch(function () {});
+  }
+
+  /* SSE — listen for global debug hide.
+     Opened after a short delay so Chrome's tab throbber settles on load. */
+  setTimeout(function() {
+    // Backed by the shared SharedWorker (html/js/overlay-shared-worker.js)
+    // — this page opens zero real connections of its own now, so having
+    // several overlay browser sources/tabs open at once no longer eats
+    // into the browser's shared connection pool per page.
+    var sse = createOverlaySSE();
+    /* Fired by routes/overlayStyles.js after any Edit-tab Save — force a
+       hard reload so new position/size overrides apply immediately
+       (see Fullscreen.html's connectSSE() for the identical pattern).
+       PREVIEW_ONLY is exempt — same reasoning as Draft.html's own
+       reload listener. */
+    sse.addEventListener('reload', function() { if (PREVIEW_ONLY) return; window.location.reload(); });
+    sse.addEventListener('draftrealme', function(ev) {
+      if (PREVIEW_ONLY) return; /* decoupled from real state — see PREVIEW_ONLY above */
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.action === 'show') showDraftScene();
+        else if (d.action === 'hide') hideDraftScene();
+      } catch (e) {}
+    });
+    sse.addEventListener('draftrecap', function(ev) {
+      if (PREVIEW_ONLY) return;
+      try {
+        var d = JSON.parse(ev.data);
+        if (d.action === 'show') drAnimateIn();
+        else if (d.action === 'hide') drAnimateOut();
+      } catch (e) {}
+    });
+    /* Catch-up re-sync — this SSE listener only exists as of NOW (the
+       2s startup delay above), but a Show/Hide click could have fired
+       and broadcast anytime before this point (e.g. a Control-tab
+       preview iframe reloads Draft.html fresh every time its sidebar
+       row is selected, and a click on "Draft Recap Show" right after
+       selecting it easily lands inside that 2s blind window — the
+       server state DID flip and broadcast, this page just wasn't
+       listening yet to catch it). Re-fetch the real state now and
+       reconcile instead of trusting the earlier restore-fetch, which
+       ran before any of this could have happened. */
+    if (!PREVIEW_ONLY) {
+      fetch('/overlay/check-overlays', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var shouldShow = !!(d && d.draftrecap);
+          if (shouldShow && !drShouldShow) drAnimateIn();
+          else if (!shouldShow && drShouldShow) drAnimateOut();
+        })
+        .catch(function () {});
+    }
+  }, 2000);
+
+  /* ── Local-only preview trigger — called directly by the dashboard's
+     Control-tab Preview button via this iframe's contentWindow, bypassing
+     the network/SSE entirely (same contract as Fullscreen.html's
+     window.previewTrigger). This is the ONLY thing that shows/hides this
+     page when PREVIEW_ONLY is set. ── */
+  window.previewTrigger = function (event, action) {
+    if (event === 'draftrealme') {
+      if (action === 'show') showDraftScene();
+      else hideDraftScene();
+    } else if (event === 'draftrecap') {
+      if (action === 'show') drAnimateIn();
+      else drAnimateOut();
+    }
+  };
+
+  buildPickPlates();
+  buildBanPlates();
+  buildScoreBoxes();
+  buildTeamLogos();
+  buildCenterLogo();
+  buildStatusArea();
+  buildDraftRecap();
+  buildCoachUI();
+  buildTimerBar();
+  pollMatchState();
+  setInterval(pollMatchState, 3000);
+
+  /* Started from the /api/draft-url fetch above once apiUrl is confirmed —
+     not called here directly, so poll()'s first tick can't run against the
+     stale DEFAULT_URL before the real setting has loaded. */
+  function startPolling() {
+    poll();
+    setInterval(poll, POLL_MS);
+  }
+
+  /* ── Load saved position/size overrides from dashboard editor ── */
+  (function loadDraftOverrides() {
+    fetch('/api/overlay-styles?file=Draft')
+      .then(function(r) { return r.json(); })
+      .then(function(styles) {
+        if (!styles || !Object.keys(styles).length) return;
+        var css = Object.keys(styles).map(function(sel) {
+          var props = styles[sel];
+          var decls = Object.keys(props).map(function(prop) {
+            var cssProp = prop === 'fontSize' ? 'font-size' : prop;
+            return cssProp + ':' + props[prop] + ' !important';
+          }).join(';');
+          return sel + '{' + decls + '}';
+        }).join('\n');
+        var style = document.createElement('style');
+        style.id = 'draft-overrides';
+        style.textContent = css;
+        document.head.appendChild(style);
+      })
+      .catch(function() {});
+  })();
+})();
+</script>
+</body>
+</html>

@@ -61,13 +61,13 @@ overlay_server2/
 │   └── devapi.js          ← GET /api/sub-info/ (local test stub)
 │
 ├── html/                  ← All overlay HTML files (served at /html/filename.html)
-│   ├── mplfs.html         ← Combined overlay: post_hearts, post_richguy, post_itemline
+│   ├── Fullscreen.html    ← Combined overlay: post_hearts, post_richguy, post_itemline
 │   ├── fights.html        ← Fight recap overlay (also served at /fights-overlay)
 │   ├── ingame_camv1.html  ← In-game item + HP overlay
 │   ├── mploverlay_v5.html ← In-game player overlay (single file)
 │   ├── mploverlay_v6.html ← v5 + fight recap (single file, legacy)
-│   ├── mploverlay_v7.html ← v6 refactored into split files (thin HTML shell only)
-│   ├── mploverlay_v7.css  ← All CSS for v7
+│   ├── ingame.html        ← v6 refactored into split files (thin HTML shell only)
+│   ├── ingame.css         ← All CSS for ingame.html
 │   ├── heart_stopping_moment_v14.html ← BPM meter overlay
 │   └── js/                ← v7 JavaScript modules (load order matters)
 │       ├── overlay-core.js    ← [1] Constants, all state, utilities, poll engine
@@ -102,7 +102,7 @@ overlay_server2/
 All HTML files are in `html/` and served by `express.static`:
 
 ```
-http://<server-ip>:3000/html/mplfs.html
+http://<server-ip>:3000/html/Fullscreen.html
 http://<server-ip>:3000/html/fights.html
 http://<server-ip>:3000/html/ingame_camv1.html
 http://<server-ip>:3000/html/mploverlay_v5.html
@@ -140,8 +140,8 @@ All asset folders (`hero/`, `items/`, `logos/`, etc.) are also served by `expres
 | GET | `/overlay/post_richguy/show\|hide` | routes/overlay.js | Postgame richguy overlay |
 | GET | `/overlay/post_itemline/show\|hide` | routes/overlay.js | Item timeline overlay |
 | GET | `/overlay/post_itemline/itemin\|itemout` | routes/overlay.js | Item timeline animation triggers |
-| GET | `/overlay/fs/hide` | routes/overlay.js | Hides ALL overlays on mplfs.html |
-| GET | `/overlay/fs/debugoff` | routes/overlay.js | Hides debug bar on mplfs.html |
+| GET | `/overlay/fs/hide` | routes/overlay.js | Hides ALL overlays on Fullscreen.html |
+| GET | `/overlay/fs/debugoff` | routes/overlay.js | Hides debug bar on Fullscreen.html |
 | GET | `/overlay/draftpredict/show\|hide` | routes/overlay.js | Draft predict overlay control |
 | GET | `/overlay/draftpredict/poll` | routes/overlay.js | Poll fallback for draftpredict |
 | GET | `/meter/show\|hide\|plus\|minus\|clear` | routes/overlay.js | BPM meter overlay control |
@@ -166,12 +166,12 @@ All overlays connect to one shared SSE stream at `/overlay/events`.
 | `meter` | heart_stopping_moment_v14.html |
 | `fights` | fights.html (+ 500ms poll fallback at `/overlay/fights/pending`) |
 | `show` / `hide` | General player BPM overlays |
-| `post_hearts` | mplfs.html — postgame BPM hearts |
-| `post_richguy` | mplfs.html — richguy gold stats |
-| `post_itemline` | mplfs.html — item timeline |
-| `post_itemline_itemin/out` | mplfs.html — item animation triggers |
-| `fs_hide` | mplfs.html — hides all three scenes simultaneously |
-| `fs_debugoff` | mplfs.html — hides debug bar |
+| `post_hearts` | Fullscreen.html — postgame BPM hearts |
+| `post_richguy` | Fullscreen.html — richguy gold stats |
+| `post_itemline` | Fullscreen.html — item timeline |
+| `post_itemline_itemin/out` | Fullscreen.html — item animation triggers |
+| `fs_hide` | Fullscreen.html — hides all three scenes simultaneously |
+| `fs_debugoff` | Fullscreen.html — hides debug bar |
 | `draftpredict` | draftpredict overlay (+ 300ms poll fallback) |
 | `led_side` | LED overlay — home/swap |
 | `led_fight` | LED overlay — fight damage |
@@ -181,7 +181,7 @@ All overlays connect to one shared SSE stream at `/overlay/events`.
 
 ---
 
-## mploverlay_v7 — Split JS Architecture
+## ingame — Split JS Architecture
 
 ### What goes where
 
@@ -216,9 +216,9 @@ The HTML shell loads them in order:
 
 ### How to add a new feature to v7
 
-**1. Add CSS** — append to `mploverlay_v7.css`. Use absolute paths for any background images: `url('/assets/myimage.png')`, not `url('assets/myimage.png')` (the CSS file is in `html/`, not root).
+**1. Add CSS** — append to `ingame.css`. Use absolute paths for any background images: `url('/assets/myimage.png')`, not `url('assets/myimage.png')` (the CSS file is in `html/`, not root).
 
-**2. Add HTML** — add any static markup to `mploverlay_v7.html` inside `<div id="scene">`. Dynamically-built overlays (like item pickup) don't need static HTML.
+**2. Add HTML** — add any static markup to `ingame.html` inside `<div id="scene">`. Dynamically-built overlays (like item pickup) don't need static HTML.
 
 **3. Create the feature JS file** — `html/js/overlay-myfeature.js`:
 
@@ -280,7 +280,7 @@ for (let i = 1; i <= 10; i++) {
 }
 ```
 
-**8. Add a debug tab** in `mploverlay_v7.html`:
+**8. Add a debug tab** in `ingame.html`:
 
 ```html
 <!-- in #debug-tabs -->
@@ -293,7 +293,7 @@ for (let i = 1; i <= 10; i++) {
 </div>
 ```
 
-**9. Add the script tag** in `mploverlay_v7.html` — insert it between `overlay-swap.js` and `overlay-conceal.js` (or wherever makes sense in the feature order), before `overlay-fights.js` and `overlay-debug.js`:
+**9. Add the script tag** in `ingame.html` — insert it between `overlay-swap.js` and `overlay-conceal.js` (or wherever makes sense in the feature order), before `overlay-fights.js` and `overlay-debug.js`:
 
 ```html
 <script src="html/js/overlay-myfeature.js"></script>

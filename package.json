@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/mineski-aj/overlay_server#readme",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "multer": "^2.2.0"
   }
 }

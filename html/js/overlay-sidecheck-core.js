@@ -2,7 +2,7 @@
    Factory shared by every "side *check" ranking panel (exp, damage
    taken, and future ones) so each one is just a config object
    instead of a re-copied ~150-line file. See the .sidecheck-* CSS
-   block in mploverlay_v7.css for the full layout/measurement notes.
+   block in ingame.css for the full layout/measurement notes.
 
    createSideCheck({
      clipId, overlayId,      // ids of the two container divs already in the HTML
@@ -33,7 +33,7 @@ function sidecheckFormatK(v) {
 }
 
 /* User-editable ceiling for the name shrink-to-fit search below (dashboard
-   Edit tab: Side Events · mploverlay_v7 → Player Name → Player Name Size).
+   Edit tab: Side Events · Ingame → Player Name → Player Name Size).
    A blanket `!important` CSS override (the normal mechanism every other
    editable property uses — see loadSbOverrides in overlay-scoreboard.js)
    would always beat this function's own inline font-size assignment and
@@ -48,7 +48,7 @@ function sidecheckFormatK(v) {
    dashboard connection to call into. */
 let SIDECHECK_NAME_FONT_CEILING = 10;
 (function loadSidecheckNameFontSize() {
-  fetch('/api/overlay-styles?file=mploverlay_v7')
+  fetch('/api/overlay-styles?file=ingame_scoreboard')
     .then(r => r.json())
     .then(styles => {
       const v = styles && styles['.sidecheck-name'] && styles['.sidecheck-name'].fontSize;

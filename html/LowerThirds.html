@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="/">
+  <script src="html/js/cache-bust.js"></script>
+  <script src="html/js/overlay-sse-shim.js"></script>
+  <title>Lower Thirds</title>
+  <style>
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 600;
+      font-display: block;
+      src: local('GeneralSans-Semibold'), local('GeneralSans-SemiBold'), local('General Sans Semibold'), url('/fonts/GeneralSans-Semibold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'General Sans';
+      font-weight: 700;
+      font-display: block;
+      src: local('GeneralSans-Bold'), local('General Sans Bold'), url('/fonts/GeneralSans-Bold.otf') format('opentype');
+    }
+    @font-face {
+      font-family: 'Anton';
+      font-weight: 400;
+      font-display: block;
+      src: local('Anton'), local('Anton Regular'), url('/fonts/Anton-Regular.ttf') format('truetype');
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── BROADCAST CANVAS ── */
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'General Sans', 'Segoe UI', system-ui, sans-serif;
+    }
+    #canvas {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+    }
+
+
+    /* ── Map Selection tag ── */
+    #mapselect-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      pointer-events: none;
+      display: none;
+    }
+    #mapselect-page.ms-on { display: block; }
+    #mapselect-page.ms-visible { } /* whole-page fade handled per game-block below */
+
+    .ms-gameblock {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      transition: none; /* the offset itself never animates, only the boxes inside do */
+    }
+
+    /* Container-first, then-contents reveal: each box (the background
+       graphic) slides/fades in on its own, and only once that's under
+       way does its .ms-content wrapper (the real info — logos, text,
+       icons) slide/fade in on top of it. Both travel left → right on
+       the same snappy ease-out curve, never top-to-bottom. */
+    .ms-box {
+      position: absolute;
+      opacity: 0;
+      transform: translateX(-32px);
+      transition: opacity 360ms cubic-bezier(.16,1,.3,1), transform 360ms cubic-bezier(.16,1,.3,1);
+    }
+    .ms-box.ms-box-visible { opacity: 1; transform: translateX(0); }
+    .ms-box.ms-no-anim { transition: none; }
+
+    .ms-content {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      opacity: 0;
+      transform: translateX(-22px);
+      transition: opacity 320ms cubic-bezier(.16,1,.3,1), transform 320ms cubic-bezier(.16,1,.3,1);
+    }
+    .ms-content.ms-content-visible { opacity: 1; transform: translateX(0); }
+    .ms-content.ms-no-anim { transition: none; }
+
+    /* Side-select box (coin toss winner + side) */
+    .ms-sidebox {
+      left: 29px; top: 747px; width: 353px; height: 154px;
+      background-size: 100% 100%; background-repeat: no-repeat;
+    }
+    .ms-title {
+      position: absolute; left: 15px; top: 5px; width: 176px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'General Sans', sans-serif; font-weight: 600;
+      color: #000; text-align: center; white-space: nowrap; line-height: 1;
+    }
+    .ms-toss-logo {
+      position: absolute; left: 17px; top: 41px; width: 103px; height: 103px;
+      object-fit: contain;
+    }
+    .ms-toss-tricode {
+      position: absolute; left: 174px; top: 41px; width: 166px; height: 103px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Anton', sans-serif; color: #fff; text-align: center;
+      white-space: nowrap; line-height: 1;
+    }
+
+    /* Map-select box (map icon + name) — lives inside .ms-mapbox-mask
+       (see the reveal-mask block below), which owns the real position/
+       size and clips it; this box just fills that mask at 0/0/100%/100%
+       and slides via translateY inside it. */
+    .ms-mapbox {
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-image: url('/assets/mapselect/mapbacker.png');
+      background-size: 100% 100%; background-repeat: no-repeat;
+    }
+    .ms-map-icon {
+      position: absolute; left: 10px; top: 27px; width: 64px; height: 64px;
+      border-radius: 50%;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
+    .ms-map-name {
+      position: absolute; left: 115px; top: 44px; width: 230px; height: 31px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Anton', sans-serif; color: #000; text-align: center;
+      text-transform: uppercase; white-space: nowrap; line-height: 1;
+    }
+    .ms-map-label {
+      position: absolute; left: 115px; top: 76px; width: 230px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 17px;
+      color: #000; text-align: center; letter-spacing: .04em;
+    }
+
+    /* Win box — same "lives inside a mask" deal as the map box above. */
+    .ms-winbox {
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-image: url('/assets/mapselect/mapwin.png');
+      background-size: 100% 100%; background-repeat: no-repeat;
+    }
+
+    /* ── Phase 2/3 "emerge from behind" reveal (ENTRANCE ONLY — hiding
+       still uses the exact same fade-left-and-out as every other box,
+       see below) ──
+       Map box (phase 2) and win box (phase 3) slide out from directly
+       behind the box above them instead of the default fade+slide-from-
+       left, and must never be visible above that box's bottom edge
+       while they do — that box can still be mid fade-in itself (partly
+       translucent), which let phase 2's opaque backer bleed through
+       before this masking was added.
+
+       Each box gets a non-transforming `.ms-*-mask` wrapper, positioned/
+       sized to the box's own FINAL resting rect with `overflow: hidden`.
+       The box itself lives inside at left:0/top:0/100%/100% and slides
+       via translateY — since the mask's own top edge IS that resting
+       top, anything still above local y:0 (still above the mask's top
+       edge, i.e. still overlapping the box above) is clipped away
+       entirely regardless of z-index/opacity, and only what has slid
+       down past that line is ever painted. z-index (side > map > win)
+       is kept too, as a second line of defense for the few px the boxes
+       legitimately overlap at rest.
+
+       `.ms-box-enter`/`.ms-content-enter` mark the PRE-FIRST-REVEAL-ONLY
+       starting position — flush with the top edge of the box above (so
+       fully within its mask, fully clipped/invisible). The script below
+       strips both classes for good the instant the box is first
+       revealed, so hiding it afterwards (hideAll) falls through to the
+       plain `.ms-box`/`.ms-content` rules instead — unchanged from every
+       other box's fade-left-and-out. */
+    .ms-reveal-mask {
+      position: absolute;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .ms-sidebox { z-index: 3; }
+    .ms-mapbox-mask { left: 29px; top: 898px; width: 353px; height: 123px; z-index: 2; }
+    .ms-winbox-mask { left: 30px; top: 1020px; width: 139px; height: 31px; z-index: 1; }
+
+    .ms-mapbox.ms-box-enter {
+      opacity: 1;
+      transform: translateY(-151px); /* ms-sidebox top (747) - ms-mapbox top (898) */
+    }
+    .ms-mapbox .ms-content.ms-content-enter { transform: none; }
+
+    .ms-winbox.ms-box-enter {
+      opacity: 1;
+      transform: translateY(-122px); /* ms-mapbox top (898) - ms-winbox top (1020) */
+    }
+    .ms-winbox .ms-content.ms-content-enter { transform: none; }
+
+    .ms-win-text {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Anton', sans-serif; color: #000; text-align: center;
+      white-space: nowrap; line-height: 1;
+    }
+
+    /* ── Local debug bar (press ` to toggle) ── */
+    #debug-bar {
+      position: fixed; left: 0; bottom: 0; width: 100%;
+      background: rgba(10,10,16,.92); border-top: 1px solid #333;
+      display: none; align-items: center; gap: 10px; padding: 10px 16px;
+      font-family: 'Segoe UI', sans-serif; z-index: 1000;
+    }
+    #debug-bar.open { display: flex; }
+    #debug-bar .dbg-label { color: #9aa; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    #debug-bar button {
+      background: #1a2030; border: 1px solid #2a3050; color: #88aaff;
+      font-size: 13px; font-weight: 600; padding: 6px 16px; border-radius: 6px; cursor: pointer;
+    }
+    #debug-bar button.hide { background: #3a1a1a; border-color: #5a2a2a; color: #ff8899; }
+    #debug-bar #dbg-msg { color: #ffbb44; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div id="canvas">
+  <div id="mapselect-page"></div>
+</div>
+
+<div id="debug-bar">
+  <span class="dbg-label">Map Selection (local test)</span>
+  <button id="dbg-show">▶ SHOW (next game)</button>
+  <button class="hide" id="dbg-hide">■ HIDE ALL</button>
+  <span id="dbg-msg"></span>
+</div>
+
+<script>
+(function () {
+  var MAPSEL_PAGE = document.getElementById('mapselect-page');
+  var blocks = {}; // gameIndex -> { wrap, sidebox/mapbox/winbox, *Content, *text els, game }
+  var pageOn = false;
+
+  /* Dashboard Edit tab's own live preview (loadIframe() always appends
+     ?preview=1) — used below to exempt this instance from the 'reload'
+     SSE event. This page has no other preview-mode isolation today
+     (unlike Draft.html's PREVIEW_ONLY / Fullscreen.html's isPreviewFrame),
+     so this is scoped to just that one need for now — editModeActive
+     (below) is a narrower, later-arriving flag (only true once
+     showLowerThirdsForEdit() has actually run) that isn't reliable at
+     the moment connectSSE() first registers this listener. */
+  var isPreviewFrame = /[?&]preview=1(?:&|$)/.test(window.location.search);
+
+  // Consecutive game blocks sit fully side-by-side (not stacked/overlapping):
+  // block N's left edge is 20px past block (N-1)'s RIGHT edge, i.e. each
+  // step is a full panel width plus the 20px gap.
+  var PANEL_WIDTH = 353;
+  var PANEL_GAP   = 20;
+  var STEP        = PANEL_WIDTH + PANEL_GAP;
+
+  function logoUrl(short)  { return '/logos/' + encodeURIComponent((short || '').toUpperCase()) + '.png'; }
+  function mapIconUrl(name) { return '/maps/' + encodeURIComponent(name || '') + '.png'; }
+  function sideAssetUrl(side) { return '/assets/mapselect/mapselect' + (side === 'red' ? 'red' : 'blue') + '.png'; }
+
+  function fitText(el, maxSize, minSize) {
+    var size = maxSize;
+    el.style.fontSize = size + 'px';
+    while ((el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight) && size > minSize) {
+      size--;
+      el.style.fontSize = size + 'px';
+    }
+  }
+
+  function teamName(side, homeTeam, awayTeam) { return side === 'home' ? (homeTeam.name || 'Home Team') : (awayTeam.name || 'Away Team'); }
+  function teamShort(side, homeTeam, awayTeam) { return side === 'home' ? (homeTeam.short || 'HME') : (awayTeam.short || 'AWY'); }
+
+  function boxWithContent(boxClass, maskClass) {
+    var box = document.createElement('div');
+    box.className = 'ms-box ms-box-enter ' + boxClass;
+    var content = document.createElement('div');
+    content.className = 'ms-content ms-content-enter';
+    box.appendChild(content);
+    var outer = box;
+    if (maskClass) {
+      outer = document.createElement('div');
+      outer.className = 'ms-reveal-mask ' + maskClass;
+      outer.appendChild(box);
+    }
+    return { box: box, content: content, outer: outer };
+  }
+
+  function populateWinBox(rec, game, homeTeam, awayTeam) {
+    rec.winText.textContent = teamShort(game.winner, homeTeam, awayTeam) + ' WIN';
+    requestAnimationFrame(function () { fitText(rec.winText, 24, 10); });
+  }
+
+  /* Builds (or returns the existing) DOM for a game's recap block, side by
+     side with earlier blocks, and fills in whatever data is known so far.
+     The winner may not be known yet — the win box is always created so it
+     exists for a later reveal, but its text is only populated once
+     game.winner is actually set (here, or later via populateWinBox). */
+  function ensureBlock(gameIndex, game, matchNum, homeTeam, awayTeam) {
+    if (blocks[gameIndex]) return blocks[gameIndex];
+
+    var wrap = document.createElement('div');
+    wrap.className = 'ms-gameblock';
+    wrap.style.transform = 'translateX(' + (gameIndex * STEP) + 'px)';
+
+    var side = boxWithContent('ms-sidebox');
+    side.box.style.backgroundImage = "url('" + sideAssetUrl(game.tossSide) + "')";
+    var title = document.createElement('div');
+    title.className = 'ms-title';
+    title.textContent = 'MATCH ' + (matchNum || 1) + ' - GAME ' + game.game;
+    var tossLogo = document.createElement('img');
+    tossLogo.className = 'ms-toss-logo';
+    tossLogo.src = logoUrl(teamShort(game.tossWinner, homeTeam, awayTeam));
+    tossLogo.onerror = function () { tossLogo.style.display = 'none'; };
+    var tossTricode = document.createElement('div');
+    tossTricode.className = 'ms-toss-tricode';
+    tossTricode.textContent = teamShort(game.tossWinner, homeTeam, awayTeam);
+    side.content.appendChild(title); side.content.appendChild(tossLogo); side.content.appendChild(tossTricode);
+
+    var map = boxWithContent('ms-mapbox', 'ms-mapbox-mask');
+    var mapIcon = document.createElement('div');
+    mapIcon.className = 'ms-map-icon';
+    mapIcon.style.backgroundImage = "url('" + mapIconUrl(game.map) + "')";
+    var mapName = document.createElement('div');
+    mapName.className = 'ms-map-name';
+    mapName.textContent = game.map || '';
+    var mapLabel = document.createElement('div');
+    mapLabel.className = 'ms-map-label';
+    mapLabel.textContent = 'MAP SELECTED';
+    map.content.appendChild(mapIcon); map.content.appendChild(mapName); map.content.appendChild(mapLabel);
+
+    var win = boxWithContent('ms-winbox', 'ms-winbox-mask');
+    var winText = document.createElement('div');
+    winText.className = 'ms-win-text';
+    win.content.appendChild(winText);
+
+    wrap.appendChild(side.outer); wrap.appendChild(map.outer); wrap.appendChild(win.outer);
+    MAPSEL_PAGE.appendChild(wrap);
+
+    var rec = {
+      wrap: wrap, game: game,
+      sidebox: side.box, sideContent: side.content, title: title, tossTricode: tossTricode,
+      mapbox: map.box, mapContent: map.content, mapName: mapName,
+      winbox: win.box, winContent: win.content, winText: winText,
+    };
+    blocks[gameIndex] = rec;
+
+    if (game.winner) populateWinBox(rec, game, homeTeam, awayTeam);
+
+    // Fit text after the elements are in the DOM (needs layout to measure).
+    requestAnimationFrame(function () {
+      fitText(title, 18, 9);
+      fitText(tossTricode, 92, 24);
+      fitText(mapName, 34, 14);
+    });
+
+    return rec;
+  }
+
+  /* Container-first-then-contents reveal for one box: the box itself
+     starts sliding/fading in immediately, and its content wrapper follows
+     a beat later (while the box is still mid-transition) for a snappy,
+     cascading feel rather than two fully sequential steps. cb (if given)
+     fires once the content's own transition has finished. */
+  var CONTENT_DELAY = 130;
+  var CONTENT_DURATION = 320;
+  var PHASE_GAP = 90;
+
+  function revealPhase(box, content, cb) {
+    box.classList.remove('ms-no-anim');
+    void box.offsetWidth; /* flush the .ms-box-enter starting position before changing it */
+    box.classList.remove('ms-box-enter');
+    box.classList.add('ms-box-visible');
+    setTimeout(function () {
+      content.classList.remove('ms-no-anim');
+      void content.offsetWidth;
+      content.classList.remove('ms-content-enter');
+      content.classList.add('ms-content-visible');
+    }, CONTENT_DELAY);
+    if (cb) setTimeout(cb, CONTENT_DELAY + CONTENT_DURATION + PHASE_GAP);
+  }
+
+  function revealPhaseInstant(box, content) {
+    box.classList.add('ms-no-anim'); box.classList.add('ms-box-visible'); box.classList.remove('ms-box-enter');
+    content.classList.add('ms-no-anim'); content.classList.add('ms-content-visible'); content.classList.remove('ms-content-enter');
+  }
+
+  /* Side → map → (win, only if the winner is already known). */
+  function revealSideAndMap(rec, instant) {
+    if (instant) {
+      revealPhaseInstant(rec.sidebox, rec.sideContent);
+      revealPhaseInstant(rec.mapbox, rec.mapContent);
+      if (rec.game.winner) revealPhaseInstant(rec.winbox, rec.winContent);
+      return;
+    }
+    revealPhase(rec.sidebox, rec.sideContent, function () {
+      revealPhase(rec.mapbox, rec.mapContent, function () {
+        if (rec.game.winner) revealPhase(rec.winbox, rec.winContent, null);
+      });
+    });
+  }
+
+  function revealWinOnly(rec, instant) {
+    if (instant) { revealPhaseInstant(rec.winbox, rec.winContent); return; }
+    revealPhase(rec.winbox, rec.winContent, null);
+  }
+
+  function showGame(gameIndex, game, matchNum, homeTeam, awayTeam, instant) {
+    if (!pageOn) { MAPSEL_PAGE.classList.add('ms-on'); pageOn = true; }
+    var rec = ensureBlock(gameIndex, game, matchNum, homeTeam, awayTeam);
+    revealSideAndMap(rec, instant);
+  }
+
+  function showWinner(gameIndex, game, homeTeam, awayTeam, instant) {
+    var rec = blocks[gameIndex];
+    if (!rec) return; // the side+map reveal should always precede this
+    rec.game = game;
+    populateWinBox(rec, game, homeTeam, awayTeam);
+    revealWinOnly(rec, instant);
+  }
+
+  function hideAll() {
+    if (!pageOn) return;
+    pageOn = false;
+    Object.keys(blocks).forEach(function (k) {
+      var rec = blocks[k];
+      [rec.sidebox, rec.sideContent, rec.mapbox, rec.mapContent, rec.winbox, rec.winContent].forEach(function (el) {
+        el.classList.remove('ms-box-visible', 'ms-content-visible');
+      });
+    });
+    setTimeout(function () {
+      MAPSEL_PAGE.classList.remove('ms-on');
+      MAPSEL_PAGE.innerHTML = '';
+      blocks = {};
+    }, 360);
+  }
+
+  /* ── Restore-on-load ── */
+  // Set by showLowerThirdsForEdit() — the Edit tab's showFn runs synchronously
+  // on iframe load, i.e. always BEFORE this fetch's promise can resolve,
+  // so this flag reliably wins the race: real state is never allowed to
+  // clobber (or partially mix into) the deterministic sample block the
+  // Edit tab depends on.
+  var editModeActive = false;
+
+  // Also called again on SSE reconnect (see connectSSE below) to re-sync
+  // after a network gap — EventSource auto-reconnects the transport but
+  // never replays a show/hide that fired while disconnected. Safe to call
+  // repeatedly: showGame()/showWinner() only add CSS classes that may
+  // already be present (a no-op, not a re-animation), unlike Fullscreen.html's
+  // exclusive-scene transitions. The one case that needs an explicit
+  // check is a missed HIDE — revealedGames back at 0 while this page is
+  // still showing something from before the gap.
+  function restore() {
+    Promise.all([
+      fetch('/mapselection/state', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+      fetch('/overlay/mapselecttag-state', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+    ]).then(function (results) {
+      if (editModeActive) return;
+      var ms = results[0], tagState = results[1];
+      var revealedGames = tagState.revealedGames || 0;
+      var revealedWins  = tagState.revealedWins  || 0;
+      if (revealedGames === 0) { if (pageOn) hideAll(); return; }
+      for (var i = 0; i < revealedGames; i++) {
+        var game = ms.games[i];
+        if (!game) continue;
+        showGame(i, game, ms.match, ms.home, ms.away, true);
+        if (i < revealedWins && game.winner) showWinner(i, game, ms.home, ms.away, true);
+      }
+    }).catch(function () {});
+  }
+
+  /* ── SSE ── */
+  // Backed by the shared SharedWorker (html/js/overlay-shared-worker.js) —
+  // this page opens zero real connections of its own now, so having
+  // several overlay browser sources/tabs open at once no longer eats into
+  // the browser's shared connection pool per page.
+  var _sseWasDisconnected = false;
+  function connectSSE() {
+    var es = createOverlaySSE();
+    es.onopen = function () {
+      if (_sseWasDisconnected && !editModeActive) restore();
+      _sseWasDisconnected = false;
+    };
+    es.onerror = function () { _sseWasDisconnected = true; };
+    es.addEventListener('mapselecttag', function (e) {
+      if (editModeActive) return; // real show/hide from elsewhere must not touch the Edit tab's sample block
+      var msg = JSON.parse(e.data);
+      if (msg.action === 'show') {
+        showGame(msg.gameIndex, msg.game, msg.match, msg.home, msg.away, false);
+      } else if (msg.action === 'showWinner') {
+        showWinner(msg.gameIndex, msg.game, msg.home, msg.away, false);
+      } else if (msg.action === 'hide') {
+        hideAll();
+      }
+    });
+    // Dashboard Edit tab saved a new position/size/font-size — reload to
+    // pick it up, same as Fullscreen.html/Draft.html do. isPreviewFrame
+    // (declared above) is exempt — this IS that same Edit tab's own
+    // preview, already showing the just-saved values.
+    es.addEventListener('reload', function () { if (isPreviewFrame) return; window.location.reload(); });
+  }
+
+  /* ── Dashboard Edit-tab position/size/font-size overrides ───
+     Same mechanism as Fullscreen.html's loadFullscreenOverrides(): fetch whatever
+     was saved for this file and inject it as an !important stylesheet,
+     keyed by the raw selector — works for free across every game block
+     sharing a class (.ms-map-name etc), not just one instance. A saved
+     fontSize here intentionally wins over fitText()'s own inline size
+     (same tradeoff MVP Scene's KDA/GPM/KP already accepts elsewhere in
+     this codebase) — acceptable since the map pool is a small fixed set,
+     not arbitrary text. */
+  (function loadLowerThirdsOverrides() {
+    fetch('/api/overlay-styles?file=lowerthirds').then(function (r) { return r.json(); }).then(function (styles) {
+      if (!styles || !Object.keys(styles).length) return;
+      var css = Object.keys(styles).map(function (sel) {
+        var props = styles[sel];
+        var decls = Object.keys(props).filter(function (prop) {
+          return prop !== 'asset';
+        }).map(function (prop) {
+          var cssProp = prop === 'fontSize' ? 'font-size' : prop;
+          return cssProp + ':' + props[prop] + ' !important';
+        }).join(';');
+        return sel + '{' + decls + '}';
+      }).join('\n');
+      var style = document.createElement('style');
+      style.id = 'lowerthirds-overrides';
+      style.textContent = css;
+      document.head.appendChild(style);
+      /* `asset` overrides can't go through CSS !important (a src attribute
+         can't be overridden that way) — apply directly to any matching
+         IMG/VIDEO element instead. */
+      Object.keys(styles).forEach(function (sel) {
+        if (styles[sel].asset === undefined) return;
+        document.querySelectorAll(sel).forEach(function (el) {
+          if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = styles[sel].asset;
+        });
+      });
+    }).catch(function () {});
+  })();
+
+  /* ── Dashboard Edit-tab entry point ──────────────────────────
+     Called via editIframe.contentWindow.showLowerThirdsForEdit() once the
+     Edit tab loads this file — there's normally nothing in the DOM
+     until a real game is revealed, so this forces one sample block
+     into view (instantly, no animation) purely so the Edit sidebar has
+     real elements to select/drag/resize. Uses placeholder data, not
+     live match state, so editing works with no match configured. */
+  window.showLowerThirdsForEdit = function () {
+    editModeActive = true;
+    var sampleHome = { name: 'Team Alpha', short: 'TMA' };
+    var sampleAway = { name: 'Team Beta', short: 'TMB' };
+    var sampleGame = {
+      game: 1, tossWinner: 'home', tossSide: 'blue',
+      homeSide: 'blue', awaySide: 'red',
+      map: 'Broken Walls', winner: 'home', locked: true,
+    };
+    showGame(0, sampleGame, 1, sampleHome, sampleAway, true);
+  };
+
+  /* ── Dashboard Control-tab "◈ Preview" hook ──────────────────
+     Called as window.previewTrigger('mapselecttag', 'show'|'hide')
+     from the parent dashboard's preview iframe (see dashboard.html's
+     buildControlBody) — same mechanism Fullscreen.html uses. This must
+     NEVER call the real /overlay/mapselecttag/show|hide routes: those
+     mutate the shared server-side reveal counter and broadcast to
+     every other connected client/OBS source. Preview mirrors the same
+     two-priority logic as the real route (catch up a pending win first,
+     else reveal the next ready game), but against counters that are
+     local to this iframe instance only, using real data read via a
+     plain GET. */
+  var previewRevealedGames = 0;
+  var previewRevealedWins  = 0;
+
+  window.previewTrigger = function (event, action) {
+    if (event !== 'mapselecttag') return;
+    if (action === 'hide') { hideAll(); previewRevealedGames = 0; previewRevealedWins = 0; return; }
+    fetch('/mapselection/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (ms) {
+      if (previewRevealedWins < previewRevealedGames) {
+        var pendingIdx = previewRevealedWins;
+        var pending = ms.games[pendingIdx];
+        if (pending && pending.winner) {
+          previewRevealedWins = pendingIdx + 1;
+          showWinner(pendingIdx, pending, ms.home, ms.away, false);
+          return;
+        }
+      }
+      var idx = previewRevealedGames;
+      var game = ms.games[idx];
+      var ready = game && game.tossWinner && game.tossSide && game.map;
+      if (idx >= ms.maxGames || !ready) return; // nothing ready to preview yet
+      previewRevealedGames = idx + 1;
+      if (game.winner) previewRevealedWins = previewRevealedGames;
+      showGame(idx, game, ms.match, ms.home, ms.away, false);
+    }).catch(function () {});
+  };
+
+  restore();
+  connectSSE();
+
+  /* ── Local debug bar ── */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '`') document.getElementById('debug-bar').classList.toggle('open');
+  });
+  document.getElementById('dbg-show').addEventListener('click', function () {
+    fetch('/overlay/mapselecttag/show').then(function (r) { return r.json(); }).then(function (d) {
+      document.getElementById('dbg-msg').textContent = d.ok ? '' : (d.reason || 'Blocked');
+    });
+  });
+  document.getElementById('dbg-hide').addEventListener('click', function () {
+    fetch('/overlay/mapselecttag/hide');
+    document.getElementById('dbg-msg').textContent = '';
+  });
+})();
+</script>
+</body>
+</html>

@@ -31,8 +31,8 @@ router.get('/api/player-photos', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json({ names: _playerPhotoNames });
 });
 
-// GET /overlay/force-reload — hard-reload every open overlay page (mplfs.html,
-// ENTVC.html, DraftIndex.html, Draft.html, mpltag.html, mploverlay_v7.html) at
+// GET /overlay/force-reload — hard-reload every open overlay page (Fullscreen.html,
+// ENTVC.html, DraftIndex.html, Draft.html, LowerThirds.html, ingame.html) at
 // once, so production browser sources don't need to be refreshed by hand
 // after a dashboard Edit-tab save or any other change. Reuses the exact
 // 'reload' SSE event routes/overlayStyles.js already broadcasts after a
@@ -134,6 +134,27 @@ router.get('/overlay/draft/show', (req, res) => {
 router.get('/overlay/draft/hide', (req, res) => {
   state.draftActive = false;
   state.overlayClients.forEach(c => { try { c.write('event: draft\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
+// GET /overlay/draftrealme-state — current shown/hidden state for
+// Draft-realme.html, the realme-skinned pick/ban overlay (own bespoke
+// boolean, independent of the regular Draft Overlay's draftActive).
+router.get('/overlay/draftrealme-state', (req, res) => {
+  res.set({ 'Cache-Control': 'no-store' }).json({ active: state.draftRealmeActive });
+});
+
+// GET /overlay/draftrealme/show
+router.get('/overlay/draftrealme/show', (req, res) => {
+  state.draftRealmeActive = true;
+  state.overlayClients.forEach(c => { try { c.write('event: draftrealme\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/draftrealme/hide
+router.get('/overlay/draftrealme/hide', (req, res) => {
+  state.draftRealmeActive = false;
+  state.overlayClients.forEach(c => { try { c.write('event: draftrealme\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
@@ -389,15 +410,13 @@ router.get('/overlay/fights/pending', (req, res) => {
 
 // GET /overlay/post_hearts/show
 router.get('/overlay/post_hearts/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.middleboard = true;
-  state.mplfsScene.playerboard = true;
-  state.mplfsScene.activeFeature = 'hearts';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.middleboard = true;
+  state.fullscreenScene.activeFeature = 'hearts';
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"show"}\n\n');
       c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: playerboard\ndata: {"action":"show"}\n\n');
       c.write('event: post_hearts\ndata: {"action":"show"}\n\n');
     } catch {}
   });
@@ -406,147 +425,147 @@ router.get('/overlay/post_hearts/show', (req, res) => {
 
 // GET /overlay/post_hearts/hide
 router.get('/overlay/post_hearts/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_hearts\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post_richguy/show
 router.get('/overlay/post_richguy/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'richguy';
+  state.fullscreenScene.activeFeature = 'richguy';
   state.overlayClients.forEach(c => { try { c.write('event: post_richguy\ndata: {"action":"show","data":{}}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/post_richguy/hide
 router.get('/overlay/post_richguy/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_richguy\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/waiting_tvc/show
 router.get('/overlay/waiting_tvc/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'waiting';
+  state.fullscreenScene.activeFeature = 'waiting';
   state.overlayClients.forEach(c => { try { c.write('event: waiting_tvc\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/waiting_tvc/hide
 router.get('/overlay/waiting_tvc/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: waiting_tvc\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/waiting_lobby/show
 router.get('/overlay/waiting_lobby/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'lobby';
+  state.fullscreenScene.activeFeature = 'lobby';
   state.overlayClients.forEach(c => { try { c.write('event: waiting_lobby\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/waiting_lobby/hide
 router.get('/overlay/waiting_lobby/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: waiting_lobby\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/team_hexagon/show
 router.get('/overlay/team_hexagon/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'hexagon';
+  state.fullscreenScene.activeFeature = 'hexagon';
   state.overlayClients.forEach(c => { try { c.write('event: team_hexagon\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/team_hexagon/hide
 router.get('/overlay/team_hexagon/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: team_hexagon\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/highlights/show
 router.get('/overlay/highlights/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'highlights';
+  state.fullscreenScene.activeFeature = 'highlights';
   state.overlayClients.forEach(c => { try { c.write('event: highlights\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/highlights/hide
 router.get('/overlay/highlights/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: highlights\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/mvp/show
 router.get('/overlay/mvp/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'mvp';
+  state.fullscreenScene.activeFeature = 'mvp';
   state.overlayClients.forEach(c => { try { c.write('event: mvp\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/mvp/hide
 router.get('/overlay/mvp/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: mvp\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/credits/show
 router.get('/overlay/credits/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'credits';
+  state.fullscreenScene.activeFeature = 'credits';
   state.overlayClients.forEach(c => { try { c.write('event: credits\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/credits/hide
 router.get('/overlay/credits/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: credits\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/final_team/show
 router.get('/overlay/final_team/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'finalteam';
+  state.fullscreenScene.activeFeature = 'finalteam';
   state.overlayClients.forEach(c => { try { c.write('event: final_team\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/final_team/hide
 router.get('/overlay/final_team/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: final_team\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/team_lineup_blue/show
 router.get('/overlay/team_lineup_blue/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'lineupblue';
+  state.fullscreenScene.activeFeature = 'lineupblue';
   state.overlayClients.forEach(c => { try { c.write('event: team_lineup_blue\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/team_lineup_blue/hide
 router.get('/overlay/team_lineup_blue/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: team_lineup_blue\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/team_lineup_red/show
 router.get('/overlay/team_lineup_red/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'lineupred';
+  state.fullscreenScene.activeFeature = 'lineupred';
   state.overlayClients.forEach(c => { try { c.write('event: team_lineup_red\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/team_lineup_red/hide
 router.get('/overlay/team_lineup_red/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: team_lineup_red\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
@@ -556,56 +575,56 @@ router.get('/overlay/team_lineup_red/hide', (req, res) => {
 // the whole scene — it cycles a "currently being talked about" highlight
 // through each match row instead (grows 1.15x), one row per press, then
 // back to nothing. Match count (2 vs 3) follows the same isDay2 rule as
-// mplfs.html's msToMatchRows, so the cycle length matches whatever's
+// Fullscreen.html's msToMatchRows, so the cycle length matches whatever's
 // actually on screen.
 router.get('/overlay/today_schedule/show', (req, res) => {
-  if (state.mplfsScene.activeFeature === 'schedule') {
+  if (state.fullscreenScene.activeFeature === 'schedule') {
     const ms = matchState.get();
     const maxMatches = (ms.day || 1) === 2 ? 3 : 2;
-    const cur  = state.mplfsScene.scheduleHighlight || 0;
+    const cur  = state.fullscreenScene.scheduleHighlight || 0;
     const next = cur >= maxMatches ? 0 : cur + 1;
-    state.mplfsScene.scheduleHighlight = next;
+    state.fullscreenScene.scheduleHighlight = next;
     state.overlayClients.forEach(c => { try { c.write('event: today_schedule\ndata: ' + JSON.stringify({ action: 'highlight', match: next }) + '\n\n'); } catch {} });
     return res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "highlight", match: next });
   }
-  state.mplfsScene.activeFeature = 'schedule';
-  state.mplfsScene.scheduleHighlight = 0;
+  state.fullscreenScene.activeFeature = 'schedule';
+  state.fullscreenScene.scheduleHighlight = 0;
   state.overlayClients.forEach(c => { try { c.write('event: today_schedule\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/today_schedule/hide
 router.get('/overlay/today_schedule/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
-  state.mplfsScene.scheduleHighlight = 0;
+  state.fullscreenScene.activeFeature = null;
+  state.fullscreenScene.scheduleHighlight = 0;
   state.overlayClients.forEach(c => { try { c.write('event: today_schedule\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/tomorrow_schedule/show
 router.get('/overlay/tomorrow_schedule/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'tomorrow';
+  state.fullscreenScene.activeFeature = 'tomorrow';
   state.overlayClients.forEach(c => { try { c.write('event: tomorrow_schedule\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/tomorrow_schedule/hide
 router.get('/overlay/tomorrow_schedule/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: tomorrow_schedule\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/standings/show
 router.get('/overlay/standings/show', (req, res) => {
-  state.mplfsScene.activeFeature = 'standings';
+  state.fullscreenScene.activeFeature = 'standings';
   state.overlayClients.forEach(c => { try { c.write('event: standings\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/standings/hide
 router.get('/overlay/standings/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: standings\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
@@ -618,63 +637,48 @@ router.get('/overlay/fs/debugoff', (req, res) => {
 
 // GET /overlay/matchboard/show
 router.get('/overlay/matchboard/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
+  state.fullscreenScene.matchboard = true;
   state.overlayClients.forEach(c => { try { c.write('event: matchboard\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/matchboard/hide
 router.get('/overlay/matchboard/hide', (req, res) => {
-  state.mplfsScene.matchboard = false;
+  state.fullscreenScene.matchboard = false;
   state.overlayClients.forEach(c => { try { c.write('event: matchboard\ndata: {"action":"hide"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
-});
-
-// GET /overlay/playerboard/show
-router.get('/overlay/playerboard/show', (req, res) => {
-  state.mplfsScene.playerboard = true;
-  state.overlayClients.forEach(c => { try { c.write('event: playerboard\ndata: {"action":"show"}\n\n'); } catch {} });
-  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
-});
-
-// GET /overlay/playerboard/hide
-router.get('/overlay/playerboard/hide', (req, res) => {
-  state.mplfsScene.playerboard = false;
-  state.overlayClients.forEach(c => { try { c.write('event: playerboard\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/middleboard/show
 router.get('/overlay/middleboard/show', (req, res) => {
-  state.mplfsScene.middleboard = true;
+  state.fullscreenScene.middleboard = true;
   state.overlayClients.forEach(c => { try { c.write('event: middleboard\ndata: {"action":"show"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
 });
 
 // GET /overlay/middleboard/hide
 router.get('/overlay/middleboard/hide', (req, res) => {
-  state.mplfsScene.middleboard = false;
+  state.fullscreenScene.middleboard = false;
   state.overlayClients.forEach(c => { try { c.write('event: middleboard\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/fs/hide
 router.get('/overlay/fs/hide', (req, res) => {
-  state.mplfsScene = { matchboard: false, middleboard: false, playerboard: false, activeFeature: null, scheduleHighlight: 0 };
+  state.fullscreenScene = { matchboard: false, middleboard: false, activeFeature: null, scheduleHighlight: 0 };
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"hide"}\n\n');
       c.write('event: middleboard\ndata: {"action":"hide"}\n\n');
-      c.write('event: playerboard\ndata: {"action":"hide"}\n\n');
       c.write('event: fs_hide\ndata: {}\n\n');
     } catch {}
   });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true });
 });
 
-// GET /overlay/mplfs-scene — current mplfs display state for restore-on-load
-router.get('/overlay/mplfs-scene', (req, res) => {
-  res.set({ 'Cache-Control': 'no-store' }).json(state.mplfsScene);
+// GET /overlay/fullscreen-scene — current fullscreen display state for restore-on-load
+router.get('/overlay/fullscreen-scene', (req, res) => {
+  res.set({ 'Cache-Control': 'no-store' }).json(state.fullscreenScene);
 });
 
 // GET /overlay/post_itemline/itemin
@@ -691,8 +695,8 @@ router.get('/overlay/post_itemline/itemout', (req, res) => {
 
 // GET /overlay/post_itemline/show
 router.get('/overlay/post_itemline/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.activeFeature = 'itemline';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.activeFeature = 'itemline';
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"show"}\n\n');
@@ -704,22 +708,20 @@ router.get('/overlay/post_itemline/show', (req, res) => {
 
 // GET /overlay/post_itemline/hide
 router.get('/overlay/post_itemline/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_itemline\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post_emblems/show
 router.get('/overlay/post_emblems/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.middleboard = true;
-  state.mplfsScene.playerboard = true;
-  state.mplfsScene.activeFeature = 'emblems';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.middleboard = true;
+  state.fullscreenScene.activeFeature = 'emblems';
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"show"}\n\n');
       c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: playerboard\ndata: {"action":"show"}\n\n');
       c.write('event: post_emblems\ndata: {"action":"show"}\n\n');
     } catch {}
   });
@@ -728,22 +730,20 @@ router.get('/overlay/post_emblems/show', (req, res) => {
 
 // GET /overlay/post_emblems/hide
 router.get('/overlay/post_emblems/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_emblems\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post_items/show
 router.get('/overlay/post_items/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.middleboard = true;
-  state.mplfsScene.playerboard = true;
-  state.mplfsScene.activeFeature = 'items';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.middleboard = true;
+  state.fullscreenScene.activeFeature = 'items';
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"show"}\n\n');
       c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: playerboard\ndata: {"action":"show"}\n\n');
       c.write('event: post_items\ndata: {"action":"show"}\n\n');
     } catch {}
   });
@@ -752,22 +752,20 @@ router.get('/overlay/post_items/show', (req, res) => {
 
 // GET /overlay/post_items/hide
 router.get('/overlay/post_items/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_items\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post_stats/show
 router.get('/overlay/post_stats/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.middleboard = true;
-  state.mplfsScene.playerboard = true;
-  state.mplfsScene.activeFeature = 'stats';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.middleboard = true;
+  state.fullscreenScene.activeFeature = 'stats';
   state.overlayClients.forEach(c => {
     try {
       c.write('event: matchboard\ndata: {"action":"show"}\n\n');
       c.write('event: middleboard\ndata: {"action":"show"}\n\n');
-      c.write('event: playerboard\ndata: {"action":"show"}\n\n');
       c.write('event: post_stats\ndata: {"action":"show"}\n\n');
     } catch {}
   });
@@ -776,17 +774,17 @@ router.get('/overlay/post_stats/show', (req, res) => {
 
 // GET /overlay/post_stats/hide
 router.get('/overlay/post_stats/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post_stats\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/consolidated_post/show
 router.get('/overlay/consolidated_post/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.activeFeature = 'consolidated_post';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.activeFeature = 'consolidated_post';
   // Deliberately do NOT also broadcast a standalone 'matchboard' event here.
-  // mplfs.html has its own independent 'matchboard' SSE listener (for the
+  // Fullscreen.html has its own independent 'matchboard' SSE listener (for the
   // Control tab's standalone Matchboard toggle) that calls showMatchBoard()
   // directly with no idea cp-compact is about to be applied — broadcasting
   // it here raced against showConsolidatedPost()'s own properly-sequenced
@@ -794,7 +792,7 @@ router.get('/overlay/consolidated_post/show', (req, res) => {
   // normal (non-compact) position first, then jump 36px once
   // showConsolidatedPost() finally added cp-compact. The dashboard's own
   // Matchboard toggle indicator still stays in sync without this broadcast:
-  // it refetches the full /overlay/mplfs-scene snapshot (which includes
+  // it refetches the full /overlay/fullscreen-scene snapshot (which includes
   // this matchboard flag) off the 'consolidated_post' event alone.
   state.overlayClients.forEach(c => {
     try {
@@ -806,15 +804,15 @@ router.get('/overlay/consolidated_post/show', (req, res) => {
 
 // GET /overlay/consolidated_post/hide
 router.get('/overlay/consolidated_post/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: consolidated_post\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/consolidated_post_2/show
 router.get('/overlay/consolidated_post_2/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.activeFeature = 'consolidated_post_2';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.activeFeature = 'consolidated_post_2';
   // Same reasoning as consolidated_post/show above: no standalone
   // 'matchboard' broadcast — showConsolidatedPost2() sequences the
   // cp-compact class itself before its own showMatchBoard() call.
@@ -826,19 +824,19 @@ router.get('/overlay/consolidated_post_2/show', (req, res) => {
 
 // GET /overlay/consolidated_post_2/hide
 router.get('/overlay/consolidated_post_2/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: consolidated_post_2\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
 // GET /overlay/post4key/show
 router.get('/overlay/post4key/show', (req, res) => {
-  state.mplfsScene.matchboard = true;
-  state.mplfsScene.activeFeature = 'post4key';
+  state.fullscreenScene.matchboard = true;
+  state.fullscreenScene.activeFeature = 'post4key';
   // Same reasoning as consolidated_post/show above: no standalone
-  // 'matchboard' broadcast — mplfs.html's own transitionTo() already
+  // 'matchboard' broadcast — Fullscreen.html's own transitionTo() already
   // calls showMatchBoard() internally, and the dashboard's Matchboard
-  // toggle stays in sync via the /overlay/mplfs-scene refetch triggered
+  // toggle stays in sync via the /overlay/fullscreen-scene refetch triggered
   // off the 'post4key' event alone.
   state.overlayClients.forEach(c => {
     try { c.write('event: post4key\ndata: {"action":"show"}\n\n'); } catch {}
@@ -848,7 +846,7 @@ router.get('/overlay/post4key/show', (req, res) => {
 
 // GET /overlay/post4key/hide
 router.get('/overlay/post4key/hide', (req, res) => {
-  state.mplfsScene.activeFeature = null;
+  state.fullscreenScene.activeFeature = null;
   state.overlayClients.forEach(c => { try { c.write('event: post4key\ndata: {"action":"hide"}\n\n'); } catch {} });
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
@@ -915,7 +913,7 @@ router.get('/overlay/killevent', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, video, playerName, role, camp });
 });
 
-// Map Selection tag (html/mpltag.html) — sequential per-game reveal.
+// Map Selection tag (html/LowerThirds.html) — sequential per-game reveal.
 // Each "show" call does ONE of, in priority order:
 //   1. If an already-revealed game is still waiting on its winner, and
 //      the winner has since been picked — reveal just that game's win

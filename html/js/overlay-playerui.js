@@ -1,7 +1,7 @@
 /* ── [FEATURE: player-ui] ─────────────────────────────────────────
    Coordinates below are measured directly off
    assets/ingame/ui/uiblue.png / uired.png (180×89 each) — see the
-   CSS block in mploverlay_v7.css for the full measurement notes.
+   CSS block in ingame.css for the full measurement notes.
    5 cards per side, stacked downward with no gap. */
 const PUI_TOPS       = [348, 437, 526, 615, 704];
 const PUI_NAME_MAX_W = 122;
@@ -138,16 +138,20 @@ puiBuildPanel();
    side from the left, away side from the right (reversed to hide).
    The overlay container itself is always rendered; only the per-card
    transform (driven by the .pui-hidden class on the parent, see
-   mploverlay_v7.css) moves them on/off canvas. Base CSS state (no
-   class) is SHOWN, so this defaults on with no flash before the fetch
-   below resolves — .pui-hidden is only added once we're told to hide. */
-let puiShouldShow = true;
+   ingame.css) moves them on/off canvas. Base CSS state (no class) is
+   SHOWN, but the default is now OFF (see checkOverlays.playerui) — the
+   immediate puiSetShown(false) call below hides it synchronously, right
+   after definition and before first paint, rather than waiting on the
+   restore-fetch further down to avoid a flash of the panel visible for
+   that fetch's duration. */
+let puiShouldShow = false;
 
 function puiSetShown(shown) {
   puiShouldShow = shown;
   const overlay = document.getElementById('player-ui-overlay');
   if (overlay) overlay.classList.toggle('pui-hidden', !shown);
 }
+puiSetShown(false);
 
 /* Called from overlay-debug.js's SSE 'playerui' handler. */
 function puiHandleToggle(shown) {

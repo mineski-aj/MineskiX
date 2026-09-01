@@ -4,7 +4,9 @@ const router  = express.Router();
 const fs      = require('fs');
 const path    = require('path');
 const state   = require('../lib/state');
+const projects = require('../lib/projects');
 const { getApiMode, setApiMode, readUrlForMode, writeUrlForMode } = require('../lib/apiMode');
+const seatArrangement = require('../lib/seatArrangement');
 
 // LIVE/DEBUG API mode — Settings page's "dangerous debug button". Every
 // per-API URL setting below stores BOTH a live and a debug value; this
@@ -42,11 +44,20 @@ router.get('/api/sub-info/', (req, res) => {
   }
 });
 
-// Sponsor logos + categorization — logos live in /sponsors/, categorization
-// (grouping, per-category loop duration, display order) is edited from the
-// dashboard's Sponsors tab and persisted to sponsors_config.json.
-const SPONSORS_DIR         = path.join(__dirname, '..', 'sponsors');
-const SPONSORS_CONFIG_FILE = path.join(__dirname, '..', 'sponsors_config.json');
+// Sponsor logos + categorization — each project has its own logo folder and
+// categorization (grouping, per-category loop duration, display order),
+// resolved fresh on every call via lib/projects.js (same "same file shape
+// everywhere, just a different copy per active project" pattern as
+// overlay_styles.json / killevent_settings.json — never cache these paths,
+// the active project can change between any two calls). Falls back to the
+// repo-root copies when no project is active. The actual logo files at
+// whatever this resolves to are served by server.js's dedicated
+// `/sponsors/:filename` route (needed because, unlike project asset
+// uploads, sponsor logo URLs must stay `/sponsors/<file>` for every
+// existing consumer — /api/sponsors' playlist, sponsors-dashboard.html —
+// rather than embedding the project id in the URL).
+function sponsorsDir()        { return projects.getProjectScopedFilePath('sponsors'); }
+function sponsorsConfigFile() { return projects.getProjectScopedFilePath('sponsors_config.json'); }
 const CONFIG_FILE          = path.join(__dirname, '..', 'config.json');
 
 function getDashboardPassword() {
@@ -59,7 +70,7 @@ function getDashboardPassword() {
 
 function readSponsorFiles() {
   try {
-    return fs.readdirSync(SPONSORS_DIR).filter(f => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f));
+    return fs.readdirSync(sponsorsDir()).filter(f => /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(f));
   } catch (e) {
     return [];
   }
@@ -67,7 +78,7 @@ function readSponsorFiles() {
 
 function readSponsorsConfig() {
   try {
-    const data = JSON.parse(fs.readFileSync(SPONSORS_CONFIG_FILE, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(sponsorsConfigFile(), 'utf8'));
     if (data && Array.isArray(data.categories)) {
       return { categories: data.categories, hiddenInIngame: Array.isArray(data.hiddenInIngame) ? data.hiddenInIngame : [] };
     }
@@ -119,7 +130,7 @@ router.post('/api/sponsors-config', (req, res) => {
   }
   const hiddenInIngame = Array.isArray(data.hiddenInIngame) ? data.hiddenInIngame.filter(f => typeof f === 'string') : [];
   try {
-    fs.writeFileSync(SPONSORS_CONFIG_FILE, JSON.stringify({ categories: data.categories, hiddenInIngame }, null, 2));
+    fs.writeFileSync(sponsorsConfigFile(), JSON.stringify({ categories: data.categories, hiddenInIngame }, null, 2));
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: 'Could not write sponsors_config.json' });
@@ -128,7 +139,7 @@ router.post('/api/sponsors-config', (req, res) => {
 
 // Credit Reel content — plain text, edited from the dashboard's Edit tab
 // (or by hand-editing this file / pasting into the textarea) and rendered
-// by mplfs.html's crParseText(). GET to read, POST { text } to update.
+// by Fullscreen.html's crParseText(). GET to read, POST { text } to update.
 const CREDITS_TEXT_FILE = path.join(__dirname, '..', 'credits_reel.txt');
 
 router.get('/api/credits-text', (req, res) => {
@@ -180,35 +191,84 @@ router.post('/api/credits-style', (req, res) => {
   res.json({ ok: true, headingSize, bodySize });
 });
 
-// Item Check panel layout tuning (mploverlay_v7's item-check panel) —
-// goldGap is the vertical space between gold-amount rows (px added on top
-// of each row's own 31px height); homeOffsetX/Y and awayOffsetY/Y shift
-// every element on that side (portraits, items, gold) together, so the
-// whole blue/red half can be nudged in one edit instead of repositioning
-// each row by hand. GET to read, POST the full object to update.
-const ITEMCHECK_LAYOUT_FILE = path.join(__dirname, '..', 'itemcheck_layout.json');
-const ITEMCHECK_LAYOUT_DEFAULTS = { goldGap: 26, homeOffsetX: 0, homeOffsetY: 0, awayOffsetX: 0, awayOffsetY: 0 };
+// Bottom-events layout tuning (ingame.html's Item Check / Gold Diff Check /
+// Emblem Check panels) — all three are built the same way (shared CSS
+// classes reused per row/card, JS-computed positions from fixed
+// constants), so instead of exposing 10 individually-draggable boxes each,
+// they share this "a few offsets shift the whole side together" model:
+// homeOffsetX/Y and awayOffsetX/Y shift every element on that side
+// (portraits, bars/items/runes, text) together. Item Check additionally
+// has goldFontSize — one shared font size for every gold-amount row
+// (not per-player) since they're all "similar" elements. Same file
+// shape/route shape for all three — one factory instead of three
+// hand-copied GET/POST pairs. Project-scoped like overlay_styles.json
+// (lib/projects.js's getProjectScopedFilePath): each project gets its own
+// copy, root files are the no-project-active default.
+function registerLayoutRoutes(filename, apiPath, fieldSpecs) {
+  router.get(apiPath, (req, res) => {
+    try {
+      res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(projects.getProjectScopedFilePath(filename), 'utf8')));
+    } catch (e) {
+      const defaults = {};
+      Object.keys(fieldSpecs).forEach((k) => { defaults[k] = fieldSpecs[k].default; });
+      res.set('Cache-Control', 'no-store').json(defaults);
+    }
+  });
+  router.post(apiPath, (req, res) => {
+    const b = req.body || {};
+    const clampNum = (v, d, lo, hi) => Math.max(lo, Math.min(hi, Number(v) || d));
+    const layout = {};
+    Object.keys(fieldSpecs).forEach((k) => {
+      const spec = fieldSpecs[k];
+      layout[k] = clampNum(b[k], spec.default, spec.min, spec.max);
+    });
+    fs.writeFileSync(projects.getProjectScopedFilePath(filename), JSON.stringify(layout));
+    /* Same 'reload' broadcast overlay_styles.json saves already trigger
+       (routes/overlayStyles.js) — so every other open ingame.html
+       instance/OBS browser source picks up the change too, not just
+       this dashboard's own live preview (which already updates instantly
+       via icPreviewLayout/gdcPreviewLayout/eccPreviewLayout while
+       dragging, with no reload needed for that part). */
+    state.overlayClients.forEach((c) => { try { c.write('event: reload\ndata: {}\n\n'); } catch (e) {} });
+    res.json({ ok: true, ...layout });
+  });
+}
 
-router.get('/api/itemcheck-layout', (req, res) => {
+const SIDE_OFFSET_FIELDS = {
+  homeOffsetX: { default: 0, min: -400, max: 400 },
+  homeOffsetY: { default: 0, min: -400, max: 400 },
+  awayOffsetX: { default: 0, min: -400, max: 400 },
+  awayOffsetY: { default: 0, min: -400, max: 400 },
+};
+
+registerLayoutRoutes('itemcheck_layout.json', '/api/itemcheck-layout', {
+  goldFontSize: { default: 30, min: 10, max: 60 },
+  ...SIDE_OFFSET_FIELDS,
+});
+registerLayoutRoutes('golddiffcheck_layout.json', '/api/golddiffcheck-layout', SIDE_OFFSET_FIELDS);
+registerLayoutRoutes('emblemcheck_layout.json', '/api/emblemcheck-layout', SIDE_OFFSET_FIELDS);
+
+// Dashboard Control tab — which Fullscreen features the user has archived
+// (moved out of the main "Features" list into the collapsible "Archived"
+// section, purely to declutter the panel for a show that doesn't need
+// them — the routes/scenes themselves stay fully intact either way).
+// Project-scoped like overlay_styles.json — each project gets its own
+// archived set, root file is the no-project-active default. Keyed by the
+// same feature-key every other Fullscreen toggle uses (feat.show.split('/')[2]).
+const FULLSCREEN_ARCHIVED_FILE = 'fullscreen_archived_features.json';
+
+router.get('/api/fullscreen-archived-features', (req, res) => {
   try {
-    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(ITEMCHECK_LAYOUT_FILE, 'utf8')));
+    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(projects.getProjectScopedFilePath(FULLSCREEN_ARCHIVED_FILE), 'utf8')));
   } catch (e) {
-    res.set('Cache-Control', 'no-store').json(ITEMCHECK_LAYOUT_DEFAULTS);
+    res.set('Cache-Control', 'no-store').json({ keys: [] });
   }
 });
 
-router.post('/api/itemcheck-layout', (req, res) => {
-  const b = req.body || {};
-  const clampNum = (v, d, lo, hi) => Math.max(lo, Math.min(hi, Number(v) || d));
-  const layout = {
-    goldGap:     clampNum(b.goldGap,     26, 0,    200),
-    homeOffsetX: clampNum(b.homeOffsetX, 0,  -400, 400),
-    homeOffsetY: clampNum(b.homeOffsetY, 0,  -400, 400),
-    awayOffsetX: clampNum(b.awayOffsetX, 0,  -400, 400),
-    awayOffsetY: clampNum(b.awayOffsetY, 0,  -400, 400),
-  };
-  fs.writeFileSync(ITEMCHECK_LAYOUT_FILE, JSON.stringify(layout));
-  res.json({ ok: true, ...layout });
+router.post('/api/fullscreen-archived-features', (req, res) => {
+  const keys = Array.isArray((req.body || {}).keys) ? req.body.keys.filter((k) => typeof k === 'string') : [];
+  fs.writeFileSync(projects.getProjectScopedFilePath(FULLSCREEN_ARCHIVED_FILE), JSON.stringify({ keys }));
+  res.json({ ok: true, keys });
 });
 
 // Game API base URL — GET to read, POST { url } to update
@@ -312,7 +372,7 @@ router.get('/api/dynamic-content/vmix', (req, res) => {
 });
 
 // Server-side proxy — serves the game API payload lib/pollers.js already
-// polls every second (state.lastGameData), so every mplfs.html board reads
+// polls every second (state.lastGameData), so every Fullscreen.html board reads
 // an in-memory cache instead of each one triggering its own live round-trip
 // to the upstream game API. Falls back to a direct fetch only if the poller
 // hasn't landed a payload yet (e.g. right at server startup).
@@ -323,10 +383,17 @@ router.get('/api/dynamic-content/vmix', (req, res) => {
 // Items, Post Stats) rather than whatever the once-a-second poll last
 // caught. Still goes through this server, not the browser, so it works the
 // same everywhere the cached path already works (no new CORS/reachability
-// requirements on whatever machine renders mplfs.html).
+// requirements on whatever machine renders Fullscreen.html).
+//
+// ?raw=1 skips the dashboard's saved seat arrangement (see
+// lib/seatArrangement.js) and returns seat_1..5 exactly as the upstream
+// sends them — used by the Arrangement tab's own live preview, which
+// needs a stable, un-rearranged baseline to drag from regardless of
+// whatever's currently applied. Combinable with ?fresh=1.
 router.get('/api/gamedata-proxy', async (req, res) => {
+  const raw = req.query.raw === '1';
   if (state.lastGameData && req.query.fresh !== '1') {
-    return res.set('Cache-Control', 'no-store').json(state.lastGameData);
+    return res.set('Cache-Control', 'no-store').json(raw ? state.lastGameDataRaw : state.lastGameData);
   }
   try {
     const gameUrl = readUrlForMode(GAME_URL_FILE, '').trim();
@@ -334,7 +401,7 @@ router.get('/api/gamedata-proxy', async (req, res) => {
     const r = await fetch(gameUrl);
     if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
     const data = await r.json();
-    res.set('Cache-Control', 'no-store').json(data);
+    res.set('Cache-Control', 'no-store').json(raw ? data : seatArrangement.applyArrangement(data, seatArrangement.readArrangement()));
   } catch (e) {
     res.status(502).json({ error: e.message });
   }
@@ -344,7 +411,7 @@ router.get('/api/gamedata-proxy', async (req, res) => {
 // feed from the main Game API: the live sub-info feed has no orange/purple
 // jungle-buff counts, but this one does, in camp_list[].enemy_area_get
 // (an array of per-time-window deltas — sum them for a running total, see
-// mplfs.html's fetchCmbData/fetchMiddleBoardData).
+// Fullscreen.html's fetchCmbData/fetchMiddleBoardData).
 const POST_INFO_URL_FILE    = path.join(__dirname, '..', 'post_info_api_url.json');
 const POST_INFO_URL_DEFAULT = 'http://10.88.120.60:5001/api/post-info/';
 
@@ -360,26 +427,65 @@ router.post('/api/post-info-url', (req, res) => {
 
 // Server-side proxy — serves the post-info payload lib/pollers.js polls
 // (state.lastPostInfoData), same caching pattern as /api/gamedata-proxy.
+// ?raw=1 — see /api/gamedata-proxy's own comment; same deal here.
 router.get('/api/postinfo-proxy', async (req, res) => {
+  const raw = req.query.raw === '1';
   if (state.lastPostInfoData) {
-    return res.set('Cache-Control', 'no-store').json(state.lastPostInfoData);
+    return res.set('Cache-Control', 'no-store').json(raw ? state.lastPostInfoDataRaw : state.lastPostInfoData);
   }
   try {
     const url = readUrlForMode(POST_INFO_URL_FILE, POST_INFO_URL_DEFAULT).trim();
     if (!url) return res.status(404).json({ error: 'no post-info URL configured' });
     // Same reasoning as /api/lineuprate-data below — an unreachable upstream
     // (e.g. the game-client PC off the network) would otherwise hang this
-    // request indefinitely. mplfs.html's middleboard polls this every 3s
+    // request indefinitely. Fullscreen.html's middleboard polls this every 3s
     // whenever visible, uncached, with no dedup across tabs, so a hung
     // upstream here piles up hung connections fast once a few overlay tabs
     // are open — fail fast instead.
     const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
     const data = await r.json();
-    res.set('Cache-Control', 'no-store').json(data);
+    res.set('Cache-Control', 'no-store').json(raw ? data : seatArrangement.applyArrangement(data, seatArrangement.readArrangement()));
   } catch (e) {
     res.status(502).json({ error: e.message });
   }
+});
+
+// Dashboard "Arrangement" tab — lets the user reorder seat_1..seat_5 per
+// camp for both /api/gamedata-proxy and /api/postinfo-proxy, without
+// restarting any overlay. GET returns the saved arrangement (always a
+// valid { camp1, camp2 } permutation pair — see lib/seatArrangement.js).
+// POST validates + saves it, THEN re-derives state.lastGameData/
+// lastPostInfoData from the untouched Raw copies right away (instead of
+// waiting for the next 1s poll tick) and broadcasts it over SSE so
+// ingame.html's masterPoll (which reads the upstream Game API directly,
+// not through this proxy — see overlay-core.js's getPlayer()) picks up
+// the same change live, no reload needed either.
+router.get('/api/seat-arrangement', (req, res) => {
+  res.set('Cache-Control', 'no-store').json(seatArrangement.readArrangement());
+});
+
+router.post('/api/seat-arrangement', (req, res) => {
+  const body = req.body || {};
+  const token = body.token || req.headers['x-dashboard-token'];
+  if (!token || token !== getDashboardPassword()) return res.status(401).json({ error: 'Unauthorized' });
+  if (!seatArrangement.isValidPerm(body.camp1) || !seatArrangement.isValidPerm(body.camp2)) {
+    return res.status(400).json({ error: 'camp1/camp2 must each be a permutation of [1,2,3,4,5]' });
+  }
+  const before = seatArrangement.readArrangement();
+  const changed = JSON.stringify(before) !== JSON.stringify({ camp1: body.camp1, camp2: body.camp2 });
+  const saved = seatArrangement.writeArrangement(body);
+  if (state.lastGameDataRaw) state.lastGameData = seatArrangement.applyArrangement(state.lastGameDataRaw, saved);
+  if (state.lastPostInfoDataRaw) state.lastPostInfoData = seatArrangement.applyArrangement(state.lastPostInfoDataRaw, saved);
+  // Only broadcast (and thus only make ingame.html reset its Level 15/Item/
+  // Trinity/Swap baselines — see resetReactiveBaselines() in
+  // overlay-core.js) when the arrangement actually changed. Re-saving the
+  // same order shouldn't cost every open ingame.html tab a ~1s "blind"
+  // window for no reason.
+  if (changed) {
+    state.overlayClients.forEach((c) => { try { c.write(`event: seat_arrangement\ndata: ${JSON.stringify(saved)}\n\n`); } catch (e) {} });
+  }
+  res.json({ ok: true, ...saved });
 });
 
 // HRM Server (heartrate ingestion) base URL — GET to read, POST { url } to update

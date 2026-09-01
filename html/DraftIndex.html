@@ -36,7 +36,7 @@
     }
 
     /* ── Debug bar (backtick to toggle) — local-only testing, bypasses
-       the network entirely, same spirit as mplfs.html's debug card ── */
+       the network entirely, same spirit as Fullscreen.html's debug card ── */
     #di-debug-bar {
       position: absolute;
       top: 0; left: 0;
@@ -182,7 +182,7 @@
     /* ── Stat comparison bars — single editable viewport; the 7 rows
        inside are generated from DI_BARS + the live API data, not
        individually positioned (same philosophy as the Credit Reel
-       viewport in mplfs.html — only the box is drag/resize-able). ── */
+       viewport in Fullscreen.html — only the box is drag/resize-able). ── */
     #di-bars-container {
       position: absolute;
       left: 634px; top: 370px;
@@ -303,6 +303,14 @@
   var REVEAL_MS       = 800;
   var EASE_OUT        = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
+  /* Dashboard Edit tab's own live preview (loadIframe() always appends
+     ?preview=1) — used below to exempt this instance from the 'reload'
+     SSE event (see that listener for why). This page has no other
+     preview-mode isolation today (unlike Draft.html's PREVIEW_ONLY /
+     Fullscreen.html's isPreviewFrame), so this is scoped to just that
+     one need for now. */
+  var isPreviewFrame = /[?&]preview=1(?:&|$)/.test(window.location.search);
+
   /* Stat categories, in display order — key matches the Line-Up Rate
      API's t1/t2 fields (see /api/lineuprate-url in Settings to repoint
      the API; labels match indexguide3.png). */
@@ -328,7 +336,7 @@
 
   /* sceneToken guards against a stale setTimeout/fetch from a previous
      SHOW still running after a HIDE (or another SHOW) supersedes it —
-     same pattern mplfs.html uses (activeFeature guard). */
+     same pattern Fullscreen.html uses (activeFeature guard). */
   var sceneToken = 0;
 
   /* Every entrance/exit animation below uses fill:'forwards'/'both' so
@@ -455,7 +463,7 @@
 
   /* ── Data fetch ──────────────────────────────────────────────── */
   /* Team logos: campid 1 = blue, campid 2 = red — same strict, live-feed-
-     based convention as mplfs.html's Final Team scene (updateFtTeamIdentity/
+     based convention as Fullscreen.html's Final Team scene (updateFtTeamIdentity/
      ftResolveCardCamps), independent of the Match Board's home/away call. */
   function diFetchGameData() {
     return fetch('/api/gamedata-proxy', { cache: 'no-store' })
@@ -626,7 +634,7 @@
   }
 
   /* ── Preload images before revealing (avoids a partially-drawn frame
-     — same helper shape as mplfs.html's preloadMedia). ── */
+     — same helper shape as Fullscreen.html's preloadMedia). ── */
   function diPreload(els, maxWaitMs) {
     return Promise.all(Array.prototype.map.call(els, function (el) {
       return new Promise(function (resolve) {
@@ -800,8 +808,9 @@
 
   /* Fired by routes/overlayStyles.js after any Edit-tab Save — force a
      hard reload so new position/size overrides apply immediately (see
-     mplfs.html's connectSSE() for the identical pattern). */
-  es.addEventListener('reload', function () { window.location.reload(); });
+     Fullscreen.html's connectSSE() for the identical pattern).
+     isPreviewFrame is exempt — see its declaration above. */
+  es.addEventListener('reload', function () { if (isPreviewFrame) return; window.location.reload(); });
 
   es.addEventListener('draftindex', function (e) {
     var msg = {};
@@ -825,7 +834,9 @@
         if (!styles || !Object.keys(styles).length) return;
         var css = Object.keys(styles).map(function (sel) {
           var props = styles[sel];
-          var decls = Object.keys(props).map(function (prop) {
+          var decls = Object.keys(props).filter(function (prop) {
+            return prop !== 'asset';
+          }).map(function (prop) {
             var cssProp = prop === 'fontSize' ? 'font-size' : prop;
             return cssProp + ':' + props[prop] + ' !important';
           }).join(';');
@@ -835,6 +846,15 @@
         style.id = 'draftindex-overrides';
         style.textContent = css;
         document.head.appendChild(style);
+        /* `asset` overrides can't go through CSS !important (a src
+           attribute can't be overridden that way) — apply directly to any
+           matching IMG/VIDEO element instead. */
+        Object.keys(styles).forEach(function (sel) {
+          if (styles[sel].asset === undefined) return;
+          document.querySelectorAll(sel).forEach(function (el) {
+            if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = styles[sel].asset;
+          });
+        });
       })
       .catch(function () {});
   })();

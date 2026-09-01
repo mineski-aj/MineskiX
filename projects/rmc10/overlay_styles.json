@@ -1,0 +1,147 @@
+{
+  "ingame_scoreboard": {
+    "#scoreboard-gametime": {
+      "top": "8px",
+      "fontSize": "27px"
+    },
+    "#scoreboard-kills-c1": {
+      "left": "803px",
+      "top": "52px",
+      "fontSize": "46px"
+    },
+    "#scoreboard-kills-c2": {
+      "left": "1125px",
+      "top": "52px",
+      "fontSize": "46px"
+    },
+    "#scoreboard-tricode-c1": {
+      "left": "511px",
+      "top": "72.4px",
+      "fontSize": "43px"
+    },
+    "#scoreboard-tricode-c2": {
+      "left": "1418px",
+      "top": "73.4px",
+      "fontSize": "43px"
+    },
+    "#scoreboard-turtle-c1": {
+      "left": "528.1px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-lord-c1": {
+      "left": "630px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-tower-c1": {
+      "left": "725px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-gold-c1": {
+      "left": "826.8px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#sb-goldlead-c1": {
+      "left": "676.9px",
+      "top": "76px",
+      "fontSize": "27px"
+    },
+    "#scoreboard-turtle-c2": {
+      "left": "1398px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-lord-c2": {
+      "left": "1295px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-tower-c2": {
+      "left": "1204px",
+      "top": "24px",
+      "fontSize": "24px"
+    },
+    "#scoreboard-gold-c2": {
+      "left": "1098px",
+      "top": "25px",
+      "fontSize": "24px"
+    },
+    "#sb-goldlead-c2": {
+      "left": "1245px",
+      "top": "75px",
+      "fontSize": "27px"
+    },
+    "#sb-score-c1": {
+      "left": "858px",
+      "top": "57px"
+    },
+    "#sb-score-c2": {
+      "left": "1023px",
+      "top": "56px"
+    },
+    "#sb-sponsor-loop": {
+      "left": "1748px",
+      "top": "9px",
+      "width": "161px",
+      "height": "58px"
+    },
+    "#sb-logo-c1": {
+      "left": "357px",
+      "top": "19px"
+    },
+    "#sb-logo-c2": {
+      "left": "1499px",
+      "top": "16px"
+    },
+    "#sb-mi-patch": {
+      "left": "1531px",
+      "top": "109px",
+      "width": "133px",
+      "height": "19px",
+      "fontSize": "13px"
+    },
+    "#sb-mi-casters": {
+      "left": "1618px",
+      "top": "78px",
+      "width": "268px",
+      "height": "25px",
+      "fontSize": "32px"
+    },
+    "#kill-event-sponsor-logo-clip": {
+      "left": "785px",
+      "top": "790px",
+      "width": "142px",
+      "height": "58px"
+    },
+    "#scoreboard-bg": {
+      "asset": "/projects/rmc10/assets/Ingame/rmc_ingame.png"
+    },
+    "#sb-mi-label": {},
+    "#sb-mi-week": {},
+    "#sb-mi-match": {},
+    "#sb-score-c1 .sb-score-bar.filled, #sb-score-c2 .sb-score-bar.filled": {}
+  },
+  "fullscreen": {
+    "#mdb-map": {
+      "left": "815px",
+      "top": "869px",
+      "width": "294px",
+      "height": "69px"
+    },
+    ".mdb-num": {
+      "fontSize": "42px"
+    },
+    "#mdb-game-time-label": {
+      "fontSize": "26px"
+    },
+    "#mdb-game-time-value": {
+      "fontSize": "107px"
+    },
+    "#mdb-game-label-text": {
+      "fontSize": "31px"
+    }
+  }
+}

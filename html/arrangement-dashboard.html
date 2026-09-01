@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="js/cache-bust.js"></script>
+  <title>Arrangement Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #d0d0d8;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    /* ── Login ── */
+    #login-wrap {
+      width: 320px;
+      background: #16161f;
+      border: 1px solid #222232;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      margin-top: 80px;
+    }
+    #login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; }
+    #login-wrap p  { font-size: 13px; color: #555; margin-bottom: 24px; }
+
+    /* ── App ── */
+    #app { display: none; width: 100%; max-width: 1100px; flex-direction: column; gap: 10px; height: 100%; }
+    #app.visible { display: flex; }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    header h1 { font-size: 17px; font-weight: 600; color: #fff; }
+    #sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; display: inline-block; margin-right: 6px; transition: background .3s; }
+    #sync-dot.ok  { background: #00cc88; box-shadow: 0 0 5px #00cc88aa; }
+    #sync-dot.err { background: #ff4455; box-shadow: 0 0 5px #ff4455aa; }
+    #sync-label { font-size: 12px; color: #555; }
+
+    .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; font-size: 13px; font-weight: 500; cursor: pointer; transition: filter .15s; line-height: 20px; }
+    .btn:hover  { filter: brightness(1.2); }
+    .btn:active { filter: brightness(.85); }
+    .btn:disabled { opacity: .4; cursor: default; filter: none; }
+    .btn-login  { background: #1e2a4a; border-color: #2a3a6a; color: #7aabff; width: 100%; padding: 10px; font-size: 14px; margin-top: 4px; }
+    .btn-logout { background: transparent; border-color: #333; color: #555; font-size: 12px; }
+    .btn-save   { background: #143a24; border-color: #1e5a36; color: #44cc88; font-weight: 600; padding: 8px 22px; }
+    .btn-save.attn { background: #3a2a10; border-color: #7a5a20; color: #ffbb44; }
+    .btn-default { background: #241a2e; border-color: #4a2e6a; color: #cc99ff; font-size: 12px; padding: 7px 14px; }
+    .err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 18px; }
+
+    #hint {
+      font-size: 12px; color: #666; line-height: 1.5; flex-shrink: 0;
+      background: #16161f; border: 1px solid #1e1e2e; border-radius: 8px; padding: 10px 14px;
+    }
+    #hint b { color: #99a; }
+
+    #camps { flex: 1; min-height: 0; display: flex; gap: 14px; }
+    .camp-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+    .camp-hdr { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; }
+    .camp-title { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .camp-col.blue .camp-title { color: #6a9bff; }
+    .camp-col.red  .camp-title { color: #ff7a7a; }
+    .camp-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 2px; }
+
+    .seat-row {
+      display: flex; align-items: center; gap: 10px;
+      background: #16161f; border: 1px solid #222232; border-radius: 8px;
+      padding: 8px 12px; cursor: grab; user-select: none;
+      transition: border-color .15s, background .15s, opacity .15s;
+    }
+    .seat-row:active { cursor: grabbing; }
+    .seat-row.dragging { opacity: .35; }
+    .seat-row.drag-over { border-color: #5566cc; background: #1a1a2a; }
+    .camp-col.blue .seat-row.drag-over { border-color: #3a6aff; }
+    .camp-col.red  .seat-row.drag-over { border-color: #ff5a5a; }
+    .seat-handle { color: #333; font-size: 16px; line-height: 1; flex-shrink: 0; }
+    .seat-slot-num {
+      width: 20px; height: 20px; border-radius: 50%; background: #0f0f18; border: 1px solid #2a2a3a;
+      display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #667; flex-shrink: 0;
+    }
+    .seat-hero { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; background: #0f0f18; flex-shrink: 0; }
+    .seat-info { flex: 1; min-width: 0; }
+    .seat-name { font-size: 13px; font-weight: 600; color: #e0e0f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .seat-orig { font-size: 10px; color: #555; }
+    .seat-empty { font-size: 12px; color: #444; font-style: italic; padding: 8px 0; }
+
+    #actions-row {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 12px; border-top: 1px solid #1e1e2e; flex-shrink: 0;
+    }
+    #dirty-hint { font-size: 12px; color: #ffbb44; }
+
+    #saved-toast {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      background: #16a34a;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 200ms ease, transform 200ms ease;
+      z-index: 999;
+    }
+    #saved-toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="saved-toast">Arrangement Saved</div>
+
+<!-- ── Login ── -->
+<div id="login-wrap">
+  <h2>Arrangement Dashboard</h2>
+  <p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password" style="width:100%">
+  <div class="err" id="login-err"></div>
+  <button class="btn btn-login" id="login-btn">Unlock</button>
+</div>
+
+<!-- ── App ── -->
+<div id="app">
+  <header>
+    <h1>Arrangement</h1>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span><span id="sync-dot"></span><span id="sync-label">Loading…</span></span>
+      <button class="btn btn-logout" id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <div id="hint">
+    Drag a row to reorder seats within a camp. This changes which seat_1..seat_5
+    <b>every overlay reading the Game API and Post-Info API</b> sees — it does not
+    touch the upstream feed itself, just how this server hands it onward. Takes
+    effect live on <b>Save</b>, no overlay restart needed. <b>Default</b> reverts
+    both camps to exactly what the Game API sends, immediately.
+    Safe to use mid-game: Kill Events are detected from the untouched feed and
+    are never affected either way. Level 15 / Item Pickup / Trinity / Quick Swap
+    detection on ingame.html briefly re-baselines for the one poll right after
+    a change (so the swap itself can't misfire one of those for the wrong
+    player) — expect a roughly 1-second gap in those specifically, not a
+    wrong trigger.
+  </div>
+
+  <div id="camps">
+    <div class="camp-col blue">
+      <div class="camp-hdr"><span class="camp-title">Camp 1 (Blue)</span></div>
+      <div class="camp-list" id="list-camp1"></div>
+    </div>
+    <div class="camp-col red">
+      <div class="camp-hdr"><span class="camp-title">Camp 2 (Red)</span></div>
+      <div class="camp-list" id="list-camp2"></div>
+    </div>
+  </div>
+
+  <div id="actions-row">
+    <button class="btn btn-save" id="save-btn" disabled>Save Arrangement</button>
+    <button class="btn btn-default" id="default-btn">Default (Revert to Game API order)</button>
+    <span id="dirty-hint"></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var token = sessionStorage.getItem('match_token') || '';
+  var CAMPS = ['camp1', 'camp2'];
+
+  // savedArrangement: what the server currently has (last fetched/saved).
+  // displayOrder: what's shown right now — an array of ORIGINAL seat
+  // numbers (1-5) in display order; dragging reorders this directly.
+  // rawSeats: seat_1..seat_5 exactly as the upstream Game API sends them
+  // (never itself rearranged — see /api/gamedata-proxy?raw=1), refreshed
+  // periodically so names/heroes stay live while the page is open.
+  var savedArrangement = { camp1: [1, 2, 3, 4, 5], camp2: [1, 2, 3, 4, 5] };
+  var displayOrder     = { camp1: [1, 2, 3, 4, 5], camp2: [1, 2, 3, 4, 5] };
+  var rawSeats         = { camp1: [null, null, null, null, null], camp2: [null, null, null, null, null] };
+  var dragState = null; // { camp, fromIndex }
+  var pollTimer = null;
+
+  /* ── AUTH ── */
+  function showApp()   { document.getElementById('login-wrap').style.display = 'none'; document.getElementById('app').classList.add('visible'); }
+  function showLogin() { document.getElementById('login-wrap').style.display = ''; document.getElementById('app').classList.remove('visible'); clearInterval(pollTimer); }
+
+  if (token) tryAuth(token);
+
+  document.getElementById('login-btn').addEventListener('click', function () { tryAuth(document.getElementById('pw-input').value.trim()); });
+  document.getElementById('pw-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('login-btn').click(); });
+  document.getElementById('logout-btn').addEventListener('click', function () { token = ''; sessionStorage.removeItem('match_token'); showLogin(); });
+
+  function tryAuth(pw) {
+    /* Same dashboard password as Match Board / Standings / Roster —
+       /match/auth just verifies it, no arrangement-specific auth endpoint
+       needed. */
+    fetch('/match/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) {
+        if (r.ok) {
+          token = pw;
+          sessionStorage.setItem('match_token', token);
+          document.getElementById('login-err').textContent = '';
+          showApp();
+          init();
+        } else {
+          document.getElementById('login-err').textContent = 'Incorrect password.';
+        }
+      }).catch(function () { document.getElementById('login-err').textContent = 'Cannot reach server.'; });
+  }
+
+  function init() {
+    // Each step falls back to identity/empty instead of rejecting, so one
+    // unreachable endpoint (e.g. this route not existing yet on a server
+    // that hasn't restarted since it was added) still leaves the page
+    // usable and visibly saying so, rather than stuck on "Loading…"
+    // forever with no indication anything went wrong.
+    loadArrangement().then(function () {
+      return refreshRawSeats();
+    }).then(function () {
+      renderAll();
+      pollTimer = setInterval(refreshRawSeats, 2000);
+    });
+  }
+
+  /* ── LOAD ── */
+  function loadArrangement() {
+    return fetch('/api/seat-arrangement', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.camp1 && d.camp2) {
+          savedArrangement = d;
+          displayOrder = { camp1: d.camp1.slice(), camp2: d.camp2.slice() };
+        }
+      })
+      .catch(function () { setSync(false); });
+  }
+
+  function setSync(ok) {
+    document.getElementById('sync-dot').className = ok ? 'ok' : 'err';
+    document.getElementById('sync-label').textContent = ok ? 'Live' : 'Cannot reach game API';
+  }
+
+  function refreshRawSeats() {
+    /* ?raw=1 — always the untouched upstream order (ignores whatever
+       arrangement is currently saved), so dragging always has a stable
+       baseline. ?fresh=1 — this page cares about "what does the API
+       actually have right now" more than shaving a network round trip. */
+    return fetch('/api/gamedata-proxy?raw=1&fresh=1', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (json) {
+        var camps = (json && json.data && json.data.camp_list) || [];
+        CAMPS.forEach(function (key, i) {
+          var campid = i + 1;
+          var camp = camps.filter(function (c) { return c.campid === campid; })[0];
+          var seats = [null, null, null, null, null];
+          if (camp) {
+            for (var s = 1; s <= 5; s++) seats[s - 1] = camp['seat_' + s] || null;
+          }
+          rawSeats[key] = seats;
+        });
+        setSync(true);
+        renderAll();
+      })
+      .catch(function () { setSync(false); });
+  }
+
+  /* ── RENDER ── */
+  function heroUrl(seat) {
+    return seat && seat.heroid ? '/hero/HERO_' + seat.heroid + '_KOTAK.png' : '';
+  }
+
+  function renderCamp(key) {
+    var root = document.getElementById('list-' + key);
+    root.innerHTML = '';
+    var order = displayOrder[key];
+    order.forEach(function (origSeatNum, rowIdx) {
+      var seat = rawSeats[key][origSeatNum - 1];
+      var row = document.createElement('div');
+      row.className = 'seat-row';
+      row.draggable = true;
+      row.dataset.camp = key;
+      row.dataset.index = rowIdx;
+
+      var handle = document.createElement('span');
+      handle.className = 'seat-handle';
+      handle.textContent = '⠿';
+      row.appendChild(handle);
+
+      var slotNum = document.createElement('span');
+      slotNum.className = 'seat-slot-num';
+      slotNum.textContent = rowIdx + 1;
+      row.appendChild(slotNum);
+
+      if (seat) {
+        var hero = document.createElement('img');
+        hero.className = 'seat-hero';
+        hero.src = heroUrl(seat);
+        hero.alt = '';
+        hero.onerror = function () { hero.style.visibility = 'hidden'; };
+        row.appendChild(hero);
+
+        var info = document.createElement('div');
+        info.className = 'seat-info';
+        var name = document.createElement('div');
+        name.className = 'seat-name';
+        name.textContent = seat.name || '(no name)';
+        info.appendChild(name);
+        var orig = document.createElement('div');
+        orig.className = 'seat-orig';
+        orig.textContent = 'API seat_' + origSeatNum + (seat.role ? ' · ' + seat.role : '');
+        info.appendChild(orig);
+        row.appendChild(info);
+      } else {
+        var empty = document.createElement('div');
+        empty.className = 'seat-empty';
+        empty.textContent = 'seat_' + origSeatNum + ' — no data yet';
+        row.appendChild(empty);
+      }
+
+      attachDragHandlers(row);
+      root.appendChild(row);
+    });
+  }
+
+  function renderAll() {
+    CAMPS.forEach(renderCamp);
+    updateDirty();
+  }
+
+  /* ── DRAG AND DROP — reorder within one camp's own list only ── */
+  function attachDragHandlers(row) {
+    row.addEventListener('dragstart', function (e) {
+      dragState = { camp: row.dataset.camp, fromIndex: Number(row.dataset.index) };
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', function () {
+      row.classList.remove('dragging');
+      document.querySelectorAll('.seat-row.drag-over').forEach(function (r) { r.classList.remove('drag-over'); });
+      dragState = null;
+    });
+    row.addEventListener('dragover', function (e) {
+      if (!dragState || dragState.camp !== row.dataset.camp) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', function () { row.classList.remove('drag-over'); });
+    row.addEventListener('drop', function (e) {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if (!dragState || dragState.camp !== row.dataset.camp) return;
+      var toIndex = Number(row.dataset.index);
+      moveSeat(dragState.camp, dragState.fromIndex, toIndex);
+    });
+  }
+
+  function moveSeat(camp, fromIndex, toIndex) {
+    if (fromIndex === toIndex) return;
+    var order = displayOrder[camp];
+    var moved = order.splice(fromIndex, 1)[0];
+    order.splice(toIndex, 0, moved);
+    renderCamp(camp);
+    updateDirty();
+  }
+
+  /* ── DIRTY / SAVE / DEFAULT ── */
+  function arrangementsEqual(a, b) {
+    return CAMPS.every(function (k) { return a[k].every(function (n, i) { return n === b[k][i]; }); });
+  }
+
+  function updateDirty() {
+    var dirty = !arrangementsEqual(displayOrder, savedArrangement);
+    document.getElementById('save-btn').disabled = !dirty;
+    document.getElementById('save-btn').classList.toggle('attn', dirty);
+    document.getElementById('dirty-hint').textContent = dirty ? 'Unsaved changes' : '';
+  }
+
+  var _toastTimer = null;
+  function showSavedToast() {
+    var t = document.getElementById('saved-toast');
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  function postArrangement(arrangement) {
+    return fetch('/api/seat-arrangement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: token, camp1: arrangement.camp1, camp2: arrangement.camp2 }),
+    }).then(function (r) {
+      if (r.status === 401) { token = ''; sessionStorage.removeItem('match_token'); showLogin(); throw new Error('unauthorized'); }
+      if (!r.ok) throw new Error('save failed');
+      return r.json();
+    });
+  }
+
+  document.getElementById('save-btn').addEventListener('click', function () {
+    postArrangement(displayOrder).then(function (saved) {
+      savedArrangement = { camp1: saved.camp1, camp2: saved.camp2 };
+      showSavedToast();
+      updateDirty();
+    }).catch(function () {});
+  });
+
+  document.getElementById('default-btn').addEventListener('click', function () {
+    var identity = { camp1: [1, 2, 3, 4, 5], camp2: [1, 2, 3, 4, 5] };
+    postArrangement(identity).then(function (saved) {
+      savedArrangement = { camp1: saved.camp1, camp2: saved.camp2 };
+      displayOrder = { camp1: saved.camp1.slice(), camp2: saved.camp2.slice() };
+      renderAll();
+      showSavedToast();
+    }).catch(function () {});
+  });
+})();
+</script>
+</body>
+</html>

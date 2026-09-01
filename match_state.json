@@ -30,7 +30,7 @@
     ],
     "name": "AP.BREN",
     "short": "APBR",
-    "score": 0,
+    "score": 2,
     "coach": "Bitoy"
   },
   "away": {
@@ -68,7 +68,7 @@
     "coach": "Aeon"
   },
   "series": "BO3",
-  "game": 1,
+  "game": 3,
   "swapped": false,
   "official": true,
   "week": 2,

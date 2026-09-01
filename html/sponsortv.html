@@ -53,7 +53,7 @@
        size into #stv-inner, which is scaled (via JS, see stvApplyScale)
        to fill whatever box the Edit tab sets on #stv-content — so
        dragging/resizing this single box moves and scales the whole
-       schedule as one group, same philosophy as mplfs.html's Credit Reel
+       schedule as one group, same philosophy as Fullscreen.html's Credit Reel
        viewport. ── */
     #stv-content {
       position: absolute;
@@ -82,7 +82,7 @@
     }
 
     /* Match rows — same native 858x232 asset + layout as Today's Schedule
-       (html/ENTVC.html and html/mplfs.html's .tsm-* classes). */
+       (html/ENTVC.html and html/Fullscreen.html's .tsm-* classes). */
     .tsm-row { position: relative; width: 858px; height: 232px; }
     .tsm-row > img.tsm-bg { position: absolute; left: 0; top: 0; width: 858px; height: 232px; }
     .tsm-label, .tsm-time, .tsm-bo {
@@ -145,7 +145,7 @@
     ];
 
     /* Match Board state → match rows — ported verbatim from Today's
-       Schedule (html/ENTVC.html / html/mplfs.html's msToMatchRows). */
+       Schedule (html/ENTVC.html / html/Fullscreen.html's msToMatchRows). */
     function msToMatchRows(state) {
       if (!state || !Array.isArray(state.todayMatches) || !state.todayMatches.length) return null;
       const bo  = (state.series || 'BO3').toUpperCase();
@@ -177,7 +177,7 @@
        Cache-Control) forces a real network re-fetch of every team logo each
        time. Invisible over localhost's near-zero latency, but a visible
        flicker once vMix on another PC is pulling those images over the LAN
-       every cycle. Same "unchanged — don't disturb" pattern as mplfs.html's
+       every cycle. Same "unchanged — don't disturb" pattern as Fullscreen.html's
        populateWsHosts/populateWsCasters. */
     let stvLastKey = null;
     function buildStvMatches(state) {
@@ -243,7 +243,7 @@
           if (!styles || !Object.keys(styles).length) return;
           const css = Object.keys(styles).map(sel => {
             const props = styles[sel];
-            const decls = Object.keys(props).map(prop => {
+            const decls = Object.keys(props).filter(prop => prop !== 'asset').map(prop => {
               const cssProp = prop === 'fontSize' ? 'font-size' : prop;
               return cssProp + ':' + props[prop] + ' !important';
             }).join(';');
@@ -253,6 +253,15 @@
           style.id = 'sponsortv-overrides';
           style.textContent = css;
           document.head.appendChild(style);
+          /* `asset` overrides can't go through CSS !important (a src
+             attribute can't be overridden that way) — apply directly to
+             any matching IMG/VIDEO element instead. */
+          Object.keys(styles).forEach(sel => {
+            if (styles[sel].asset === undefined) return;
+            document.querySelectorAll(sel).forEach(el => {
+              if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = styles[sel].asset;
+            });
+          });
         })
         .catch(() => {});
     })();

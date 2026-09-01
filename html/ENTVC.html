@@ -216,7 +216,7 @@
       max-width: 100%; max-height: 100%;
       object-fit: contain;
     }
-    /* Background plaque behind the label graphic — see mplfs.html's
+    /* Background plaque behind the label graphic — see Fullscreen.html's
        #ws-timer-label-bg for why this is a child of the label box rather
        than a canvas-absolute sibling. */
     #ws-timer-label-bg {
@@ -455,7 +455,7 @@
     }
     /* EN Casters — same 3-up layout as Casters above, but its own class
        names (ws-encasters-slot-*) so this page's EN Casters box can be
-       positioned independently from mplfs.html's real Casters box, whose
+       positioned independently from Fullscreen.html's real Casters box, whose
        .ws-casters-slot-* rules and persisted Edit-tab position it must not
        share (see populateWsTalentBox's slotPrefix param). */
     .ws-talent-photos.ws-talent-count-3 .ws-encasters-slot-left {
@@ -577,7 +577,7 @@
     /* ── SSE — overlay trigger ── */
     let sseSource = null;
 
-    /* ENTVC.html — standalone Waiting TVC. Unlike mplfs.html this page
+    /* ENTVC.html — standalone Waiting TVC. Unlike Fullscreen.html this page
        never switches or hides scenes in response to remote show/hide SSE
        events; it only listens for live match-board updates ('match') so
        hosts/casters/timer/schedule rows stay current while permanently
@@ -602,8 +602,10 @@
 
       /* Fired by routes/overlayStyles.js after any Edit-tab Save — force
          a hard reload so new position/size overrides apply immediately
-         (see mplfs.html's connectSSE() for the identical pattern). */
-      sseSource.addEventListener('reload', () => { window.location.reload(); });
+         (see Fullscreen.html's connectSSE() for the identical pattern).
+         isPreviewFrame (declared further down) is exempt for the same
+         reason as Fullscreen.html's own reload listener. */
+      sseSource.addEventListener('reload', () => { if (isPreviewFrame) return; window.location.reload(); });
 
       sseSource.addEventListener('match', (e) => {
         let ms = null;
@@ -620,7 +622,7 @@
 
     /* ════════════════════════════════════════════════
        FEATURE SWITCHER — ENTVC.html only ever shows one scene (Waiting
-       Screen TVC), so this is a trimmed-down version of mplfs.html's
+       Screen TVC), so this is a trimmed-down version of Fullscreen.html's
        switcher: no POST_FEATURES/match-board bookkeeping, just the
        activeFeature bookkeeping showWaitingScreen's transitionTo() call
        needs, and requestedFeature for restoreScene's reconnect guard.
@@ -863,8 +865,8 @@
       /* Tag both the match-row container and the whole scene page with the
          real row count so the dashboard Edit tab can position the
          header/match/sponsor boards independently per 2-match/3-match day
-         (see mplfs_wsmatches_2m/3m in dashboard.html). Mirrored from
-         mplfs.html's buildWsMatches — without this, the saved position
+         (see fullscreen_wsmatches_2m/3m in dashboard.html). Mirrored from
+         Fullscreen.html's buildWsMatches — without this, the saved position
          overrides (scoped to #waiting-screen-page.wsm-count-N ...) never
          match anything here, since the class was never applied. */
       const countClass = 'wsm-count-' + matches.length;
@@ -973,7 +975,7 @@
          size each one independently regardless of how many are showing.
          slotPrefix defaults to rootId — ENTVC.html's EN Casters box passes
          a distinct prefix ('ws-encasters') so its slots can be positioned
-         independently of mplfs.html's real Casters, which share this same
+         independently of Fullscreen.html's real Casters, which share this same
          function but keep the plain 'ws-casters' prefix. */
       const prefix = slotPrefix || rootId;
       const namebarImg = names.length === 2 ? 'NAMEBOX2.png' : 'NAMEBOX.png';
@@ -1021,7 +1023,7 @@
     let wsCastersCount = 0, wsCastersLastKey = null;
     function populateWsCasters(ms) {
       // ENTVC.html sources the caster panel from EN Casters, not Casters —
-      // this is the one behavioral difference from mplfs.html's Waiting TVC.
+      // this is the one behavioral difference from Fullscreen.html's Waiting TVC.
       const casters = ((ms && ms.enCasters) || []).filter(c => c && c !== 'None').slice(0, TALENT_CASTER_POS_ORDER.length);
       const key = casters.join('|');
       if (key === wsCastersLastKey) return;
@@ -1190,7 +1192,7 @@
        that connection; other tabs stay fully interactive for local button
        presses but skip the live SSE feed until they're promoted (e.g. the
        current leader tab is closed). */
-    const LEADER_KEY = 'mplfs-leader-heartbeat';
+    const LEADER_KEY = 'fullscreen-leader-heartbeat';
     const LEADER_TIMEOUT_MS = 4000;
     const LEADER_CHECK_MS = 1500;
     const tabInstanceId = Math.random().toString(36).slice(2);
@@ -1214,7 +1216,7 @@
       }
     }
 
-    /* The dashboard's own Control-tab preview iframe (mplfs.html?preview=1)
+    /* The dashboard's own Control-tab preview iframe (Fullscreen.html?preview=1)
        is a single known instance, not one of the "many broadcast tabs" the
        leader election above guards against — but it shares localStorage
        (same origin) with any standalone/OBS tab of this same page, so it
@@ -1242,11 +1244,11 @@
 
 
     /* ENTVC.html always shows the Waiting Screen TVC — it ignores whatever
-       scene is live elsewhere (mplfs.html's activeFeature) instead of
+       scene is live elsewhere (Fullscreen.html's activeFeature) instead of
        restoring it, since this page is a standalone Waiting TVC source.
        isReconnect (see sseSource.onopen) skips the re-call when it's
        already showing — showWaitingScreen() goes through the same
-       non-idempotent transitionTo() as mplfs.html, so blindly recalling it
+       non-idempotent transitionTo() as Fullscreen.html, so blindly recalling it
        after every reconnect would flicker the live scene for no reason. */
     async function restoreScene(isReconnect) {
       if (!isReconnect || requestedFeature !== 'waiting') showWaitingScreen();
@@ -1274,23 +1276,34 @@
 
 
     /* ── Load saved position/size overrides from dashboard editor ── */
-    (function loadMplfsOverrides() {
-      fetch(buildUrl('/api/overlay-styles?file=mplfs'))
+    (function loadFullscreenOverrides() {
+      fetch(buildUrl('/api/overlay-styles?file=fullscreen'))
         .then(function(r) { return r.json(); })
         .then(function(styles) {
           if (!styles || !Object.keys(styles).length) return;
           var css = Object.keys(styles).map(function(sel) {
             var props = styles[sel];
-            var decls = Object.keys(props).map(function(prop) {
+            var decls = Object.keys(props).filter(function(prop) {
+              return prop !== 'asset';
+            }).map(function(prop) {
               var cssProp = prop === 'fontSize' ? 'font-size' : prop;
               return cssProp + ':' + props[prop] + ' !important';
             }).join(';');
             return sel + '{' + decls + '}';
           }).join('\n');
           var style = document.createElement('style');
-          style.id = 'mplfs-overrides';
+          style.id = 'fullscreen-overrides';
           style.textContent = css;
           document.head.appendChild(style);
+          /* `asset` overrides can't go through CSS !important (a src
+             attribute can't be overridden that way) — apply directly to
+             any matching IMG/VIDEO element instead. */
+          Object.keys(styles).forEach(function(sel) {
+            if (styles[sel].asset === undefined) return;
+            document.querySelectorAll(sel).forEach(function(el) {
+              if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = styles[sel].asset;
+            });
+          });
         })
         .catch(function() {});
     })();

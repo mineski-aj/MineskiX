@@ -33,13 +33,13 @@
 // and will silently never learn the new event otherwise.
 const KNOWN_EVENTS = [
   'consolidated_post', 'consolidated_post_2', 'credits', 'debugoff', 'draft', 'draftindex', 'draftphotomode',
-  'draftpredict', 'draftrecap', 'draftstats', 'emblemcheck', 'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
+  'draftpredict', 'draftrealme', 'draftrecap', 'draftstats', 'emblemcheck', 'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
   'golddiffcheck', 'highlights', 'hrm', 'itemcheck', 'killevent', 'led_draftpred',
   'led_fight', 'led_health', 'led_side', 'led_win', 'mapselection', 'mapselecttag',
-  'match', 'matchboard', 'meter', 'middleboard', 'mvp', 'playerboard', 'playerui',
+  'match', 'matchboard', 'meter', 'middleboard', 'mvp', 'playerui',
   'post_emblems', 'post_hearts', 'post_itemline', 'post_itemline_itemin',
   'post4key', 'post_itemline_itemout', 'post_items', 'post_richguy', 'post_stats', 'reload',
-  'scoreboard', 'sidecheck', 'standings', 'stylepatch', 'team_hexagon', 'team_lineup_blue',
+  'scoreboard', 'seat_arrangement', 'sidecheck', 'standings', 'stylepatch', 'team_hexagon', 'team_lineup_blue',
   'team_lineup_red', 'today_schedule', 'tomorrow_schedule', 'waiting_lobby',
   'waiting_tvc',
 ];

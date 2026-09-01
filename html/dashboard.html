@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <script src="/html/js/cache-bust.js"></script>
   <script src="/html/js/overlay-sse-shim.js"></script>
-  <title>Overlay Dashboard</title>
+  <title>MineskiX Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @font-face {
+      font-family: 'Anton';
+      font-weight: 400;
+      font-display: block;
+      src: local('Anton'), local('Anton Regular'), url('/fonts/Anton-Regular.ttf') format('truetype');
+    }
 
     html, body { height: 100%; }
 
@@ -31,11 +38,43 @@
       flex-shrink: 0;
     }
     header h1 {
-      font-size: 20px;
-      font-weight: 600;
+      font-family: 'Anton', sans-serif;
+      font-size: 24px;
+      font-weight: 400;
       color: #fff;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
+    header h1 .brand-x { color: #ffd400; }
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    #project-picker {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #project-select {
+      background: #16161f;
+      color: #d0d0d8;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 5px 8px;
+      max-width: 160px;
+    }
+    #new-project-btn {
+      background: #1c1c28;
+      color: #d0d0d8;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      font-size: 12px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #new-project-btn:hover { background: #24242f; }
     #server-status {
       display: flex;
       align-items: center;
@@ -102,15 +141,49 @@
     }
 
     /* ── Sidebar ────────────────────────────────────────────── */
-    #sidebar {
+    #sidebar-col {
       width: 200px;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    #sidebar-toolbar {
+      flex-shrink: 0;
+      margin-bottom: 6px;
+    }
+    #edit-list-btn {
+      width: 100%;
+      background: #1c1c28;
+      color: #888;
+      border: 1px solid #2a2a3a;
+      border-radius: 6px;
+      font-size: 11px;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+    #edit-list-btn:hover:not(:disabled) { background: #24242f; color: #d0d0d8; }
+    #edit-list-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+    #edit-list-btn.active { background: #2b2b40; color: #8a8fff; border-color: #4a4a70; }
+    #sidebar {
+      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 2px;
       overflow-y: auto;
       padding-right: 4px;
+      min-height: 0;
     }
+    .ov-item-check {
+      display: none;
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+    #sidebar.editing-list .ov-item-check { display: inline-block; }
+    /* Unchecked-by-the-current-project rows: fully hidden normally, shown
+       dimmed (so they can be re-checked) only while "Edit List" is active. */
+    .ov-item.ov-filtered { display: none; }
+    #sidebar.editing-list .ov-item.ov-filtered { display: flex; opacity: 0.45; }
     .ov-item {
       display: flex;
       align-items: center;
@@ -310,6 +383,11 @@
       margin-bottom: 5px;
     }
     .feature-row:last-child { margin-bottom: 0; }
+    /* Spans the full card width (unlike .feature-row's own flex-start
+       children) so justify-content:space-between actually reaches the
+       right edge — holds .feature-name plus, when archivable, the 🗄
+       Archive/↩ Restore button on the same line, top-right of the card. */
+    .feature-header { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px; }
     .feature-name { font-size: 11px; font-weight: 600; color: #7070a0; letter-spacing: 0.04em; text-transform: uppercase; }
     .btn-copy { background: #16161f; border-color: #2a2a3a; color: #44445a; font-size: 10px; padding: 3px 7px; line-height: 18px; }
     .btn-copy:hover { color: #7777aa; border-color: #44446a; }
@@ -326,6 +404,10 @@
     }
     #copy-tooltip.visible { opacity: 1; }
     .feature-btns { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    /* Archived Post scenes (see ov.archivedFeatures) — collapsed by default,
+       toggled via #control-panel-archive-btn. */
+    .archive-section { display: none; }
+    .archive-section.archive-open { display: block; }
     /* Quick left/right nudge — MVP Scene/Highlights photo+hero, see
        feat.nudges / buildNudgeControl */
     .nudge-group { display: inline-flex; align-items: center; gap: 3px; background: #14141e; border: 1px solid #2a2a3a; border-radius: 4px; padding: 2px 4px; }
@@ -347,6 +429,11 @@
     .btn-toggle { min-width: 94px; text-align: center; font-size: 11px; }
     .btn-toggle-on  { background: #1a3a2a; border-color: #2a5a3a; color: #44cc88; }
     .btn-toggle-off { background: #2a1818; border-color: #3a2020; color: #886666; }
+    /* Enabled, but currently suppressed by a dependency (e.g. Item Pickup/
+       Trinity/Quick Swap/Level 15/Conceal while Player UI is off) — same
+       amber used for "live" elsewhere (.btn-preview-live), so it reads as
+       "on, but not actually firing right now" rather than plain green. */
+    .btn-toggle-gated { background: #1f1500; border-color: #d97706; color: #d97706; min-width: 168px; }
 
     /* ── Kill event inline row ──────────────────────────────── */
     .killevent-row {
@@ -566,9 +653,14 @@
     }
     #edit-panel-title-row {
       margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    #edit-file-select,
     #edit-config-select {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
       height: 30px;
       background: #1a1a2a;
       border: 1px solid #333355;
@@ -579,7 +671,39 @@
       padding: 0 8px;
       cursor: pointer;
     }
+    #edit-file-select:focus,
     #edit-config-select:focus { border-color: #4455aa; outline: none; }
+    #edit-select-sep {
+      flex-shrink: 0;
+      color: #444;
+      font-size: 14px;
+    }
+    #edit-subcategory-row {
+      /* display toggled inline via JS (none/flex) — see refreshEditSelectors() */
+      margin-bottom: 10px;
+      margin-left: 24px;
+      align-items: center;
+      gap: 8px;
+    }
+    #edit-subcategory-sep {
+      flex-shrink: 0;
+      color: #444;
+      font-size: 14px;
+    }
+    #edit-subcategory-select {
+      flex: 1;
+      min-width: 0;
+      height: 28px;
+      background: #16162280;
+      border: 1px solid #2a2a44;
+      border-radius: 5px;
+      color: #c8c8d8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 8px;
+      cursor: pointer;
+    }
+    #edit-subcategory-select:focus { border-color: #4455aa; outline: none; }
     #edit-panel-actions {
       display: flex;
       gap: 8px;
@@ -650,6 +774,30 @@
       margin-bottom: 8px;
     }
     .edit-ctrl-row:last-child { margin-bottom: 0; }
+    .edit-asset-block {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #1e1e2c;
+    }
+    .edit-asset-hint {
+      font-size: 11px;
+      color: #555;
+    }
+    .edit-asset-current {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    .edit-asset-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .edit-asset-status {
+      font-size: 11px;
+    }
     .edit-ctrl-label {
       font-size: 11px;
       color: #666;
@@ -693,10 +841,18 @@
     }
     .edit-no-sel { font-size: 12px; color: #444; font-style: italic; }
 
-    #edit-content-panel, #edit-itemcheck-panel {
+    #edit-content-panel, #edit-layout-panel, #edit-killevent-panel {
       border-top: 1px solid #1e1e2c;
       padding: 14px 16px;
       flex-shrink: 0;
+      /* #edit-panel (the flex-column ancestor) clips overflow entirely —
+         without its own scroll, a tall panel like Kill Events' 8 rows just
+         got cut off at the bottom with no way to reach the rest short of
+         browser zoom. max-height caps it at less than the panel's usual
+         full height so #edit-elements above still gets a reasonable
+         share of the space too. */
+      max-height: 50vh;
+      overflow-y: auto;
     }
     .edit-content-hint {
       font-size: 11px; color: #666; line-height: 1.5; margin-bottom: 8px;
@@ -761,7 +917,13 @@
 <div id="copy-tooltip"></div>
 
 <header>
-  <h1>Overlay Dashboard</h1>
+  <div id="header-left">
+    <h1>MINESKI<span class="brand-x">X</span></h1>
+    <div id="project-picker">
+      <select id="project-select"><option value="">No Project</option></select>
+      <button id="new-project-btn" type="button">+ New Project</button>
+    </div>
+  </div>
   <div id="server-status">
     <div class="status-dot" id="srv-dot"></div>
     <span id="srv-label">Checking server…</span>
@@ -772,6 +934,7 @@
 
 <nav id="tab-bar">
   <button class="tab-btn" data-page="matchboard">Match Board</button>
+  <button class="tab-btn" data-page="arrangement">Arrangement</button>
   <button class="tab-btn" data-page="mapselection">Map Selection</button>
   <button class="tab-btn" data-page="standings">Standings</button>
   <button class="tab-btn active" data-page="control">Control</button>
@@ -785,6 +948,12 @@
 <!-- Page 0: Match Board -->
 <div id="page-matchboard" class="page">
   <iframe id="matchboard-iframe" src="/html/match-dashboard.html" allow="autoplay"
+    style="width:100%;flex:1;border:none;min-height:0;"></iframe>
+</div>
+
+<!-- Page: Arrangement -->
+<div id="page-arrangement" class="page">
+  <iframe id="arrangement-iframe" src="/html/arrangement-dashboard.html" allow="autoplay"
     style="width:100%;flex:1;border:none;min-height:0;"></iframe>
 </div>
 
@@ -824,11 +993,17 @@
 <!-- Page 1: Control -->
 <div id="page-control" class="page active">
   <div id="layout">
-    <div id="sidebar"></div>
+    <div id="sidebar-col">
+      <div id="sidebar-toolbar">
+        <button id="edit-list-btn" type="button" disabled title="Select or create a Project first">Edit List</button>
+      </div>
+      <div id="sidebar"></div>
+    </div>
     <div id="control-panel">
       <div id="control-panel-hdr">
         <span id="control-panel-title"></span>
         <a id="control-panel-open" class="btn btn-open" target="_blank" style="display:none">Open ↗</a>
+        <button id="control-panel-archive-btn" class="btn btn-open" type="button" style="display:none">🗄 Archive</button>
       </div>
       <div id="control-panel-body"></div>
     </div>
@@ -854,7 +1029,16 @@
     <div id="edit-panel">
       <div id="edit-panel-hdr">
         <div id="edit-panel-title-row">
+          <select id="edit-file-select"></select>
+          <span id="edit-select-sep">›</span>
           <select id="edit-config-select"></select>
+        </div>
+        <!-- Only shown when the chosen aspect is a category (currently
+             just "Bottom Events") — see editAspectGroups()/CATEGORY_PREFIX
+             below. -->
+        <div id="edit-subcategory-row" style="display:none;">
+          <span id="edit-subcategory-sep">›</span>
+          <select id="edit-subcategory-select"></select>
         </div>
         <div id="edit-panel-actions">
           <button class="edit-btn" id="edit-btn-defaults">Load Defaults</button>
@@ -893,35 +1077,43 @@
           <span id="edit-credits-status"></span>
         </div>
       </div>
-      <div id="edit-itemcheck-panel" style="display:none;">
-        <div class="edit-content-hint">
-          Gold Gap is the vertical space between gold-amount rows. Blue/Red
-          Offset X/Y shift every element on that side (portraits, items,
-          gold) together, so the whole half can be nudged in one edit
-          instead of repositioning each row by hand.
+      <!-- Bottom Events (Item Check / Gold Diff Check / Emblem Check) all
+           share this one panel — see EDIT_CONFIGS[key].layoutPanel and
+           buildLayoutPanel() below. Same "a few shared offsets, not 10
+           draggable boxes" model for all three, since they're all built
+           the same shared-class-per-row way. -->
+      <div id="edit-layout-panel" style="display:none;">
+        <div class="edit-content-hint" id="edit-layout-hint">
+          Blue/Red Offset X/Y shift every element on that side together, so
+          the whole half can be nudged in one edit instead of repositioning
+          each row by hand.
         </div>
-        <div class="edit-content-actions" style="flex-wrap:wrap;">
-          <label for="edit-itemcheck-gold-gap" class="edit-ctrl-label" style="width:auto;">Gold Gap</label>
-          <input type="number" id="edit-itemcheck-gold-gap" class="edit-ctrl-input" style="width:60px;" min="0" max="200" step="1" />
+        <div class="edit-content-actions" id="edit-layout-fontsize-row" style="flex-wrap:wrap;">
+          <label for="edit-layout-font-size" class="edit-ctrl-label" style="width:auto;">Gold Number Font Size</label>
+          <input type="number" id="edit-layout-font-size" class="edit-ctrl-input" style="width:60px;" min="10" max="60" step="1" />
           <span class="edit-ctrl-unit">px</span>
         </div>
         <div class="edit-content-actions" style="flex-wrap:wrap;">
-          <label for="edit-itemcheck-home-x" class="edit-ctrl-label" style="width:auto;">Blue Offset X</label>
-          <input type="number" id="edit-itemcheck-home-x" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
-          <label for="edit-itemcheck-home-y" class="edit-ctrl-label" style="width:auto;">Y</label>
-          <input type="number" id="edit-itemcheck-home-y" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
+          <label for="edit-layout-home-x" class="edit-ctrl-label" style="width:auto;">Blue Offset X</label>
+          <input type="number" id="edit-layout-home-x" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
+          <label for="edit-layout-home-y" class="edit-ctrl-label" style="width:auto;">Y</label>
+          <input type="number" id="edit-layout-home-y" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
         </div>
         <div class="edit-content-actions" style="flex-wrap:wrap;">
-          <label for="edit-itemcheck-away-x" class="edit-ctrl-label" style="width:auto;">Red Offset X</label>
-          <input type="number" id="edit-itemcheck-away-x" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
-          <label for="edit-itemcheck-away-y" class="edit-ctrl-label" style="width:auto;">Y</label>
-          <input type="number" id="edit-itemcheck-away-y" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
+          <label for="edit-layout-away-x" class="edit-ctrl-label" style="width:auto;">Red Offset X</label>
+          <input type="number" id="edit-layout-away-x" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
+          <label for="edit-layout-away-y" class="edit-ctrl-label" style="width:auto;">Y</label>
+          <input type="number" id="edit-layout-away-y" class="edit-ctrl-input" style="width:60px;" min="-400" max="400" step="1" />
         </div>
         <div class="edit-content-actions">
-          <button class="edit-btn" id="edit-itemcheck-save" style="background:#1a3a2a;border-color:#2a5a3a;color:#44cc88;margin-left:auto;">Save</button>
-          <span id="edit-itemcheck-status"></span>
+          <button class="edit-btn" id="edit-layout-save" style="background:#1a3a2a;border-color:#2a5a3a;color:#44cc88;margin-left:auto;">Save</button>
+          <span id="edit-layout-status"></span>
         </div>
       </div>
+      <!-- Kill Events — sponsor-logo position (via the normal SB_ELEMENTS
+           list above) plus photo/name toggles and per-type video
+           replacement, built by buildKillEventPanel() below. -->
+      <div id="edit-killevent-panel" style="display:none;"></div>
     </div>
     <div id="edit-frame-wrap">
       <iframe id="edit-iframe" src="" allow="autoplay"></iframe>
@@ -1115,7 +1307,7 @@
       // dropdown still shows the last-picked config, so reload that same
       // one instead of leaving the iframe blank.
       if (btn.dataset.page === 'edit' && !editIfLoaded) {
-        loadConfig(document.getElementById('edit-config-select').value);
+        loadConfig(getActiveConfigKey());
       }
 
       /* Release the Control tab's preview iframe / Edit tab's edit iframe
@@ -1450,8 +1642,8 @@
     fetch('/overlay/debugoff').catch(function(){});
   });
 
-  /* Hard-reloads every open overlay page at once (mplfs.html, ENTVC.html,
-     DraftIndex.html, Draft.html, mpltag.html, mploverlay_v7.html) via the
+  /* Hard-reloads every open overlay page at once (Fullscreen.html, ENTVC.html,
+     DraftIndex.html, Draft.html, LowerThirds.html, ingame.html) via the
      same 'reload' SSE event a dashboard Edit-tab save already triggers —
      see GET /overlay/force-reload in routes/overlay.js. Saves going to
      each production browser source by hand after an edit. */
@@ -1488,11 +1680,26 @@
   var toggleBtns     = {};
   var _hrmSwapTimer  = null;
 
+  /* These 5 fire attached to a player's Player UI card (see the
+     reactiveFxEnabled() gate in overlay-debug.js) — if Player UI is off,
+     they're still individually "Enabled" but won't actually do anything,
+     which read as plain "● Enabled" with no hint why nothing fires. */
+  var PUI_GATED_FEATURES = ['items', 'trinity', 'swap', 'lvl15', 'conceal'];
+  function refreshPuiGatedButtons() {
+    PUI_GATED_FEATURES.forEach(function(f) { applyToggleBtn(f, featureStates[f] !== false); });
+  }
+
   function applyToggleBtn(feature, enabled) {
     var b = toggleBtns[feature];
     if (!b) return;
-    b.textContent = enabled ? '● Enabled' : '○ Disabled';
-    b.className   = 'btn btn-toggle ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
+    var gated = enabled && PUI_GATED_FEATURES.indexOf(feature) !== -1 && !checkOverlayStates.playerui;
+    if (gated) {
+      b.textContent = '● Enabled (Player UI off)';
+      b.className   = 'btn btn-toggle btn-toggle-gated';
+    } else {
+      b.textContent = enabled ? '● Enabled' : '○ Disabled';
+      b.className   = 'btn btn-toggle ' + (enabled ? 'btn-toggle-on' : 'btn-toggle-off');
+    }
   }
 
   fetch('/overlay/features').then(function(r){ return r.json(); }).then(function(d) {
@@ -1527,6 +1734,7 @@
   fetch('/overlay/check-overlays').then(function(r){ return r.json(); }).then(function(d) {
     checkOverlayStates = d || {};
     Object.keys(checkOverlayStates).forEach(function(k) { applyCheckToggleBtn(k, checkOverlayStates[k]); });
+    refreshPuiGatedButtons(); // in case this resolved after the /overlay/features fetch already rendered them
   }).catch(function(){});
 
   function toggleCheckOverlay(key) {
@@ -1536,18 +1744,18 @@
     fetch('/overlay/' + encodeURIComponent(key) + '/' + (shown ? 'show' : 'hide')).catch(function(){});
   }
 
-  /* ── MPL Full Screen scene state ─────────────────────────────
-     mplfs.html only ever shows one non-board "scene" at a time
-     (state.mplfsScene.activeFeature, mutually exclusive server-side)
+  /* ── Fullscreen scene state ─────────────────────────────
+     Fullscreen.html only ever shows one non-board "scene" at a time
+     (state.fullscreenScene.activeFeature, mutually exclusive server-side)
      plus three independent board booleans. Same on/off toggle button
      as the check overlays above, but the "shown" state has to be
      derived from that shared scene object instead of a flat map, and
      re-fetched after every click since switching one scene feature
      off implicitly switches others off too. */
-  var mplfsSceneState = { matchboard: false, middleboard: false, playerboard: false, activeFeature: null };
-  var mplfsFeatureBtns = {};
-  var MPLFS_BOOL_KEYS = ['matchboard', 'middleboard', 'playerboard'];
-  var MPLFS_ACTIVE_FEATURE_MAP = {
+  var fullscreenSceneState = { matchboard: false, middleboard: false, activeFeature: null };
+  var fullscreenFeatureBtns = {};
+  var FULLSCREEN_BOOL_KEYS = ['matchboard', 'middleboard'];
+  var FULLSCREEN_ACTIVE_FEATURE_MAP = {
     post_hearts:    'hearts',
     post_itemline:  'itemline',
     post_emblems:   'emblems',
@@ -1571,11 +1779,11 @@
     post4key:       'post4key',
   };
   /* Display names for the "is anything live" indicator below — same
-     activeFeature values as MPLFS_ACTIVE_FEATURE_MAP, keyed the other
-     way round, mirroring the mplfs OVERLAYS entry's feature names. */
-  var MPLFS_ACTIVE_FEATURE_NAMES = {
+     activeFeature values as FULLSCREEN_ACTIVE_FEATURE_MAP, keyed the other
+     way round, mirroring the fullscreen OVERLAYS entry's feature names. */
+  var FULLSCREEN_ACTIVE_FEATURE_NAMES = {
     hearts: 'Post Hearts', itemline: 'Post Timeline', emblems: 'Post Emblem',
-    items: 'Post Items', stats: 'Post Stats', richguy: 'Rich Guy',
+    items: 'Postgame Items', stats: 'Post Stats', richguy: 'Rich Guy',
     waiting: 'Waiting Screen TVC', lobby: 'Waiting Lobby',
     schedule: "Today's Schedule", tomorrow: "Tomorrow's Schedule",
     standings: 'Standings', hexagon: 'Team Hexagon', highlights: 'MVP Highlights',
@@ -1585,58 +1793,64 @@
     post4key: 'Post 4 Key',
   };
 
-  var mplfsLiveBadge = null;
-  function applyMplfsLiveBadge() {
-    if (!mplfsLiveBadge) return;
+  var fullscreenLiveBadge = null;
+  function applyFullscreenLiveBadge() {
+    if (!fullscreenLiveBadge) return;
     var parts = [];
-    if (mplfsSceneState.activeFeature) {
-      parts.push(MPLFS_ACTIVE_FEATURE_NAMES[mplfsSceneState.activeFeature] || mplfsSceneState.activeFeature);
+    if (fullscreenSceneState.activeFeature) {
+      parts.push(FULLSCREEN_ACTIVE_FEATURE_NAMES[fullscreenSceneState.activeFeature] || fullscreenSceneState.activeFeature);
     }
-    if (mplfsSceneState.matchboard)  parts.push('Matchboard');
-    if (mplfsSceneState.middleboard) parts.push('Middleboard');
-    if (mplfsSceneState.playerboard) parts.push('Playerboard');
+    /* Matchboard/Middleboard are no longer independent top-level controls
+       (see "Postgame Items" consolidation) — they're always just a side
+       effect of whichever Post-family scene is active (Postgame Items
+       included), so listing them separately here was pure redundant noise
+       ("Live: Postgame Items, Matchboard, Middleboard" instead of just
+       "Live: Postgame Items"). Their own individual show/hidden state is
+       still visible via their own toggle buttons in the Archive panel if
+       you need to check it there. Playerboard itself has been removed
+       entirely — Postgame Items' own Item Board fully supersedes it. */
     if (parts.length) {
-      mplfsLiveBadge.textContent = '● Live: ' + parts.join(', ');
-      mplfsLiveBadge.className   = 'btn btn-toggle btn-toggle-on';
+      fullscreenLiveBadge.textContent = '● Live: ' + parts.join(', ');
+      fullscreenLiveBadge.className   = 'btn btn-toggle btn-toggle-on';
     } else {
-      mplfsLiveBadge.textContent = '○ Nothing Live';
-      mplfsLiveBadge.className   = 'btn btn-toggle btn-toggle-off';
+      fullscreenLiveBadge.textContent = '○ Nothing Live';
+      fullscreenLiveBadge.className   = 'btn btn-toggle btn-toggle-off';
     }
   }
 
-  function mplfsFeatureShown(key) {
-    if (MPLFS_BOOL_KEYS.indexOf(key) !== -1) return !!mplfsSceneState[key];
-    var af = MPLFS_ACTIVE_FEATURE_MAP[key];
-    return af ? mplfsSceneState.activeFeature === af : false;
+  function fullscreenFeatureShown(key) {
+    if (FULLSCREEN_BOOL_KEYS.indexOf(key) !== -1) return !!fullscreenSceneState[key];
+    var af = FULLSCREEN_ACTIVE_FEATURE_MAP[key];
+    return af ? fullscreenSceneState.activeFeature === af : false;
   }
 
-  function applyMplfsFeatureBtn(key) {
-    var b = mplfsFeatureBtns[key];
+  function applyFullscreenFeatureBtn(key) {
+    var b = fullscreenFeatureBtns[key];
     if (!b) return;
-    var shown = mplfsFeatureShown(key);
+    var shown = fullscreenFeatureShown(key);
     b.textContent = shown ? '● Showing' : '○ Hidden';
     b.className   = 'btn btn-toggle ' + (shown ? 'btn-toggle-on' : 'btn-toggle-off');
   }
 
-  function refreshMplfsFeatureButtons() {
-    Object.keys(mplfsFeatureBtns).forEach(applyMplfsFeatureBtn);
-    applyMplfsLiveBadge();
+  function refreshFullscreenFeatureButtons() {
+    Object.keys(fullscreenFeatureBtns).forEach(applyFullscreenFeatureBtn);
+    applyFullscreenLiveBadge();
   }
 
-  function loadMplfsScene() {
-    return fetch('/overlay/mplfs-scene').then(function(r){ return r.json(); }).then(function(d) {
-      mplfsSceneState = d || mplfsSceneState;
-      refreshMplfsFeatureButtons();
+  function loadFullscreenScene() {
+    return fetch('/overlay/fullscreen-scene').then(function(r){ return r.json(); }).then(function(d) {
+      fullscreenSceneState = d || fullscreenSceneState;
+      refreshFullscreenFeatureButtons();
     }).catch(function(){});
   }
-  loadMplfsScene();
+  loadFullscreenScene();
 
-  function toggleMplfsFeature(feat, key, body) {
-    /* No .then(loadMplfsScene) here — the SSE listeners below already
+  function toggleFullscreenFeature(feat, key, body) {
+    /* No .then(loadFullscreenScene) here — the SSE listeners below already
        refetch the authoritative scene snapshot the instant any of
        these routes broadcasts, so the button stays correct even when
        the change came from elsewhere (another tab, Hide All, etc). */
-    var shown = !mplfsFeatureShown(key);
+    var shown = !fullscreenFeatureShown(key);
     fetch(shown ? feat.show : feat.hide).then(function (r) {
       if (r.ok && body) {
         body.classList.remove('flash-ok');
@@ -1646,7 +1860,7 @@
     }).catch(function(){});
   }
 
-  /* ── MPL L3 (mpltag.html) — Map Selection tag state ──────────
+  /* ── Lower Thirds (LowerThirds.html) — Map Selection tag state ────
      Not a simple on/off toggle: /overlay/mapselecttag/show reveals ONE
      more game each time it's called (and can be blocked server-side if
      that game's map-selection data isn't locked yet), so it keeps its
@@ -1657,8 +1871,8 @@
   var mapSelectTagBadge = null;
 
   /* ── Shared "◈ Preview" toggle coordination ──────────────────
-     Every trigger-only preview button (per mplfs feature, plus overlay-
-     level ones like mpltag's) drives the SAME previewIframe — only one
+     Every trigger-only preview button (per fullscreen feature, plus overlay-
+     level ones like LowerThirds.html's) drives the SAME previewIframe — only one
      of them can be meaningfully "active" at a time. Without this, preview-
      ing feature B while feature A's preview was still on left A's button
      stuck showing active even though the iframe had already moved on to
@@ -1672,7 +1886,7 @@
   /* eventName -> passive setter for that button's visual state, used ONLY
      by the postMessage listener below (a board getting shown/hidden as a
      SIDE EFFECT of another feature's own preview, e.g. Post Hearts
-     implicitly showing Matchboard/Middleboard/Playerboard) — deliberately
+     implicitly showing Matchboard/Middleboard) — deliberately
      bypasses the click handler's activePreviewOff exclusivity below, since
      an implied activation isn't a "preview just this instead" request and
      shouldn't turn off whatever scene is actually driving it. */
@@ -1713,7 +1927,7 @@
   }
 
   /* Receives the preview-iframe's board-visibility reports (see
-     mplfs.html's syncBoard) and reflects them onto that board's OWN
+     Fullscreen.html's syncBoard) and reflects them onto that board's OWN
      Preview button — purely passive, never touches activePreviewOff. */
   window.addEventListener('message', function (e) {
     if (e.origin !== window.location.origin) return;
@@ -1766,6 +1980,7 @@
         var shown = d.action === 'show';
         checkOverlayStates[key] = shown;
         applyCheckToggleBtn(key, shown);
+        if (key === 'playerui') refreshPuiGatedButtons();
       } catch (err) {}
     });
   });
@@ -1794,6 +2009,28 @@
     } catch (err) {}
   });
 
+  /* Draft Overlay (realme skin) — same bespoke-boolean pattern as
+     draftShowState above, just a separate state.draftRealmeActive /
+     'draftrealme' event so the two overlays show/hide independently. */
+  var draftRealmeShowState = false;
+  var draftRealmeShowBtn   = null;
+  function applyDraftRealmeShowBtn() {
+    if (!draftRealmeShowBtn) return;
+    draftRealmeShowBtn.textContent = draftRealmeShowState ? '● Showing' : '○ Hidden';
+    draftRealmeShowBtn.className   = 'btn btn-toggle ' + (draftRealmeShowState ? 'btn-toggle-on' : 'btn-toggle-off');
+  }
+  fetch('/overlay/draftrealme-state').then(function (r) { return r.json(); }).then(function (d) {
+    draftRealmeShowState = !!(d && d.active);
+    applyDraftRealmeShowBtn();
+  }).catch(function () {});
+  dashboardSSE.addEventListener('draftrealme', function (e) {
+    try {
+      var d = JSON.parse(e.data);
+      draftRealmeShowState = d.action === 'show';
+      applyDraftRealmeShowBtn();
+    } catch (err) {}
+  });
+
   dashboardSSE.addEventListener('sidecheck', function (e) {
     try {
       var d = JSON.parse(e.data);
@@ -1815,14 +2052,14 @@
     } catch (err) {}
   });
 
-  /* mplfs.html's scene state is one shared object (a single active
+  /* Fullscreen.html's scene state is one shared object (a single active
      feature plus 3 board booleans), not a flat per-key map — a single
      route like post_hearts/show flips 4 fields in one broadcast. Rather
      than hand-decode every event's effect here, just refetch the
-     authoritative /overlay/mplfs-scene snapshot whenever any
+     authoritative /overlay/fullscreen-scene snapshot whenever any
      scene-changing event fires. */
-  Object.keys(MPLFS_ACTIVE_FEATURE_MAP).concat(MPLFS_BOOL_KEYS, ['fs_hide']).forEach(function (name) {
-    dashboardSSE.addEventListener(name, loadMplfsScene);
+  Object.keys(FULLSCREEN_ACTIVE_FEATURE_MAP).concat(FULLSCREEN_BOOL_KEYS, ['fs_hide']).forEach(function (name) {
+    dashboardSSE.addEventListener(name, loadFullscreenScene);
   });
 
   dashboardSSE.addEventListener('mapselecttag', function (e) {
@@ -1849,7 +2086,7 @@
      count regardless of navigation, but still 4 permanent connections
      from the dashboard tab ALONE, leaving only 2 spare for the entire
      rest of the browser. That's why opening just one more tab (e.g.
-     mplfs.html, which needs its own /overlay/events connection) could
+     Fullscreen.html, which needs its own /overlay/events connection) could
      still tip the whole browser over the cap and hang everything.
      matchState.js already fans its broadcasts out over the SAME shared
      /overlay/events stream (named "match") purely so pages don't need a
@@ -1901,7 +2138,7 @@
   });
   dashboardSSE.addEventListener('standings', function (e) {
     // "standings" is also used (with a {action:'show'|'hide'} payload, no
-    // .teams) for mplfs.html's Standings SCENE toggle on this exact same
+    // .teams) for Fullscreen.html's Standings SCENE toggle on this exact same
     // shared stream — ignore anything that isn't the team-rankings shape.
     try {
       var msg = JSON.parse(e.data);
@@ -1953,6 +2190,25 @@
       ],
     },
     {
+      /* realme-skinned pick/ban overlay — own bespoke boolean
+         (state.draftRealmeActive) and own 'draftrealme' show/hide/event
+         name, entirely independent of the 'draft' entry above so the two
+         can be shown/hidden separately. Draft Recap / Draft Stats controls
+         are intentionally NOT duplicated here — this page shares the same
+         underlying state.checkOverlays.draftrecap / draftstats toggle as
+         Draft.html (see Draft-realme.html's SSE listeners), so the
+         existing controls on the 'Draft Overlay' panel above already
+         cover it; adding a second copy here would just be a confusing
+         duplicate of the same switch. */
+      id: 'draftrealme',
+      name: 'Draft Overlay (realme)',
+      file: 'Draft-realme.html',
+      show: '/overlay/draftrealme/show',
+      hide: '/overlay/draftrealme/hide',
+      toggleShowHide: true,
+      deferredPreview: true,
+    },
+    {
       id: 'draftindex',
       name: 'Draft Index',
       file: 'DraftIndex.html',
@@ -1976,34 +2232,19 @@
          TVC sponsor container (minus Joytify), link + live preview only. */
     },
     {
-      id: 'mplfs',
-      name: 'MPL Full Screen',
-      file: 'mplfs.html',
+      id: 'fullscreen',
+      name: 'Fullscreen',
+      file: 'Fullscreen.html',
       globalHide: '/overlay/fs/hide',
-      mplfsLiveIndicator: true,
+      fullscreenLiveIndicator: true,
       features: [
-        { name: 'Matchboard',    show: '/overlay/matchboard/show',    hide: '/overlay/matchboard/hide'    },
-        { name: 'Middleboard',   show: '/overlay/middleboard/show',   hide: '/overlay/middleboard/hide'   },
-        { name: 'Playerboard',   show: '/overlay/playerboard/show',   hide: '/overlay/playerboard/hide'   },
-        { name: 'Post Hearts',   show: '/overlay/post_hearts/show',   hide: '/overlay/post_hearts/hide'   },
-        { name: 'Post Timeline', show: '/overlay/post_itemline/show', hide: '/overlay/post_itemline/hide',
-          extraButtons: [
-            { label: 'Item In',  action: '/overlay/post_itemline/itemin'  },
-            { label: 'Item Out', action: '/overlay/post_itemline/itemout' },
-          ] },
-        { name: 'Post Emblem',   show: '/overlay/post_emblems/show',  hide: '/overlay/post_emblems/hide'  },
-        { name: 'Post Items',    show: '/overlay/post_items/show',    hide: '/overlay/post_items/hide'    },
-        { name: 'Post Stats',    show: '/overlay/post_stats/show',    hide: '/overlay/post_stats/hide'    },
-        { name: 'Consolidated Post', show: '/overlay/consolidated_post/show', hide: '/overlay/consolidated_post/hide' },
-        { name: 'Consolidated Post 2', show: '/overlay/consolidated_post_2/show', hide: '/overlay/consolidated_post_2/hide' },
-        { name: 'Post 4 Key',    show: '/overlay/post4key/show',        hide: '/overlay/post4key/hide'        },
-        { name: 'Rich Guy',      show: '/overlay/post_richguy/show',  hide: '/overlay/post_richguy/hide'  },
+        { name: 'Postgame Items', show: '/overlay/post_items/show',    hide: '/overlay/post_items/hide'    },
         { name: 'Waiting Screen TVC', show: '/overlay/waiting_tvc/show', hide: '/overlay/waiting_tvc/hide' },
         { name: 'Waiting Lobby', show: '/overlay/waiting_lobby/show', hide: '/overlay/waiting_lobby/hide' },
         /* realButtons: pressing Show again while this is already live cycles
            a per-match "highlight" instead of a plain on/off toggle (see
            routes/overlay.js) — needs its own real Show/Hide buttons so
-           Show stays clickable while live, same reasoning as mpltag's
+           Show stays clickable while live, same reasoning as LowerThirds.html's
            mapSelectTagStatus above. */
         { name: "Today's Schedule", show: '/overlay/today_schedule/show', hide: '/overlay/today_schedule/hide', realButtons: true },
         { name: "Tomorrow's Schedule", show: '/overlay/tomorrow_schedule/show', hide: '/overlay/tomorrow_schedule/hide' },
@@ -2021,6 +2262,34 @@
         { name: 'Team Line-Up — Blue', show: '/overlay/team_lineup_blue/show', hide: '/overlay/team_lineup_blue/hide' },
         { name: 'Team Line-Up — Red', show: '/overlay/team_lineup_red/show', hide: '/overlay/team_lineup_red/hide' },
       ],
+      /* Superseded by "Postgame Items" above (Sept 2026 rework), which
+         already shows Matchboard/Middleboard alongside itself via
+         transitionToImpl's POST_FEATURES machinery — see Fullscreen.html.
+         Kept here, fully working, purely for reference/manual fallback
+         (the board rows in particular are the only way to force-clear a
+         board left on screen after hiding one of these scenes, since none
+         of their own hide functions clear boards on their own — same gap
+         "Postgame Items" itself needed a fix for). Playerboard has been
+         removed entirely (superseded by Postgame Items' own Item Board),
+         so it no longer has a row here. Rendered in the Control tab's
+         collapsible "Archived" section, opened via the 🗄 Archive button
+         next to Fullscreen's Open link. */
+      archivedFeatures: [
+        { name: 'Matchboard',    show: '/overlay/matchboard/show',    hide: '/overlay/matchboard/hide'    },
+        { name: 'Middleboard',   show: '/overlay/middleboard/show',   hide: '/overlay/middleboard/hide'   },
+        { name: 'Post Hearts',   show: '/overlay/post_hearts/show',   hide: '/overlay/post_hearts/hide'   },
+        { name: 'Post Timeline', show: '/overlay/post_itemline/show', hide: '/overlay/post_itemline/hide',
+          extraButtons: [
+            { label: 'Item In',  action: '/overlay/post_itemline/itemin'  },
+            { label: 'Item Out', action: '/overlay/post_itemline/itemout' },
+          ] },
+        { name: 'Post Emblem',   show: '/overlay/post_emblems/show',  hide: '/overlay/post_emblems/hide'  },
+        { name: 'Post Stats',    show: '/overlay/post_stats/show',    hide: '/overlay/post_stats/hide'    },
+        { name: 'Consolidated Post', show: '/overlay/consolidated_post/show', hide: '/overlay/consolidated_post/hide' },
+        { name: 'Consolidated Post 2', show: '/overlay/consolidated_post_2/show', hide: '/overlay/consolidated_post_2/hide' },
+        { name: 'Post 4 Key',    show: '/overlay/post4key/show',        hide: '/overlay/post4key/hide'        },
+        { name: 'Rich Guy',      show: '/overlay/post_richguy/show',  hide: '/overlay/post_richguy/hide'  },
+      ],
       debugPhotosToggle: true,
     },
     {
@@ -2028,32 +2297,32 @@
       name: 'EN TVC (Waiting TVC)',
       file: 'ENTVC.html',
       /* No show/hide — this is a standalone always-on browser source, not
-         part of mplfs.html's scene switcher (see ENTVC.html's connectSSE()
+         part of Fullscreen.html's scene switcher (see ENTVC.html's connectSSE()
          and restoreScene() for why it ignores remote show/hide entirely).
          This entry is just a link + live preview for OBS setup. */
     },
     {
-      id: 'mpltag',
-      name: 'MPL L3',
-      file: 'mpltag.html',
+      id: 'lowerthirds',
+      name: 'Lower Thirds',
+      file: 'LowerThirds.html',
       show: '/overlay/mapselecttag/show',
       hide: '/overlay/mapselecttag/hide',
       /* "Show" reveals one more game's recap (blocked server-side until
          that game's map-selection data is locked), not a plain on/off
          toggle — see mapSelectTagState above — so it keeps real
          Show/Hide buttons plus a read-only status pill instead of the
-         mplfs-style single toggle button. */
+         fullscreen-style single toggle button. */
       mapSelectTagStatus: true,
       /* "◈ Preview" calls window.previewTrigger('mapselecttag', action)
-         inside the loaded preview iframe directly — same as mplfs's
+         inside the loaded preview iframe directly — same as Fullscreen.html's
          per-feature preview buttons — so it only animates in the
          Control tab's preview pane, never the real broadcast/OBS state. */
       previewButton: true,
     },
     {
-      id: 'mploverlay7',
-      name: 'MPL Player Overlay v7',
-      file: 'mploverlay_v7.html',
+      id: 'ingame_scoreboard',
+      name: 'Ingame',
+      file: 'ingame.html',
       previewDebugTester: true,
       killEventTrigger: true,
       extraActions: [
@@ -2128,6 +2397,19 @@
     },
   ];
 
+  /* file -> { id, name } of the OVERLAYS entry that serves it — lets the
+     Edit tab (below) know which project-enabled-overlays check applies to
+     a given EDIT_CONFIGS entry's `file`, and what human name to show for
+     it in the file picker, without a second hand-maintained table. */
+  var OVERLAY_FILE_INFO = {};
+  OVERLAYS.forEach(function (ov) {
+    if (ov.file) OVERLAY_FILE_INFO[ov.file] = { id: ov.id, name: ov.name };
+  });
+
+  function isOverlayEnabled(id) {
+    return !enabledOverlaySet || enabledOverlaySet.indexOf(id) !== -1;
+  }
+
   /* ── DOM helpers ──────────────────────────────────────────── */
   var _copyTipTimer = null;
   function copyRoute(path, label, triggerEl) {
@@ -2185,13 +2467,13 @@
   }
 
   /* Quick left/right nudge buttons — Control-tab QoL for MVP Scene/
-     Highlights' photo+hero positioning (see feat.nudges on the mplfs
+     Highlights' photo+hero positioning (see feat.nudges on the Fullscreen scene
      OVERLAYS entry). Mirrors the Edit tab's arrow-key nudge (same
      saved-or-default merge as sbEditArrow's `vals.left !== undefined ?
      vals.left : defs.left`), but persists via POST /api/overlay-nudge
      instead of the Edit tab's Save button — that route broadcasts a
      live 'stylepatch' SSE event (not 'reload'), so every connected
-     mplfs.html tab, including the Control tab's own preview iframe,
+     Fullscreen.html tab, including the Control tab's own preview iframe,
      applies the new position instantly with no page reload/flash. Each
      nudge's `fallback` mirrors MV_DEFAULTS/HL_DEFAULTS' left value for
      the same selector — keep them in sync if those defaults ever
@@ -2200,7 +2482,7 @@
   var nudgeLeftCache = {}; // selector -> current left (px, number)
   function nudgeGetCurrentLeft(selector, fallback) {
     if (nudgeLeftCache[selector] !== undefined) return Promise.resolve(nudgeLeftCache[selector]);
-    return fetch('/api/overlay-styles?file=mplfs').then(function (r) { return r.json(); }).then(function (saved) {
+    return fetch('/api/overlay-styles?file=fullscreen').then(function (r) { return r.json(); }).then(function (saved) {
       var v = saved && saved[selector] && saved[selector].left;
       var left = v !== undefined ? parseFloat(v) : fallback;
       nudgeLeftCache[selector] = left;
@@ -2217,7 +2499,7 @@
         fetch('/api/overlay-nudge', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file: 'mplfs', selector: n.selector, props: { left: next + 'px' } }),
+          body: JSON.stringify({ file: 'fullscreen', selector: n.selector, props: { left: next + 'px' } }),
         }).catch(function () {});
       });
     }
@@ -2252,11 +2534,24 @@
   var controlPanelTitle = document.getElementById('control-panel-title');
   var controlPanelOpen  = document.getElementById('control-panel-open');
   var controlPanelBody  = document.getElementById('control-panel-body');
+  var controlPanelArchiveBtn = document.getElementById('control-panel-archive-btn');
   var sidebar           = document.getElementById('sidebar');
   var activeItem        = null;
   var lastOverlay       = null;
   var lastItem          = null;
   var dots              = {};
+  var activeProjectId   = null;
+  /* Reset to null every buildControlBody() call (body.innerHTML wipes the
+     element this points at) — same "stale closure after innerHTML wipe"
+     precedent as activePreviewOff/previewToggleRegistry below. Toggled by
+     controlPanelArchiveBtn, which lives in the header so it survives
+     buildControlBody's wipe on its own. */
+  var archiveSection = null;
+  controlPanelArchiveBtn.addEventListener('click', function () {
+    if (!archiveSection) return;
+    var open = archiveSection.classList.toggle('archive-open');
+    controlPanelArchiveBtn.textContent = open ? '🗄 Hide Archive' : '🗄 Archive';
+  });
 
   function scalePreview() {
     var wrap = document.getElementById('preview-frame-wrap');
@@ -2285,6 +2580,8 @@
     } else {
       controlPanelOpen.style.display = 'none';
     }
+    controlPanelArchiveBtn.style.display = (ov.archivedFeatures && ov.archivedFeatures.length) ? '' : 'none';
+    controlPanelArchiveBtn.textContent = '🗄 Archive';
     buildControlBody(ov);
     previewTitle.textContent = ov.name;
     previewLabel.textContent = ov.url || ov.file || '';
@@ -2610,8 +2907,9 @@
     body.appendChild(row);
   }
 
-  /* ── MPL Full Screen playerboard photo source (same 'debugphotos' feature
-     toggle underneath, styled the same as the Draft Overlay control above) ── */
+  /* ── Fullscreen Consolidated Post player photo source (same 'debugphotos'
+     feature toggle underneath, styled the same as the Draft Overlay
+     control above) ── */
   function buildDebugPhotosControl(body) {
     if (body.children.length) body.appendChild(el('div', 'divider'));
     body.appendChild(el('div', 'features-label', 'Player Photo Source'));
@@ -2648,14 +2946,15 @@
     var body = controlPanelBody;
     body.innerHTML = '';
     mapSelectTagBadge = null; // body.innerHTML just wiped any previous badge element
-    mplfsLiveBadge = null;
+    fullscreenLiveBadge = null;
     activePreviewOff = null; // body.innerHTML just wiped whichever preview button held this
     previewToggleRegistry = {};
+    archiveSection = null; // body.innerHTML just wiped any previous archive section element
 
     if (ov.ingameControls)    { buildIngameControls(body);    return; }
     if (ov.ingameHrmControls) { buildIngameHrmControls(body, ov.ingameHrmControls); return; }
 
-    /* Status pill (currently only mpltag/"MPL L3" opts in) */
+    /* Status pill (currently only lowerthirds/"Lower Thirds" opts in) */
     if (ov.mapSelectTagStatus) {
       var statusRow = el('div', 'feature-row');
       statusRow.appendChild(el('div', 'feature-name', 'Status'));
@@ -2672,7 +2971,17 @@
     /* Show / Hide row */
     if (ov.show || ov.hide || ov.globalHide) {
       var row = el('div', 'btn-row');
-      if (ov.toggleShowHide && ov.show && ov.hide) {
+      if (ov.toggleShowHide && ov.show && ov.hide && ov.id === 'draftrealme') {
+        /* Same single-toggle pattern as the 'draft' branch below, just
+           against draftRealmeShowState/applyDraftRealmeShowBtn's own
+           bespoke boolean (state.draftRealmeActive) instead. */
+        draftRealmeShowBtn = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
+        draftRealmeShowBtn.addEventListener('click', function () {
+          hit(draftRealmeShowState ? ov.hide : ov.show, body);
+        });
+        applyDraftRealmeShowBtn();
+        row.appendChild(draftRealmeShowBtn);
+      } else if (ov.toggleShowHide && ov.show && ov.hide) {
         /* Single SHOWING/HIDDEN toggle instead of separate Show/Hide
            buttons — same visual language as the checkToggles buttons
            below, driven by draftShowState/applyDraftShowBtn above. */
@@ -2708,7 +3017,7 @@
         row.appendChild(btn('Hide All', 'btn-hide', function () {
           fetch(ov.globalHide).then(function (r) {
             if (r.ok) { body.classList.remove('flash-ok'); void body.offsetWidth; body.classList.add('flash-ok'); }
-          }).catch(function(){}).then(loadMplfsScene);
+          }).catch(function(){}).then(loadFullscreenScene);
         }));
         var ghCb = document.createElement('button');
         ghCb.className = 'btn btn-copy';
@@ -2718,11 +3027,11 @@
         })(ov.globalHide, ghCb);
         row.appendChild(ghCb);
       }
-      if (ov.mplfsLiveIndicator) {
-        mplfsLiveBadge = el('button', 'btn btn-toggle btn-toggle-off', '○ Nothing Live');
-        mplfsLiveBadge.disabled = true;
-        applyMplfsLiveBadge();
-        row.appendChild(mplfsLiveBadge);
+      if (ov.fullscreenLiveIndicator) {
+        fullscreenLiveBadge = el('button', 'btn btn-toggle btn-toggle-off', '○ Nothing Live');
+        fullscreenLiveBadge.disabled = true;
+        applyFullscreenLiveBadge();
+        row.appendChild(fullscreenLiveBadge);
       }
       if (ov.previewButton && (ov.show || ov.hide)) {
         var route0 = ov.show || ov.hide;
@@ -2880,16 +3189,7 @@
       var keRow = el('div', 'killevent-row');
       var keLabel = el('label', '', 'Event');
       var keSelect = el('select', 'killevent-select');
-      [
-        ['firstblood.webm',  'First Blood'],
-        ['doublekill.webm',  'Double Kill'],
-        ['triplekill.webm',  'Triple Kill'],
-        ['maniac.webm',      'Maniac'],
-        ['savage.webm',      'Savage'],
-        ['lordslain.webm',   'Lord Slain'],
-        ['turtleslain.webm', 'Turtle Slain'],
-        ['wipedout.webm',    'Wipe Out'],
-      ].forEach(function(opt) {
+      KILL_EVENT_TYPES.forEach(function(opt) {
         var o = document.createElement('option');
         o.value = opt[0]; o.textContent = opt[1];
         keSelect.appendChild(o);
@@ -2934,66 +3234,116 @@
       body.appendChild(kePhotoRow);
     }
 
-    /* Sub-features */
+    /* Builds one .feature-row for a { name, show, hide, ... } entry from
+       either ov.features or ov.archivedFeatures — same shape, same working
+       Show/Hide/Preview/copy buttons either way, just appended to a
+       different container by the call sites below. `body` is passed
+       through for hit()'s flash-ok styling, which always targets the whole
+       control panel body regardless of which sub-section the row lives in.
+       `archivable` (Fullscreen's own ov.features only) adds the 🗄 Archive/
+       ↩ Restore button into .feature-header, top-right next to the name,
+       not into .feature-btns with the rest — see
+       toggleFullscreenFeatureArchived. */
+    function renderFeatureRow(feat, body, archivable) {
+      var fr = el('div', 'feature-row');
+      var header = el('div', 'feature-header');
+      header.appendChild(el('div', 'feature-name', feat.name));
+      if (archivable) {
+        var arKey = fullscreenFeatureKey(feat);
+        var isArchived = fullscreenArchivedSet.indexOf(arKey) !== -1;
+        var arBtn = el('button', 'btn btn-copy', isArchived ? '↩ Restore' : '🗄 Archive');
+        arBtn.addEventListener('click', function () {
+          toggleFullscreenFeatureArchived(arKey, !isArchived);
+        });
+        header.appendChild(arBtn);
+      }
+      fr.appendChild(header);
+      var fb = el('div', 'feature-btns');
+      if (feat.show && feat.hide && !feat.realButtons) {
+        var key = feat.show.split('/')[2];
+        var tb = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
+        tb.addEventListener('click', (function (f, k) { return function () { toggleFullscreenFeature(f, k, body); }; })(feat, key));
+        fullscreenFeatureBtns[key] = tb;
+        applyFullscreenFeatureBtn(key);
+        fb.appendChild(tb);
+      } else {
+        if (feat.show) fb.appendChild(btn('Show', 'btn-show', function () { hit(feat.show, body); }));
+        if (feat.hide) fb.appendChild(btn('Hide', 'btn-hide', function () { hit(feat.hide, body); }));
+      }
+      if (feat.show) {
+        var csb = document.createElement('button');
+        csb.className = 'btn btn-copy';
+        csb.innerHTML = '<span class="copy-icon">⧉</span> show';
+        (function (path, name, b) {
+          b.addEventListener('click', function () { copyRoute(path, name + ' show route', b); });
+        })(feat.show, feat.name, csb);
+        fb.appendChild(csb);
+      }
+      if (feat.hide) {
+        var chb = document.createElement('button');
+        chb.className = 'btn btn-copy';
+        chb.innerHTML = '<span class="copy-icon">⧉</span> hide';
+        (function (path, name, b) {
+          b.addEventListener('click', function () { copyRoute(path, name + ' hide route', b); });
+        })(feat.hide, feat.name, chb);
+        fb.appendChild(chb);
+      }
+      if (feat.show || feat.hide) {
+        var featRoute = feat.show || feat.hide;
+        var featParts = featRoute.split('/');
+        fb.appendChild(buildPreviewToggleBtn(featParts[featParts.length - 2]));
+      }
+      if (feat.nudges) {
+        feat.nudges.forEach(function (n) { fb.appendChild(buildNudgeControl(n)); });
+      }
+      if (feat.extraButtons) {
+        feat.extraButtons.forEach(function (a) {
+          fb.appendChild(btn(a.label, 'btn-action', function () { hit(a.action, body); }));
+          var acb = document.createElement('button');
+          acb.className = 'btn btn-copy';
+          acb.innerHTML = '<span class="copy-icon">⧉</span>';
+          (function (path, label, b) {
+            b.addEventListener('click', function () { copyRoute(path, label + ' route', b); });
+          })(a.action, a.label, acb);
+          fb.appendChild(acb);
+        });
+      }
+      fr.appendChild(fb);
+      return fr;
+    }
+
+    /* Sub-features — for Fullscreen, split ov.features by the user's own
+       per-project archived set (see toggleFullscreenFeatureArchived); any
+       other overlay's features render exactly as before. */
     if (ov.features && ov.features.length) {
-      if (body.children.length) body.appendChild(el('div', 'divider'));
-      body.appendChild(el('div', 'features-label', 'Features'));
-      ov.features.forEach(function (feat) {
-        var fr = el('div', 'feature-row');
-        fr.appendChild(el('div', 'feature-name', feat.name));
-        var fb = el('div', 'feature-btns');
-        if (feat.show && feat.hide && !feat.realButtons) {
-          var key = feat.show.split('/')[2];
-          var tb = el('button', 'btn btn-toggle btn-toggle-off', '○ Hidden');
-          tb.addEventListener('click', (function (f, k) { return function () { toggleMplfsFeature(f, k, body); }; })(feat, key));
-          mplfsFeatureBtns[key] = tb;
-          applyMplfsFeatureBtn(key);
-          fb.appendChild(tb);
-        } else {
-          if (feat.show) fb.appendChild(btn('Show', 'btn-show', function () { hit(feat.show, body); }));
-          if (feat.hide) fb.appendChild(btn('Hide', 'btn-hide', function () { hit(feat.hide, body); }));
-        }
-        if (feat.show) {
-          var csb = document.createElement('button');
-          csb.className = 'btn btn-copy';
-          csb.innerHTML = '<span class="copy-icon">⧉</span> show';
-          (function (path, name, b) {
-            b.addEventListener('click', function () { copyRoute(path, name + ' show route', b); });
-          })(feat.show, feat.name, csb);
-          fb.appendChild(csb);
-        }
-        if (feat.hide) {
-          var chb = document.createElement('button');
-          chb.className = 'btn btn-copy';
-          chb.innerHTML = '<span class="copy-icon">⧉</span> hide';
-          (function (path, name, b) {
-            b.addEventListener('click', function () { copyRoute(path, name + ' hide route', b); });
-          })(feat.hide, feat.name, chb);
-          fb.appendChild(chb);
-        }
-        if (feat.show || feat.hide) {
-          var featRoute = feat.show || feat.hide;
-          var featParts = featRoute.split('/');
-          fb.appendChild(buildPreviewToggleBtn(featParts[featParts.length - 2]));
-        }
-        if (feat.nudges) {
-          feat.nudges.forEach(function (n) { fb.appendChild(buildNudgeControl(n)); });
-        }
-        if (feat.extraButtons) {
-          feat.extraButtons.forEach(function (a) {
-            fb.appendChild(btn(a.label, 'btn-action', function () { hit(a.action, body); }));
-            var acb = document.createElement('button');
-            acb.className = 'btn btn-copy';
-            acb.innerHTML = '<span class="copy-icon">⧉</span>';
-            (function (path, label, b) {
-              b.addEventListener('click', function () { copyRoute(path, label + ' route', b); });
-            })(a.action, a.label, acb);
-            fb.appendChild(acb);
-          });
-        }
-        fr.appendChild(fb);
-        body.appendChild(fr);
-      });
+      var isFullscreenOv = ov.id === 'fullscreen';
+      var shownFeats = isFullscreenOv
+        ? ov.features.filter(function (f) { return fullscreenArchivedSet.indexOf(fullscreenFeatureKey(f)) === -1; })
+        : ov.features;
+      if (shownFeats.length) {
+        if (body.children.length) body.appendChild(el('div', 'divider'));
+        body.appendChild(el('div', 'features-label', 'Features'));
+        shownFeats.forEach(function (feat) { body.appendChild(renderFeatureRow(feat, body, isFullscreenOv)); });
+      }
+    }
+
+    /* Archived features — the fixed ov.archivedFeatures list (superseded/
+       manual-fallback, see its own comment above) plus, for Fullscreen,
+       whichever of its own ov.features the user archived. Collapsed by
+       default, toggled open via #control-panel-archive-btn next to the
+       Open link. */
+    {
+      var userArchivedFeats = (ov.id === 'fullscreen')
+        ? ov.features.filter(function (f) { return fullscreenArchivedSet.indexOf(fullscreenFeatureKey(f)) !== -1; })
+        : [];
+      if ((ov.archivedFeatures && ov.archivedFeatures.length) || userArchivedFeats.length) {
+        if (body.children.length) body.appendChild(el('div', 'divider'));
+        archiveSection = el('div', 'archive-section');
+        archiveSection.appendChild(el('div', 'features-label', 'Archived'));
+        userArchivedFeats.forEach(function (feat) { archiveSection.appendChild(renderFeatureRow(feat, body, true)); });
+        (ov.archivedFeatures || []).forEach(function (feat) { archiveSection.appendChild(renderFeatureRow(feat, body, false)); });
+        body.appendChild(archiveSection);
+      }
     }
 
     /* Feature toggles */
@@ -3017,7 +3367,7 @@
       buildDraftPhotoModeControl(body);
     }
 
-    /* MPL Full Screen playerboard photo source toggle */
+    /* Fullscreen Consolidated Post player photo source toggle */
     if (ov.debugPhotosToggle) {
       buildDebugPhotosControl(body);
     }
@@ -3031,16 +3381,93 @@
 
   }
 
+  var ovItems = {}; // ov.id -> sidebar row element (built once; project filtering only toggles a class)
+
   OVERLAYS.forEach(function (ov) {
     var item  = el('div', 'ov-item');
+    var check = document.createElement('input');
+    check.type = 'checkbox';
+    check.className = 'ov-item-check';
+    check.checked = true;
+    check.addEventListener('click', function (e) { e.stopPropagation(); });
+    check.addEventListener('change', function () { toggleOverlayEnabled(ov.id, check.checked); });
     var dot   = el('div', 'ov-dot unknown');
     var name  = el('span', 'ov-name', ov.name);
     item.addEventListener('click', function () { selectOverlay(ov, item); });
+    item.appendChild(check);
     item.appendChild(dot);
     item.appendChild(name);
     sidebar.appendChild(item);
     dots[ov.id] = dot;
+    ovItems[ov.id] = item;
   });
+
+  /* ── Project overlay-list filtering ──────────────────────────
+     enabledOverlaySet: null = show everything (no project active, or a
+     project that hasn't curated its list yet — see lib/projects.js's
+     `enabled: null` default). Applied by toggling `.ov-filtered`, never by
+     skipping row creation, so "Edit List" mode can still re-enable a
+     currently-hidden row. */
+  var enabledOverlaySet = null;
+  function applyProjectFilter() {
+    Object.keys(ovItems).forEach(function (id) {
+      var hidden = enabledOverlaySet && enabledOverlaySet.indexOf(id) === -1;
+      ovItems[id].classList.toggle('ov-filtered', !!hidden);
+      var check = ovItems[id].querySelector('.ov-item-check');
+      check.checked = !hidden;
+    });
+  }
+
+  function toggleOverlayEnabled(id, isEnabled) {
+    if (!activeProjectId) return;
+    if (enabledOverlaySet === null) enabledOverlaySet = OVERLAYS.map(function (o) { return o.id; });
+    var idx = enabledOverlaySet.indexOf(id);
+    if (isEnabled && idx === -1) enabledOverlaySet.push(id);
+    if (!isEnabled && idx !== -1) enabledOverlaySet.splice(idx, 1);
+    applyProjectFilter();
+    fetch('/api/projects/' + encodeURIComponent(activeProjectId) + '/enabled-overlays', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: enabledOverlaySet }),
+    }).catch(function () {});
+  }
+
+  /* ── Fullscreen per-feature archiving ────────────────────────
+     Separate from the project overlay-list filtering above — this hides
+     individual FEATURES within the Fullscreen control panel (e.g. "MVP
+     Scene", "Standings") into its collapsible "Archived" section instead
+     of hiding a whole OVERLAYS entry from the sidebar. Project-scoped
+     the same way (see /api/fullscreen-archived-features), but falls back
+     to a root-level default with no active project, so it works either
+     way — unlike enabledOverlaySet, there's no "null = show everything"
+     distinction to preserve here, so this is always a plain array. */
+  var fullscreenArchivedSet = [];
+  function fetchFullscreenArchived() {
+    return fetch('/api/fullscreen-archived-features', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        fullscreenArchivedSet = (d && d.keys) || [];
+        if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
+      })
+      .catch(function () {});
+  }
+  fetchFullscreenArchived();
+
+  function fullscreenFeatureKey(feat) {
+    return (feat.show || feat.hide).split('/')[2];
+  }
+
+  function toggleFullscreenFeatureArchived(key, archived) {
+    var idx = fullscreenArchivedSet.indexOf(key);
+    if (archived && idx === -1) fullscreenArchivedSet.push(key);
+    if (!archived && idx !== -1) fullscreenArchivedSet.splice(idx, 1);
+    fetch('/api/fullscreen-archived-features', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keys: fullscreenArchivedSet }),
+    }).catch(function () {});
+    if (lastOverlay && lastOverlay.id === 'fullscreen') buildControlBody(lastOverlay);
+  }
 
   /* ── Status polling ───────────────────────────────────────── */
   function pollStatus() {
@@ -3057,6 +3484,7 @@
     });
 
     OVERLAYS.forEach(function (ov) {
+      if (ovItems[ov.id].classList.contains('ov-filtered')) return; // skip HEAD-checking hidden rows
       var checkUrl = ov.url || (ov.file ? fileUrl(ov.file) : null);
       if (!checkUrl) { dots[ov.id].className = 'ov-dot unknown'; return; }
       fetch(checkUrl, { method: 'HEAD', cache: 'no-store' })
@@ -3067,6 +3495,66 @@
 
   pollStatus();
   setInterval(pollStatus, 5000);
+
+  /* ── Project picker ───────────────────────────────────────────
+     A project is a single global server-side switch (lib/projects.js) —
+     not a per-browser preference — so switching one does a full
+     location.reload() rather than hand-resyncing every already-rendered
+     piece of UI, same pattern this dashboard already uses after flipping
+     the API mode (Settings tab). */
+  var projectSelect  = document.getElementById('project-select');
+  var newProjectBtn  = document.getElementById('new-project-btn');
+  var editListBtn    = document.getElementById('edit-list-btn');
+
+  function initProjectPicker() {
+    fetch('/api/projects').then(function (r) { return r.json(); }).then(function (data) {
+      activeProjectId = data.active || null;
+      (data.projects || []).forEach(function (p) {
+        var opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (p.id === activeProjectId) opt.selected = true;
+        projectSelect.appendChild(opt);
+      });
+      editListBtn.disabled = !activeProjectId;
+      editListBtn.title = activeProjectId ? '' : 'Select or create a Project first';
+      if (!activeProjectId) return;
+      return fetch('/api/projects/' + encodeURIComponent(activeProjectId) + '/enabled-overlays')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          enabledOverlaySet = d.enabled || null;
+          applyProjectFilter();
+        });
+    }).catch(function () {});
+  }
+  initProjectPicker();
+
+  projectSelect.addEventListener('change', function () {
+    var id = projectSelect.value || null;
+    fetch('/api/projects/active', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id }),
+    }).then(function () { location.reload(); }).catch(function () {});
+  });
+
+  newProjectBtn.addEventListener('click', function () {
+    var name = window.prompt('New project name:');
+    if (!name || !name.trim()) return;
+    fetch('/api/projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name.trim() }),
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.error) { window.alert(d.error); return; }
+      location.reload();
+    }).catch(function () {});
+  });
+
+  editListBtn.addEventListener('click', function () {
+    sidebar.classList.toggle('editing-list');
+    editListBtn.classList.toggle('active', sidebar.classList.contains('editing-list'));
+  });
 
   /* ── Edit page ─────────────────────────────────────────────── */
   var SB_DEFAULTS = {
@@ -3087,13 +3575,36 @@
     '#sb-goldlead-c2':        { left: 1137.393,top: 58,      fontSize: 18 },
     '#sb-score-c1':           { left: 645,     top: 40 },
     '#sb-score-c2':           { left: 1230,    top: 40 },
-    '#sb-sponsor-loop':       { left: 1689,    top: 7  },
+    '#sb-sponsor-loop':       { left: 1739,    top: 3,   width: 178, height: 70 },
     '#sb-logo-c1':            { left: 424,     top: 5  },
     '#sb-logo-c2':            { left: 1431,    top: 5  },
-    '#sb-mi-patch':           { left: 1508,    top: 108, width: 133, height: 19, fontSize: 13 },
     '#sb-mi-casters':         { left: 1641,    top: 108, width: 279, height: 19, fontSize: 13 },
   };
   var ARROW_MAP = { ArrowLeft:[-1,0], ArrowRight:[1,0], ArrowUp:[0,-1], ArrowDown:[0,1] };
+
+  /* Camp1/camp2 pairs read as one mirrored HUD, so their text should
+     always match in size. Each side keeps its own Font Size row right
+     alongside its X/Y (via SB_DEFAULTS above) so it's never a separate
+     control to hunt for — editing either side's Font Size just also
+     writes the same value into its partner's, instead of drifting out
+     of sync. Position is NOT linked — each side stays independently
+     draggable. See the fontSize branch in showEditControls' commit(). */
+  var SB_FONT_LINK = {
+    '#scoreboard-kills-c1':   '#scoreboard-kills-c2',
+    '#scoreboard-kills-c2':   '#scoreboard-kills-c1',
+    '#scoreboard-tricode-c1': '#scoreboard-tricode-c2',
+    '#scoreboard-tricode-c2': '#scoreboard-tricode-c1',
+    '#scoreboard-turtle-c1':  '#scoreboard-turtle-c2',
+    '#scoreboard-turtle-c2':  '#scoreboard-turtle-c1',
+    '#scoreboard-lord-c1':    '#scoreboard-lord-c2',
+    '#scoreboard-lord-c2':    '#scoreboard-lord-c1',
+    '#scoreboard-tower-c1':   '#scoreboard-tower-c2',
+    '#scoreboard-tower-c2':   '#scoreboard-tower-c1',
+    '#scoreboard-gold-c1':    '#scoreboard-gold-c2',
+    '#scoreboard-gold-c2':    '#scoreboard-gold-c1',
+    '#sb-goldlead-c1':        '#sb-goldlead-c2',
+    '#sb-goldlead-c2':        '#sb-goldlead-c1',
+  };
 
   var SB_ELEMENTS = [
     { group: 'Timer',      id: '#scoreboard-gametime',    name: 'Game Timer'       },
@@ -3116,11 +3627,10 @@
     { group: 'Sponsor',    id: '#sb-sponsor-loop',       name: 'Sponsor Box'      },
     { group: 'Logos',      id: '#sb-logo-c1',            name: 'Logo (Team 1)'    },
     { group: 'Logos',      id: '#sb-logo-c2',            name: 'Logo (Team 2)'    },
-    { group: 'Patch Box',   id: '#sb-mi-patch',          name: 'Patch Box'        },
     { group: 'Caster Box',  id: '#sb-mi-casters',        name: 'Caster Box'       },
   ];
 
-  /* ── Kill Event Sponsor Logo (mploverlay_v7.html) ──────────────────
+  /* ── Kill Event Sponsor Logo (ingame.html) ──────────────────
      One shared element reused for whichever sponsored kill event is
      currently playing (Double Kill, Turtle Slain, Savage — see
      KILL_EVENT_SPONSOR_LOGO in overlay-killevents.js), so editing this
@@ -3137,7 +3647,25 @@
     { group: 'Kill Event', id: '#kill-event-sponsor-logo-clip', name: 'Sponsor Logo' },
   ];
 
-  /* ── Side-check family (mploverlay_v7.html) ───────────────────────
+  /* The 8 fixed kill-event video types (lib/pollers.js's KILL_MULTI_DEFS/
+     KILL_OBJ_DEFS + the manually-triggerable-only wipedout.webm) — single
+     shared source for both the existing Kill Event Trigger dropdown
+     (buildControlBody, "killEventTrigger") and the Edit tab's per-type
+     video-replacement rows (buildKillEventPanel below). Keep in sync by
+     hand with routes/projects.js's KILLEVENT_FILENAMES (same "small
+     hand-mirrored table" precedent as API_MODES elsewhere). */
+  var KILL_EVENT_TYPES = [
+    ['firstblood.webm',  'First Blood'],
+    ['doublekill.webm',  'Double Kill'],
+    ['triplekill.webm',  'Triple Kill'],
+    ['maniac.webm',      'Maniac'],
+    ['savage.webm',      'Savage'],
+    ['lordslain.webm',   'Lord Slain'],
+    ['turtleslain.webm', 'Turtle Slain'],
+    ['wipedout.webm',    'Wipe Out'],
+  ];
+
+  /* ── Side-check family (ingame.html) ───────────────────────
      Exp/Taken/Damage/Gold checks share one factory (createSideCheck in
      overlay-sidecheck-core.js) and one set of .sidecheck-* CSS classes
      — editing these selectors once reflects to all four panels.
@@ -3182,7 +3710,7 @@
     { group: 'Role Icons',      id: '.sidecheck-role-icon', name: 'Role Icon Scale'  },
   ];
 
-  /* ── Waiting Lobby (mplfs.html) element defaults ─────────────── */
+  /* ── Waiting Lobby (Fullscreen.html) element defaults ─────────────── */
   var WL_DEFAULTS = {
     '#wl-header':         { left: 40,   top: 80,  width: 967, height: 150 },
     '#wl-match':          { left: 40,   top: 390 },
@@ -3233,7 +3761,7 @@
     { group: 'Match Card Text', id: '.wlm-score-l, .wlm-score-r',     name: 'Score Size'       },
   ];
 
-  /* ── Today's / Tomorrow's Schedule (mplfs.html) element defaults ──
+  /* ── Today's / Tomorrow's Schedule (Fullscreen.html) element defaults ──
      Each scene groups down to its three major pieces (header text block,
      match rows, sponsor box) rather than exposing every label/logo. */
   var TS_DEFAULTS = {
@@ -3287,7 +3815,7 @@
     { group: 'Match Row Text', id: '.tsm-score-l, .tsm-score-r',     name: 'Score Size'       },
   ];
 
-  /* ── Waiting Screen TVC — Today's Matches panel (mplfs.html) ──────
+  /* ── Waiting Screen TVC — Today's Matches panel (Fullscreen.html) ──────
      No prior EDIT_CONFIGS entry covered #ws-matches at all (only its
      Casters/Hosts carousel sub-panels did) — this adds grouped
      font-size-only controls for the .wsm-* match-row text, same
@@ -3304,7 +3832,7 @@
   ];
 
   /* ── Waiting Screen TVC — per-match-count layout ──────────────────
-     buildWsMatches (mplfs.html) tags BOTH #ws-matches AND the whole
+     buildWsMatches (Fullscreen.html) tags BOTH #ws-matches AND the whole
      #waiting-screen-page with a runtime 'wsm-count-2'/'wsm-count-3' class
      reflecting the real row count for that day — same trick as Today's/
      Tomorrow's Schedule's tsm-count-N (see that section below). The
@@ -3314,7 +3842,7 @@
      per count; Hosts/Casters (.ws-talent-box, .ws-hosts-slot-N,
      .ws-casters-slot-N) live under completely different selectors and
      are untouched by any of this. Defaults below equal the current CSS
-     values (mplfs.html #ws-header/#ws-matches/#ws-sponsor) so nothing
+     values (Fullscreen.html #ws-header/#ws-matches/#ws-sponsor) so nothing
      visibly changes until a value is actually edited and saved. */
   var WS_COUNT2_DEFAULTS = {
     '#waiting-screen-page.wsm-count-2 #ws-header':  { left: 40, top: 80,  width: 1028, height: 150 },
@@ -3337,12 +3865,12 @@
     { group: 'Sponsor', id: '#waiting-screen-page.wsm-count-3 #ws-sponsor', name: 'Sponsor Box'      },
   ];
 
-  /* ── Waiting Screen TVC — Countdown Label background (mplfs.html) ──
+  /* ── Waiting Screen TVC — Countdown Label background (Fullscreen.html) ──
      #ws-timer-label-bg is a child of #ws-timer-label (not a canvas-
      absolute sibling), so its left/top are LOCAL offsets relative to the
      160x47 label box, not canvas coordinates — same pattern as the
      Casters/Hosts photo slots above. Left deliberately untouched/
-     non-editable (see mplfs.html): the label's own on-screen position
+     non-editable (see Fullscreen.html): the label's own on-screen position
      must not move. */
   var WS_TIMER_DEFAULTS = {
     '#ws-timer-label-bg': { left: -9.5, top: -11, width: 179, height: 69 },
@@ -3358,7 +3886,7 @@
   ];
 
   /* ── Today's / Tomorrow's Schedule — per-match-count layout ───────
-     buildTsMatches/buildTwMatches (mplfs.html) tag BOTH #ts-matches/
+     buildTsMatches/buildTwMatches (Fullscreen.html) tag BOTH #ts-matches/
      #tw-matches AND the whole #today-schedule-page/#tomorrow-schedule-
      page with a runtime 'tsm-count-2'/'tsm-count-3' class reflecting the
      real row count for that day. The page-level class lets sibling
@@ -3388,7 +3916,7 @@
      .tsm-row is a fixed 858x232 asset, so literally resizing the flex
      container would just clip/underfill it, not resize anything inside.
      Instead these two selectors get special-cased in applyToEditIframe()
-     (dashboard.html) and loadMplfsOverrides() (mplfs.html): width/height
+     (dashboard.html) and loadFullscreenOverrides() (Fullscreen.html): width/height
      are read as a target box, converted to a transform:scale() against
      the natural size below (858 wide; 472 tall for 2 rows, 712 for 3 —
      row height 232 + 8px gap), so resizing the block visually scales
@@ -3420,7 +3948,7 @@
     { group: 'Sponsor', id: '#tomorrow-schedule-page.tsm-count-3 #tw-sponsor', name: 'Sponsor Box'      },
   ];
 
-  /* ── Standings (mplfs.html) ──────────────────────────────────
+  /* ── Standings (Fullscreen.html) ──────────────────────────────────
      "Header" group = #st-header (title/season/week) + #st-colheader (the
      column-header bar). The 6 column labels are real DOM children of
      #st-colheader now (position:absolute inside it, coordinates relative
@@ -3454,7 +3982,7 @@
     { group: 'Body',   id: '#st-rows',      name: 'Team Rows'             },
   ];
 
-  /* ── Map bug (Draft.html) — same box as mploverlay_v7's ingame
+  /* ── Map bug (Draft.html) — same box as ingame.html's ingame
      #sb-map, cloned centered above the draft area. Icon and name box
      are absolutely positioned WITHIN #draft-map, so moving #draft-map
      carries both along; each can also be nudged on its own. */
@@ -3547,11 +4075,11 @@
     { group: 'Red Bans',        id: '#dr-red-ban-5',      name: 'Red Ban 5' },
   ];
 
-  /* ── Team Line-Up (mplfs.html) element defaults ────────────────
+  /* ── Team Line-Up (Fullscreen.html) element defaults ────────────────
      Blue and Red are two separate page divs (lub- / lur- prefixed ids) but they
      share every positioning CLASS (.lu-player-N, .lu-nametag-N, .lu-title,
      .lu-teambar-*) — so this one editor pass, saved under the shared
-     "mplfs" style file, repositions both sides identically. */
+     "fullscreen" style file, repositions both sides identically. */
   var LU_DEFAULTS = {
     '.lu-group-photo':    { left: 0,    top: 0,   width: 1920, height: 1080 },
     '.lu-title':          { left: 660,  top: 46,  width: 600, height: 96 },
@@ -3588,7 +4116,7 @@
     { group: 'Team Bar', id: '.lu-teambar-match',  name: 'Week/Day/Match Label' },
   ];
 
-  /* ── Casters (mplfs.html Waiting Screen TVC) element defaults ───
+  /* ── Casters (Fullscreen.html Waiting Screen TVC) element defaults ───
      3 photo slots inside the 571×478 .ws-talent-photos container. Free to
      drag/resize past the container edge — it just gets cropped by the
      container's own overflow:hidden, same as any other overlay element. */
@@ -3620,7 +4148,7 @@
     { group: 'Caster Name (Right)',  id: '.ws-casters-slot-right-name',  name: 'Caster 3 Name' },
   ];
 
-  /* ── Hosts (mplfs.html Waiting Screen TVC) element defaults ─────
+  /* ── Hosts (Fullscreen.html Waiting Screen TVC) element defaults ─────
      2 or 3 photo slots, same 571×478 container as Casters. The Left/Right
      defaults below are the 2-host layout; Middle only ever renders (and
      is only draggable/live) once a 3rd host is configured on the match
@@ -3637,15 +4165,15 @@
     { group: 'Hosts', id: '.ws-hosts-slot-right',  name: 'Photo (Right)'  },
   ];
 
-  /* ── Map Selection tag (mpltag.html) element defaults ──────────
-     Class selectors, not IDs — mpltag.html repeats these once per game
+  /* ── Map Selection tag (LowerThirds.html) element defaults ──────────
+     Class selectors, not IDs — LowerThirds.html repeats these once per game
      in the series, so one saved override (a CSS rule keyed by the bare
      class) applies to every game block at once, current and future.
      .ms-win-text has no left/top/width/height here since it's meant to
      always fill its parent box exactly (100%/100%) — only its fontSize
      is exposed, matching the .draft-map-name-text precedent below of
      only registering the keys that should actually be editable. */
-  var MPLTAG_DEFAULTS = {
+  var LOWERTHIRDS_DEFAULTS = {
     '.ms-sidebox':      { left: 29,  top: 747,  width: 353, height: 154 },
     '.ms-title':        { left: 15,  top: 5,    width: 176, height: 22,  fontSize: 18 },
     '.ms-toss-logo':    { left: 17,  top: 41,   width: 103, height: 103 },
@@ -3658,7 +4186,7 @@
     '.ms-win-text':     { fontSize: 24 },
   };
 
-  var MPLTAG_ELEMENTS = [
+  var LOWERTHIRDS_ELEMENTS = [
     { group: 'Side Select', id: '.ms-sidebox',      name: 'Side Select Box' },
     { group: 'Side Select', id: '.ms-title',        name: 'Match/Game Title' },
     { group: 'Side Select', id: '.ms-toss-logo',    name: 'Toss Winner Logo' },
@@ -3674,8 +4202,8 @@
   /* ── EN Casters (ENTVC.html standalone Waiting TVC) element defaults ──
      Same 3-up layout as Casters, but these selectors only exist inside
      ENTVC.html's DOM (ws-encasters-slot-*, not ws-casters-slot-*), so they
-     can be dragged independently of the real Casters box in mplfs.html
-     even though both configs persist to the same 'mplfs' style bucket. */
+     can be dragged independently of the real Casters box in Fullscreen.html
+     even though both configs persist to the same 'fullscreen' style bucket. */
   var EN_CASTER_DEFAULTS = {
     '.ws-encasters-slot-left':   { left: 0,   top: 14, width: 354, height: 464 },
     '.ws-encasters-slot-middle': { left: 125, top: 0,  width: 320, height: 478 },
@@ -3688,7 +4216,7 @@
     { group: 'EN Casters', id: '.ws-encasters-slot-right',  name: 'Photo (Right)'  },
   ];
 
-  /* ── MVP Highlights (mplfs.html) element defaults ───────────────
+  /* ── MVP Highlights (Fullscreen.html) element defaults ───────────────
      Signature-pose hires photo behind the plaque, then the plaque's own
      pieces (team logo / role icon / name / hero art) positioned per
      mvpreplayguide.png. */
@@ -3704,7 +4232,7 @@
     /* Stats backer (KDA / KP% / whichever stat mvp_title names) below the
        hero image — one container, position/size only. The 6 slots inside
        keep a fixed internal layout (see .hlst-label/.hlst-value in
-       mplfs.html), same pattern as #cmb-board's internal rows, so only
+       Fullscreen.html), same pattern as #cmb-board's internal rows, so only
        the whole assembly moves as one unit instead of each slot being
        separately draggable. */
     '#hl-stats-backer':      { left: 1394, top: 950,  width: 463, height: 48 },
@@ -3722,7 +4250,7 @@
     { group: 'Stats Backer', id: '#hl-stats-backer',      name: 'Stats Backer' },
   ];
 
-  /* ── MVP Scene (mplfs.html) element defaults ─────────────────────
+  /* ── MVP Scene (Fullscreen.html) element defaults ─────────────────────
      Positions follow assets/mvp/mvpfsguide.png; the plaque row (team
      logo / role icon / name / KDA / GPM / KP%) sits on top of
      mvpfsblue.png/mvpfsred.png. */
@@ -3790,7 +4318,7 @@
     { group: 'KP% Value', id: '#mv-kp',           name: 'KP% Value' },
   ];
 
-  /* ── Final Team (mplfs.html) element defaults ────────────────────
+  /* ── Final Team (Fullscreen.html) element defaults ────────────────────
      Only the MPL logo between the two team boxes is individually
      editable for now — the rest of the scene (team boxes, cards) isn't
      wired into the Edit tab yet. */
@@ -3801,9 +4329,9 @@
     { group: 'MPL Logo', id: '#ft-mpl-logo', name: 'MPL Logo' },
   ];
 
-  /* ── Credit Reel (mplfs.html) element defaults ───────────────────
+  /* ── Credit Reel (Fullscreen.html) element defaults ───────────────────
      The reel's actual content (sponsor logos/titles, cast/crew text)
-     is a data array in mplfs.html's script (CREDIT_REEL_ITEMS), not
+     is a data array in Fullscreen.html's script (CREDIT_REEL_ITEMS), not
      individually editable elements — only the viewport box (where
      the reel scrolls) is drag/resize-able here. */
   var CREDITS_DEFAULTS = {
@@ -3818,8 +4346,8 @@
      Two sub-configs share one file: the intro (Smart logo + DRAFT
      INDEX title lockup) and the comparison (mini logo + blue/red team
      panels + stat bars). Both write into the same overlay_styles.json
-     bucket (styleFile: 'DraftIndex'), same as mplfs's multiple
-     sub-scenes sharing styleFile 'mplfs'. The 7 stat bars themselves
+     bucket (styleFile: 'DraftIndex'), same as Fullscreen.html's multiple
+     sub-scenes sharing styleFile 'fullscreen'. The 7 stat bars themselves
      aren't individually editable — only the container box is
      drag/resize-able, same philosophy as Credit Reel's viewport. */
   var DI_INTRO_DEFAULTS = {
@@ -3870,7 +4398,7 @@
     { group: 'Schedule', id: '#stv-content', name: 'Schedule Block' },
   ];
 
-  /* ── Consolidated Post (mplfs.html) element defaults ──────────────
+  /* ── Consolidated Post (Fullscreen.html) element defaults ──────────────
      10 per-player rows (5 blue, 5 red-mirrored) share one CSS template
      per field, so editing is per-field-type-per-team: dragging e.g.
      "Hero Image (Blue)" nudges all 5 blue rows' hero art together via
@@ -3963,7 +4491,7 @@
 
   /* Kill Map Bounds — invisible box that defines the sub-region of
      consomap.png kill dots actually plot into (see ckmGameToLocal() in
-     mplfs.html). Separate group from Kill Map itself on purpose: it's a
+     Fullscreen.html). Separate group from Kill Map itself on purpose: it's a
      child of #ckm-board, so moving #ckm-board already carries it along
      for free; a shared group would double-move it on arrow-key nudges. */
   CP_DEFAULTS['#ckm-bounds'] = { left: 105, top: 0, width: 205, height: 211 };
@@ -3973,7 +4501,7 @@
   CP_DEFAULTS['#cpg-board'] = { left: 59, top: 745, width: 1800, height: 270 };
   CP_ELEMENTS.push({ group: 'Post Graph', id: '#cpg-board', name: 'Post Graph' });
 
-  /* ── Consolidated Post 2 (mplfs.html) element defaults ────────────
+  /* ── Consolidated Post 2 (Fullscreen.html) element defaults ────────────
      Resized/repositioned duplicate of Consolidated Post above (backup-
      safe variant) — taller 730×154 rows, no Player Photo field (baked
      into consoblue2.png/consored2.png), KDA/Gold Earned/damage
@@ -4072,20 +4600,42 @@
   CP2_ELEMENTS.push({ group: 'Kill Map Bounds', id: '#ckm2-bounds', name: 'Kill Map Bounds' });
 
   /* Sponsor loop below the Kill Map — same Tomorrow's-Schedule-style
-     frame (bg + category label + sliding logo), whole box only. Shares
-     its selector with Middle Board's own copy (#mdb-sponsor) so this one
-     control positions both — see the CSS comment above #mdb-sponsor in
-     mplfs.html. */
-  CP2_DEFAULTS['#cp2-sponsor, #mdb-sponsor'] = { left: 805, top: 957, width: 340, height: 94 };
-  CP2_ELEMENTS.push({ group: 'Sponsor Loop', id: '#cp2-sponsor, #mdb-sponsor', name: 'Sponsor Loop (also Middle Board)' });
+     frame (bg + category label + sliding logo), whole box only. Used to
+     share its selector with Middle Board's own copy (#mdb-sponsor), but
+     that one's since been reworked into its own independent
+     ingame.html-style loop — see MDB_DEFAULTS below. */
+  CP2_DEFAULTS['#cp2-sponsor'] = { left: 805, top: 957, width: 340, height: 94 };
+  CP2_ELEMENTS.push({ group: 'Sponsor Loop', id: '#cp2-sponsor', name: 'Sponsor Loop' });
 
-  /* Middle Board's own Map Selection box — background art + logo + map
-     name, same markup/source as mploverlay_v7's #sb-map (see mplfs.html's
-     #middleboard block and fetchMiddleBoardData). */
+  /* Middle Board's own sponsor loop — ingame.html-style (bare image, no
+     frame/category-label), positioned under the final (Purple Buff)
+     stat box by default. See makeVerticalSponsorLoop() in Fullscreen.html. */
   var MDB_DEFAULTS = {};
   var MDB_ELEMENTS = [];
-  MDB_DEFAULTS['#mdb-map'] = { left: 1638, top: 141, width: 294, height: 69 };
-  MDB_ELEMENTS.push({ group: 'Map Selection', id: '#mdb-map', name: 'Map Box' });
+  MDB_DEFAULTS['#mdb-sponsor'] = { left: 805, top: 860, width: 310, height: 70 };
+  MDB_ELEMENTS.push({ group: 'Sponsor Loop', id: '#mdb-sponsor', name: 'Sponsor Loop' });
+
+  /* Font-size-only controls — no left/top/width/height (PROPS.forEach in
+     showEditControls only renders the rows whose key is actually present
+     in defaults, so leaving position out here just hides those steppers
+     for these entries instead of showing dead ones).
+     '.mdb-num' is a CLASS selector matching all 12 Gold/Tower/Lord/Turtle/
+     Red Buff/Purple Buff number spans at once — applyToEditIframe's
+     generic CSS injection (`sel + '{' + d.join(';') + '}'`) already
+     supports a selector matching multiple elements, so ONE Font Size
+     control here resizes all of them together, instead of needing a
+     dedicated per-pair entry in SB_FONT_LINK for every one of the 6 rows.
+     The Game Time label/value and the Game # label are each a single
+     unique element, so they just get their own independent Font Size
+     control, same as everywhere else in this app. */
+  MDB_DEFAULTS['.mdb-num']              = { fontSize: 28 };
+  MDB_DEFAULTS['#mdb-game-time-label']  = { fontSize: 23 };
+  MDB_DEFAULTS['#mdb-game-time-value']  = { fontSize: 74 };
+  MDB_DEFAULTS['#mdb-game-label-text']  = { fontSize: 18 };
+  MDB_ELEMENTS.push({ group: 'Stats', id: '.mdb-num', name: 'Stat Numbers (Gold/Tower/Lord/Turtle/Buffs)' });
+  MDB_ELEMENTS.push({ group: 'Game Time', id: '#mdb-game-time-label', name: 'Game Time Label' });
+  MDB_ELEMENTS.push({ group: 'Game Time', id: '#mdb-game-time-value', name: 'Game Time Value' });
+  MDB_ELEMENTS.push({ group: 'Game Label', id: '#mdb-game-label-text', name: 'Game # Label' });
 
   /* Post 4 Key — four cards, each spotlighting the game's leader in one
      stat (GPM / damage dealt / damage taken / assists). Sub-element
@@ -4131,73 +4681,98 @@
 
   /* ── Registry of editable overlays ───────────────────────────── */
   var EDIT_CONFIGS = {
-    mploverlay_v7: {
-      label:       'Scoreboard · mploverlay_v7',
-      file:        'mploverlay_v7.html',
-      styleFile:   'mploverlay_v7',
-      defaultsKey: 'sb_edit_defaults_mploverlay_v7',
+    ingame_scoreboard: {
+      label:       'Scoreboard · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard',
       elements:    SB_ELEMENTS,
       defaults:    SB_DEFAULTS,
     },
-    mploverlay_v7_sidecheck: {
-      label:       'Side Events · mploverlay_v7',
-      file:        'mploverlay_v7.html',
-      styleFile:   'mploverlay_v7',
-      defaultsKey: 'sb_edit_defaults_mploverlay_v7_sidecheck',
+    ingame_scoreboard_sidecheck: {
+      label:       'Side Events · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard_sidecheck',
       elements:    SIDECHECK_ELEMENTS,
       defaults:    SIDECHECK_DEFAULTS,
       showFn:      'secAnimateIn',
     },
-    mploverlay_v7_killevent: {
-      label:       'Kill Event Sponsor · mploverlay_v7',
-      file:        'mploverlay_v7.html',
-      styleFile:   'mploverlay_v7',
-      defaultsKey: 'sb_edit_defaults_mploverlay_v7_killevent',
+    ingame_scoreboard_killevent: {
+      label:       'Kill Events · Ingame',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard_killevent',
       elements:    KILLEVENT_ELEMENTS,
       defaults:    KILLEVENT_DEFAULTS,
       showFn:      'previewKillEventSponsor',
+      killEventPanel: true,
     },
-    mploverlay_v7_itemcheck: {
-      label:       'Item Check Layout · mploverlay_v7',
-      file:        'mploverlay_v7.html',
-      styleFile:   'mploverlay_v7',
-      defaultsKey: 'sb_edit_defaults_mploverlay_v7_itemcheck',
+    ingame_scoreboard_itemcheck: {
+      label:       'Item Check · Ingame',
+      category:    'Bottom Events',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard_itemcheck',
       elements:    [],
       defaults:    {},
       showFn:      'icAnimateIn',
+      layoutPanel: { apiPath: '/api/itemcheck-layout', preview: 'icPreviewLayout', hasFontSize: true },
     },
-    mplfs_lobby: {
-      label:       'Waiting Lobby · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_lobby',
+    ingame_scoreboard_golddiffcheck: {
+      label:       'Gold Diff Check · Ingame',
+      category:    'Bottom Events',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard_golddiffcheck',
+      elements:    [],
+      defaults:    {},
+      showFn:      'gdcAnimateIn',
+      layoutPanel: { apiPath: '/api/golddiffcheck-layout', preview: 'gdcPreviewLayout' },
+    },
+    ingame_scoreboard_emblemcheck: {
+      label:       'Emblem Check · Ingame',
+      category:    'Bottom Events',
+      file:        'ingame.html',
+      styleFile:   'ingame_scoreboard',
+      defaultsKey: 'sb_edit_defaults_ingame_scoreboard_emblemcheck',
+      elements:    [],
+      defaults:    {},
+      showFn:      'eccAnimateIn',
+      layoutPanel: { apiPath: '/api/emblemcheck-layout', preview: 'eccPreviewLayout' },
+    },
+    fullscreen_lobby: {
+      label:       'Waiting Lobby · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_lobby',
       elements:    WL_ELEMENTS,
       defaults:    WL_DEFAULTS,
       showFn:      'showWaitingLobby',
     },
-    mplfs_lineup: {
-      label:       'Team Line-Up · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_lineup',
+    fullscreen_lineup: {
+      label:       'Team Line-Up · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_lineup',
       elements:    LU_ELEMENTS,
       defaults:    LU_DEFAULTS,
       showFn:      'showTeamLineupBlue',
     },
-    mplfs_casters: {
-      label:       'Casters · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_casters',
+    fullscreen_casters: {
+      label:       'Casters · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_casters',
       elements:    CASTER_ELEMENTS,
       defaults:    CASTER_DEFAULTS,
       showFn:      'showCastersForEdit',
     },
-    mplfs_hosts: {
-      label:       'Hosts · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_hosts',
+    fullscreen_hosts: {
+      label:       'Hosts · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_hosts',
       elements:    HOST_ELEMENTS,
       defaults:    HOST_DEFAULTS,
       showFn:      'showHostsForEdit',
@@ -4205,170 +4780,170 @@
     entvc_encasters: {
       label:       'EN Casters · ENTVC',
       file:        'ENTVC.html',
-      styleFile:   'mplfs',
+      styleFile:   'fullscreen',
       defaultsKey: 'sb_edit_defaults_entvc_encasters',
       elements:    EN_CASTER_ELEMENTS,
       defaults:    EN_CASTER_DEFAULTS,
       showFn:      'showCastersForEdit',
     },
-    mplfs_highlights: {
-      label:       'MVP Highlights · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_highlights',
+    fullscreen_highlights: {
+      label:       'MVP Highlights · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_highlights',
       elements:    HL_ELEMENTS,
       defaults:    HL_DEFAULTS,
       showFn:      'showHighlights',
     },
-    mplfs_mvp: {
-      label:       'MVP Scene · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_mvp',
+    fullscreen_mvp: {
+      label:       'MVP Scene · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_mvp',
       elements:    MV_ELEMENTS,
       defaults:    MV_DEFAULTS,
       showFn:      'showMvpScene',
     },
-    mplfs_finalteam: {
-      label:       'Final Team · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_finalteam',
+    fullscreen_finalteam: {
+      label:       'Final Team · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_finalteam',
       elements:    FT_ELEMENTS,
       defaults:    FT_DEFAULTS,
       showFn:      'showFinalTeam',
     },
-    mplfs_consolidated_post: {
-      label:       'Consolidated Post · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_consolidated_post',
+    fullscreen_consolidated_post: {
+      label:       'Consolidated Post · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_consolidated_post',
       elements:    CP_ELEMENTS,
       defaults:    CP_DEFAULTS,
       showFn:      'showConsolidatedPost',
     },
-    mplfs_middleboard: {
-      label:       'Middle Board · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_middleboard',
+    fullscreen_middleboard: {
+      label:       'Middle Board · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_middleboard',
       elements:    MDB_ELEMENTS,
       defaults:    MDB_DEFAULTS,
       showFn:      'showMiddleBoard',
     },
-    mplfs_consolidated_post_2: {
-      label:       'Consolidated Post 2 · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_consolidated_post_2',
+    fullscreen_consolidated_post_2: {
+      label:       'Consolidated Post 2 · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_consolidated_post_2',
       elements:    CP2_ELEMENTS,
       defaults:    CP2_DEFAULTS,
       showFn:      'showConsolidatedPost2',
     },
-    mplfs_post4key: {
-      label:       'Post 4 Key · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_post4key',
+    fullscreen_post4key: {
+      label:       'Post 4 Key · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_post4key',
       elements:    P4K_ELEMENTS,
       defaults:    P4K_DEFAULTS,
       showFn:      'showPost4Key',
     },
-    mplfs_credits: {
-      label:       'Credit Reel · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_credits',
+    fullscreen_credits: {
+      label:       'Credit Reel · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_credits',
       elements:    CREDITS_ELEMENTS,
       defaults:    CREDITS_DEFAULTS,
       showFn:      'showCreditsScene',
     },
-    mplfs_todayschedule: {
-      label:       "Today's Schedule · mplfs",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_todayschedule',
+    fullscreen_todayschedule: {
+      label:       "Today's Schedule · Fullscreen",
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_todayschedule',
       elements:    TS_ELEMENTS,
       defaults:    TS_DEFAULTS,
       showFn:      'showTodaySchedule',
     },
-    mplfs_tomorrowschedule: {
-      label:       "Tomorrow's Schedule · mplfs",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_tomorrowschedule',
+    fullscreen_tomorrowschedule: {
+      label:       "Tomorrow's Schedule · Fullscreen",
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_tomorrowschedule',
       elements:    TW_ELEMENTS,
       defaults:    TW_DEFAULTS,
       showFn:      'showTomorrowSchedule',
     },
-    mplfs_wsmatches: {
+    fullscreen_wsmatches: {
       label:       "Today's Matches · Waiting TVC",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_wsmatches',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_wsmatches',
       elements:    WS_MATCHES_ELEMENTS,
       defaults:    WS_MATCHES_DEFAULTS,
       showFn:      'showWsMatchesForEdit',
     },
-    mplfs_wsmatches_2m: {
+    fullscreen_wsmatches_2m: {
       label:       'Waiting TVC — 2 Matches',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_wsmatches_2m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_wsmatches_2m',
       elements:    WS_COUNT2_ELEMENTS,
       defaults:    WS_COUNT2_DEFAULTS,
       showFn:      'showWsMatchesEdit2',
     },
-    mplfs_wsmatches_3m: {
+    fullscreen_wsmatches_3m: {
       label:       'Waiting TVC — 3 Matches',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_wsmatches_3m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_wsmatches_3m',
       elements:    WS_COUNT3_ELEMENTS,
       defaults:    WS_COUNT3_DEFAULTS,
       showFn:      'showWsMatchesEdit3',
     },
-    mplfs_wstimer: {
+    fullscreen_wstimer: {
       label:       'Countdown Label · Waiting TVC',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_wstimer',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_wstimer',
       elements:    WS_TIMER_ELEMENTS,
       defaults:    WS_TIMER_DEFAULTS,
       showFn:      'showWsMatchesForEdit',
     },
-    mplfs_todayschedule_2m: {
+    fullscreen_todayschedule_2m: {
       label:       "Today's Schedule — 2 Matches",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_todayschedule_2m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_todayschedule_2m',
       elements:    TS_COUNT2_ELEMENTS,
       defaults:    TS_COUNT2_DEFAULTS,
       showFn:      'showTodayScheduleEdit2',
     },
-    mplfs_todayschedule_3m: {
+    fullscreen_todayschedule_3m: {
       label:       "Today's Schedule — 3 Matches",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_todayschedule_3m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_todayschedule_3m',
       elements:    TS_COUNT3_ELEMENTS,
       defaults:    TS_COUNT3_DEFAULTS,
       showFn:      'showTodayScheduleEdit3',
     },
-    mplfs_tomorrowschedule_2m: {
+    fullscreen_tomorrowschedule_2m: {
       label:       "Tomorrow's Schedule — 2 Matches",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_tomorrowschedule_2m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_tomorrowschedule_2m',
       elements:    TW_COUNT2_ELEMENTS,
       defaults:    TW_COUNT2_DEFAULTS,
       showFn:      'showTomorrowScheduleEdit2',
     },
-    mplfs_tomorrowschedule_3m: {
+    fullscreen_tomorrowschedule_3m: {
       label:       "Tomorrow's Schedule — 3 Matches",
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_tomorrowschedule_3m',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_tomorrowschedule_3m',
       elements:    TW_COUNT3_ELEMENTS,
       defaults:    TW_COUNT3_DEFAULTS,
       showFn:      'showTomorrowScheduleEdit3',
@@ -4398,11 +4973,11 @@
       defaults:    DRAFT_RECAP_DEFAULTS,
       showFn:      'showDraftRecapForEdit',
     },
-    mplfs_standings: {
-      label:       'Standings · mplfs',
-      file:        'mplfs.html',
-      styleFile:   'mplfs',
-      defaultsKey: 'sb_edit_defaults_mplfs_standings',
+    fullscreen_standings: {
+      label:       'Standings · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_standings',
       elements:    ST_ELEMENTS,
       defaults:    ST_DEFAULTS,
       showFn:      'showStandings',
@@ -4433,17 +5008,17 @@
       elements:    STV_ELEMENTS,
       defaults:    STV_DEFAULTS,
     },
-    mpltag_mapselect: {
-      label:       'Map Selection · mpltag',
-      file:        'mpltag.html',
-      styleFile:   'mpltag',
-      defaultsKey: 'sb_edit_defaults_mpltag_mapselect',
-      elements:    MPLTAG_ELEMENTS,
-      defaults:    MPLTAG_DEFAULTS,
-      showFn:      'showMpltagForEdit',
+    lowerthirds_mapselect: {
+      label:       'Map Selection · Lower Thirds',
+      file:        'LowerThirds.html',
+      styleFile:   'lowerthirds',
+      defaultsKey: 'sb_edit_defaults_lowerthirds_mapselect',
+      elements:    LOWERTHIRDS_ELEMENTS,
+      defaults:    LOWERTHIRDS_DEFAULTS,
+      showFn:      'showLowerThirdsForEdit',
     },
   };
-  var currentConfigKey = 'mploverlay_v7';
+  var currentConfigKey = 'ingame_scoreboard';
 
   function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
   function parseNum(s)    { return parseFloat(String(s)) || 0; }
@@ -4700,19 +5275,19 @@
       try { editIframe.contentWindow.sidecheckSetNameFontCeiling(editValues['.sidecheck-name'].fontSize); } catch (e) {}
     }
     /* MVP Scene's #mv-name — same reasoning as .sidecheck-name above (see
-       MV_NAME_FONT_CEILING in mplfs.html): a blanket !important font-size
+       MV_NAME_FONT_CEILING in Fullscreen.html): a blanket !important font-size
        would permanently defeat mvFitNameMeasure's own shrink-to-fit,
        which is exactly what let long names overflow/get cropped before. */
     if (editValues['#mv-name'] && editValues['#mv-name'].fontSize !== undefined) {
       try { editIframe.contentWindow.mvSetNameFontCeiling(editValues['#mv-name'].fontSize); } catch (e) {}
     }
-    /* Patch Box/Caster Box fontSize — same reasoning as .sidecheck-name
-       above (see SB_MI_FIT_CONFIG in overlay-scoreboard.js): a blanket
-       !important font-size on the container never reaches the child text
-       span, since sbFitText() sets that span's font-size inline on every
-       poll tick. Width is NOT excluded below — it's still a real CSS box
+    /* Caster Box fontSize — same reasoning as .sidecheck-name above (see
+       SB_MI_FIT_CONFIG in overlay-scoreboard.js): a blanket !important
+       font-size on the container never reaches the child text span,
+       since sbFitText() sets that span's font-size inline on every poll
+       tick. Width is NOT excluded below — it's still a real CSS box
        dimension, in addition to also feeding the fit budget here. */
-    var SB_MI_FIT_SELECTORS = { '#sb-mi-patch': 'patch', '#sb-mi-casters': 'casters' };
+    var SB_MI_FIT_SELECTORS = { '#sb-mi-casters': 'casters' };
     Object.keys(SB_MI_FIT_SELECTORS).forEach(function(sel) {
       var p = editValues[sel];
       if (!p || (p.width === undefined && p.fontSize === undefined)) return;
@@ -4722,7 +5297,7 @@
       var p = editValues[sel];
       var d = [];
       var native = TW_MATCHES_SCALE_NATIVE[sel];
-      var skipFontSize = (sel === '.sidecheck-name' || sel === '#sb-mi-patch' || sel === '#sb-mi-casters' || sel === '#mv-name');
+      var skipFontSize = (sel === '.sidecheck-name' || sel === '#sb-mi-casters' || sel === '#mv-name');
       if (p.left !== undefined) d.push('left:' + p.left + 'px !important');
       if (p.top  !== undefined) d.push('top:'  + p.top  + 'px !important');
       if (native && (p.width !== undefined || p.height !== undefined)) {
@@ -4742,6 +5317,20 @@
     var s = doc.getElementById('sb-live-edit');
     if (!s) { s = doc.createElement('style'); s.id = 'sb-live-edit'; doc.head.appendChild(s); }
     s.textContent = css;
+
+    /* `asset` (uploaded per-project image/video replacement) can't go
+       through the CSS !important path above — apply directly to any
+       matching IMG/VIDEO element in the live edit preview instead, same
+       as every real overlay page's own loadXOverrides() does on load. */
+    Object.keys(editValues).forEach(function(sel) {
+      var p = editValues[sel];
+      if (!p || p.asset === undefined) return;
+      try {
+        doc.querySelectorAll(sel).forEach(function(el) {
+          if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.src = p.asset;
+        });
+      } catch (e) {}
+    });
   }
 
   function scaleEditIframe() {
@@ -5002,6 +5591,15 @@
           if (editInputRefs[pairedKey]) editInputRefs[pairedKey].value = pairedVal;
         }
 
+        /* Camp1/camp2 pairs (see SB_FONT_LINK) always match in size, so a
+           Font Size edit on either side mirrors straight into its
+           partner's own value too — position is untouched, only fontSize. */
+        if (prop.key === 'fontSize' && SB_FONT_LINK[id]) {
+          var partnerId = SB_FONT_LINK[id];
+          if (!editValues[partnerId]) editValues[partnerId] = {};
+          editValues[partnerId].fontSize = v;
+        }
+
         applyToEditIframe();
         /* Sync selected highlight (in case font-size change re-flows) */
         if (editIfLoaded) {
@@ -5061,6 +5659,133 @@
       }
       ctrl.appendChild(row);
     });
+
+    /* ── Asset override (uploaded per-project image/video) ─────────
+       Only elements that are actually IMG/VIDEO tags in the live preview
+       get this — most editable elements are plain text/number boxes with
+       nothing to swap. Detected off the real DOM node rather than any
+       static metadata, so it stays correct as pages evolve. */
+    var liveEl = (editIfLoaded && editIframe.contentDocument)
+      ? editIframe.contentDocument.querySelector(id) : null;
+    if (liveEl && (liveEl.tagName === 'IMG' || liveEl.tagName === 'VIDEO')) {
+      ctrl.appendChild(buildAssetControls(id));
+    }
+  }
+
+  const MAX_ASSET_BYTES = 50 * 1024 * 1024;
+
+  function buildAssetControls(id) {
+    var wrap = document.createElement('div');
+    wrap.className = 'edit-asset-block';
+
+    var title = document.createElement('div');
+    title.className = 'edit-ctrl-title';
+    title.textContent = 'Asset';
+    wrap.appendChild(title);
+
+    if (!activeProjectId) {
+      var hint = document.createElement('div');
+      hint.className = 'edit-asset-hint';
+      hint.textContent = 'Select or create a Project to upload custom assets';
+      wrap.appendChild(hint);
+      return wrap;
+    }
+
+    var assetUrl = editValues[id] && editValues[id].asset;
+    var current = document.createElement('div');
+    current.className = 'edit-asset-current';
+    current.textContent = assetUrl
+      ? decodeURIComponent(assetUrl.split('/').pop())
+      : 'Using default';
+    wrap.appendChild(current);
+
+    var btnRow = document.createElement('div');
+    btnRow.className = 'edit-asset-btns';
+
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,video/*';
+    fileInput.style.display = 'none';
+
+    var statusEl = document.createElement('span');
+    statusEl.className = 'edit-asset-status';
+
+    var uploadBtn = document.createElement('button');
+    uploadBtn.className = 'edit-btn';
+    uploadBtn.type = 'button';
+    uploadBtn.textContent = 'Upload New…';
+    uploadBtn.addEventListener('click', function() { fileInput.click(); });
+
+    fileInput.addEventListener('change', function() {
+      var file = fileInput.files[0];
+      fileInput.value = '';
+      if (!file) return;
+      if (file.size > MAX_ASSET_BYTES) {
+        statusEl.textContent = 'File exceeds the 50MB limit';
+        statusEl.style.color = '#ff4455';
+        return;
+      }
+      if (!/^image\/|^video\//.test(file.type)) {
+        statusEl.textContent = 'Unsupported file type';
+        statusEl.style.color = '#ff4455';
+        return;
+      }
+      var overlayFile = EDIT_CONFIGS[currentConfigKey].file;
+      var overlayInfo = OVERLAY_FILE_INFO[overlayFile];
+      var overlayName = overlayInfo ? overlayInfo.name : overlayFile;
+      statusEl.textContent = 'Uploading…';
+      statusEl.style.color = '#888';
+      var fd = new FormData();
+      fd.append('file', file);
+      fetch('/api/projects/' + encodeURIComponent(activeProjectId) + '/assets/' + encodeURIComponent(overlayName), {
+        method: 'POST',
+        body: fd,
+      }).then(function(r) {
+        return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+      }).then(function(res) {
+        if (!res.ok) {
+          statusEl.textContent = res.data.error || 'Upload failed';
+          statusEl.style.color = '#ff4455';
+          return;
+        }
+        pushHistory();
+        if (!editValues[id]) editValues[id] = {};
+        editValues[id].asset = res.data.url;
+        applyToEditIframe();
+        showEditControls(id);
+      }).catch(function() {
+        statusEl.textContent = 'Upload failed';
+        statusEl.style.color = '#ff4455';
+      });
+    });
+
+    btnRow.appendChild(uploadBtn);
+    btnRow.appendChild(fileInput);
+
+    if (assetUrl) {
+      var resetBtn = document.createElement('button');
+      resetBtn.className = 'edit-btn';
+      resetBtn.type = 'button';
+      resetBtn.textContent = 'Reset to Default';
+      resetBtn.addEventListener('click', function() {
+        pushHistory();
+        delete editValues[id].asset;
+        /* Unlike position (a CSS !important rule that just falls through
+           to the underlying stylesheet once removed), a src attribute was
+           set imperatively — there's no "underlying value" left to fall
+           back to in the DOM, so the only reliable way back to the page's
+           own real default is a genuine fresh iframe load (re-runs
+           whatever normally sets that element's src, then re-applies
+           editValues — which no longer has an asset override for it). */
+        loadIframe(EDIT_CONFIGS[currentConfigKey]);
+        showEditControls(id);
+      });
+      btnRow.appendChild(resetBtn);
+    }
+
+    btnRow.appendChild(statusEl);
+    wrap.appendChild(btnRow);
+    return wrap;
   }
 
   /* Build element list — re-runs whenever the active config changes */
@@ -5188,10 +5913,11 @@
       if (v.width    !== undefined) out[sel].width    = v.width    + 'px';
       if (v.height   !== undefined) out[sel].height   = v.height   + 'px';
       if (v.fontSize !== undefined) out[sel].fontSize = v.fontSize + 'px';
+      if (v.asset    !== undefined) out[sel].asset    = v.asset;
     });
     var styleFile = EDIT_CONFIGS[currentConfigKey].styleFile;
     /* Multiple configs can share one style file (Waiting Lobby / Team
-       Line-Up / Casters all write into "mplfs") — merge this config's own
+       Line-Up / Casters all write into "fullscreen") — merge this config's own
        selectors into whatever's already saved instead of replacing the
        whole file's block, so saving one doesn't wipe out the others. */
     fetch('/api/overlay-styles?file=' + styleFile)
@@ -5209,14 +5935,13 @@
         statusEl.style.color = '#44cc88';
         setTimeout(function() { statusEl.textContent = ''; }, 2000);
         /* Saving triggers a server-side SSE 'reload' broadcast so every
-           OTHER open overlay page/tab picks up the change — but that same
-           broadcast also hard-reloads THIS edit iframe (it's just another
-           instance of the same page), which lands back on a blank/hidden
-           scene since nothing re-calls the config's showFn afterward.
-           Re-loading it here (which re-runs showFn on load, same as the
-           first time this config was selected) keeps the scene visible
-           for a final post-save check instead of it just vanishing. */
-        if (EDIT_CONFIGS[currentConfigKey].showFn) loadIframe(EDIT_CONFIGS[currentConfigKey]);
+           REAL open overlay page/OBS browser source picks up the change —
+           but every overlay page now skips that broadcast for its own
+           ?preview=1 instance (this edit iframe included), specifically so
+           Save doesn't visibly reload/flicker it or wipe out
+           injectEditInteraction()'s click-to-select wiring. Nothing to do
+           here anymore: the iframe already shows the just-saved values via
+           applyToEditIframe(), live, without a reload. */
       }).catch(function() {
         statusEl.textContent = 'Error';
         statusEl.style.color = '#ff4455';
@@ -5233,6 +5958,7 @@
       if (s.width    !== undefined) editValues[sel].width    = parseNum(s.width);
       if (s.height   !== undefined) editValues[sel].height   = parseNum(s.height);
       if (s.fontSize !== undefined) editValues[sel].fontSize = parseNum(s.fontSize);
+      if (s.asset    !== undefined) editValues[sel].asset    = s.asset;
     });
   }
 
@@ -5272,7 +5998,7 @@
     buildEditList();
 
     var contentPanel = document.getElementById('edit-content-panel');
-    if (key === 'mplfs_credits') {
+    if (key === 'fullscreen_credits') {
       contentPanel.style.display = 'block';
       fetch('/api/credits-text', { cache: 'no-store' })
         .then(function(r) { return r.text(); })
@@ -5290,21 +6016,8 @@
       contentPanel.style.display = 'none';
     }
 
-    var itemcheckPanel = document.getElementById('edit-itemcheck-panel');
-    if (key === 'mploverlay_v7_itemcheck') {
-      itemcheckPanel.style.display = 'block';
-      fetch('/api/itemcheck-layout', { cache: 'no-store' })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          document.getElementById('edit-itemcheck-gold-gap').value = d.goldGap     || 0;
-          document.getElementById('edit-itemcheck-home-x').value   = d.homeOffsetX || 0;
-          document.getElementById('edit-itemcheck-home-y').value   = d.homeOffsetY || 0;
-          document.getElementById('edit-itemcheck-away-x').value   = d.awayOffsetX || 0;
-          document.getElementById('edit-itemcheck-away-y').value   = d.awayOffsetY || 0;
-        });
-    } else {
-      itemcheckPanel.style.display = 'none';
-    }
+    buildLayoutPanel(config);
+    buildKillEventPanel(config);
 
     fetch('/api/overlay-styles?file=' + config.styleFile)
       .then(function(r) { return r.json(); })
@@ -5348,42 +6061,65 @@
       });
   });
 
-  /* ── Item Check Layout live preview ──────────────────────────────
-     Same cross-frame-call pattern as sidecheckSetNameFontCeiling()
-     (see SIDECHECK_DEFAULTS comment) — the field values apply straight
-     into the edit iframe on every keystroke, ahead of Save, since
-     goldGap/offsets aren't plain left/top/width/height overrides the
-     generic applyToEditIframe() CSS-injection path understands. */
-  var ITEMCHECK_FIELD_IDS = [
-    'edit-itemcheck-gold-gap', 'edit-itemcheck-home-x', 'edit-itemcheck-home-y',
-    'edit-itemcheck-away-x',   'edit-itemcheck-away-y',
+  /* ── Bottom Events layout panel (Item Check / Gold Diff Check / Emblem
+     Check — one shared panel, driven by EDIT_CONFIGS[key].layoutPanel:
+     { apiPath, preview (cross-frame fn name), hasFontSize }) ──────────
+     Live preview uses the same cross-frame-call pattern as
+     sidecheckSetNameFontCeiling() (see SIDECHECK_DEFAULTS comment) — the
+     field values apply straight into the edit iframe on every keystroke,
+     ahead of Save, since these offsets aren't plain left/top/width/height
+     overrides the generic applyToEditIframe() CSS-injection path
+     understands. */
+  var LAYOUT_FIELD_IDS = [
+    'edit-layout-font-size', 'edit-layout-home-x', 'edit-layout-home-y',
+    'edit-layout-away-x',    'edit-layout-away-y',
   ];
-  function icPreviewFromFields() {
-    if (!editIfLoaded) return;
-    var partial = {
-      goldGap:     Number(document.getElementById('edit-itemcheck-gold-gap').value) || 0,
-      homeOffsetX: Number(document.getElementById('edit-itemcheck-home-x').value)   || 0,
-      homeOffsetY: Number(document.getElementById('edit-itemcheck-home-y').value)   || 0,
-      awayOffsetX: Number(document.getElementById('edit-itemcheck-away-x').value)   || 0,
-      awayOffsetY: Number(document.getElementById('edit-itemcheck-away-y').value)   || 0,
-    };
-    try { editIframe.contentWindow.icPreviewLayout(partial); } catch (e) {}
+
+  function buildLayoutPanel(config) {
+    var panel = document.getElementById('edit-layout-panel');
+    if (!config.layoutPanel) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    document.getElementById('edit-layout-fontsize-row').style.display = config.layoutPanel.hasFontSize ? 'flex' : 'none';
+    fetch(config.layoutPanel.apiPath, { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (config.layoutPanel.hasFontSize) document.getElementById('edit-layout-font-size').value = d.goldFontSize || 30;
+        document.getElementById('edit-layout-home-x').value = d.homeOffsetX || 0;
+        document.getElementById('edit-layout-home-y').value = d.homeOffsetY || 0;
+        document.getElementById('edit-layout-away-x').value = d.awayOffsetX || 0;
+        document.getElementById('edit-layout-away-y').value = d.awayOffsetY || 0;
+      });
   }
-  ITEMCHECK_FIELD_IDS.forEach(function(id) {
-    document.getElementById(id).addEventListener('input', icPreviewFromFields);
+
+  function layoutPreviewFromFields() {
+    if (!editIfLoaded) return;
+    var cfg = EDIT_CONFIGS[currentConfigKey];
+    if (!cfg || !cfg.layoutPanel) return;
+    var partial = {
+      homeOffsetX: Number(document.getElementById('edit-layout-home-x').value) || 0,
+      homeOffsetY: Number(document.getElementById('edit-layout-home-y').value) || 0,
+      awayOffsetX: Number(document.getElementById('edit-layout-away-x').value) || 0,
+      awayOffsetY: Number(document.getElementById('edit-layout-away-y').value) || 0,
+    };
+    if (cfg.layoutPanel.hasFontSize) partial.goldFontSize = Number(document.getElementById('edit-layout-font-size').value) || 30;
+    try { editIframe.contentWindow[cfg.layoutPanel.preview](partial); } catch (e) {}
+  }
+  LAYOUT_FIELD_IDS.forEach(function(id) {
+    document.getElementById(id).addEventListener('input', layoutPreviewFromFields);
   });
 
-  /* ── Item Check Layout content Save ──────────────────────────── */
-  document.getElementById('edit-itemcheck-save').addEventListener('click', function() {
-    var statusEl = document.getElementById('edit-itemcheck-status');
+  document.getElementById('edit-layout-save').addEventListener('click', function() {
+    var cfg = EDIT_CONFIGS[currentConfigKey];
+    if (!cfg || !cfg.layoutPanel) return;
+    var statusEl = document.getElementById('edit-layout-status');
     var layout = {
-      goldGap:     Number(document.getElementById('edit-itemcheck-gold-gap').value) || 0,
-      homeOffsetX: Number(document.getElementById('edit-itemcheck-home-x').value)   || 0,
-      homeOffsetY: Number(document.getElementById('edit-itemcheck-home-y').value)   || 0,
-      awayOffsetX: Number(document.getElementById('edit-itemcheck-away-x').value)   || 0,
-      awayOffsetY: Number(document.getElementById('edit-itemcheck-away-y').value)   || 0,
+      homeOffsetX: Number(document.getElementById('edit-layout-home-x').value) || 0,
+      homeOffsetY: Number(document.getElementById('edit-layout-home-y').value) || 0,
+      awayOffsetX: Number(document.getElementById('edit-layout-away-x').value) || 0,
+      awayOffsetY: Number(document.getElementById('edit-layout-away-y').value) || 0,
     };
-    fetch('/api/itemcheck-layout', {
+    if (cfg.layoutPanel.hasFontSize) layout.goldFontSize = Number(document.getElementById('edit-layout-font-size').value) || 30;
+    fetch(cfg.layoutPanel.apiPath, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(layout),
@@ -5392,7 +6128,7 @@
         statusEl.textContent = 'Saved ✓';
         statusEl.style.color = '#44cc88';
         setTimeout(function() { statusEl.textContent = ''; }, 2000);
-        if (editIfLoaded) { try { editIframe.contentWindow.icAnimateIn(); } catch (e) {} }
+        if (editIfLoaded && cfg.showFn) { try { editIframe.contentWindow[cfg.showFn](); } catch (e) {} }
       })
       .catch(function() {
         statusEl.textContent = 'Error';
@@ -5400,31 +6136,442 @@
       });
   });
 
-  /* ── Config dropdown ─────────────────────────────────────────── */
-  (function buildConfigSelect() {
-    var sel = document.getElementById('edit-config-select');
-    var keys = Object.keys(EDIT_CONFIGS).sort(function(a, b) {
-      return EDIT_CONFIGS[a].label.localeCompare(EDIT_CONFIGS[b].label);
+  /* ── Kill Events panel (EDIT_CONFIGS[key].killEventPanel) ───────────
+     Player Photo / Player Name on-off switches, plus a per-type video
+     "Upload New…" / "Reset to Default" row for each of the 8 fixed kill
+     events — same upload-control shape as buildAssetControls() (per-
+     element image/video asset override, built earlier), just keyed by
+     kill-event filename instead of a CSS selector, since all 8 types
+     share ONE <video> element rather than one element each. Both toggles
+     and uploads persist immediately (no separate Save button — nothing
+     here rides along with the normal position Save) and reload the edit
+     iframe once to reflect the change, since these aren't continuous
+     drag input like positions are. */
+  function buildKillEventPanel(config) {
+    var panel = document.getElementById('edit-killevent-panel');
+    if (!config.killEventPanel) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    panel.innerHTML = '';
+
+    var hint = document.createElement('div');
+    hint.className = 'edit-content-hint';
+    hint.textContent = 'On/off switches for whether the player photo/name/sponsor logo show during a real kill event, plus a replacement video and an enable/disable switch per event type.';
+    panel.appendChild(hint);
+
+    /* Must actually reload the iframe (loadIframe), not just re-invoke
+       config.showFn on the already-loaded one — showFn reads from that
+       iframe's own in-memory killEventSettings, which was fetched once
+       when it first loaded and never refreshed. Re-invoking it without
+       reloading replays a STALE copy, so a just-uploaded video never
+       showed up here — previewKillEventSponsor() always previews
+       turtleslain.webm specifically (it's the shared reference used to
+       position the sponsor logo), so this was the one type where the
+       gap was actually visible: uploading a new Turtle Slain video
+       updated its filename in the row above but the preview kept
+       playing the old/default one. */
+    function reloadPreview() {
+      if (editIfLoaded && config.showFn) loadIframe(config);
+    }
+
+    var toggleRow = document.createElement('div');
+    toggleRow.className = 'edit-content-actions';
+    toggleRow.style.flexWrap = 'wrap';
+
+    function buildToggle(label, key) {
+      var wrap = document.createElement('label');
+      wrap.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa;margin-right:16px;cursor:pointer;';
+      var chk = document.createElement('input');
+      chk.type = 'checkbox';
+      wrap.appendChild(chk);
+      wrap.appendChild(document.createTextNode(label));
+      chk.addEventListener('change', function() {
+        var body = {};
+        body[key] = chk.checked;
+        fetch('/api/killevent-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }).then(reloadPreview);
+      });
+      return { wrap: wrap, chk: chk };
+    }
+    var photoToggle   = buildToggle('Player Photo', 'photoEnabled');
+    var nameToggle    = buildToggle('Player Name', 'nameEnabled');
+    var sponsorToggle = buildToggle('Sponsor Logo', 'sponsorEnabled');
+    toggleRow.appendChild(photoToggle.wrap);
+    toggleRow.appendChild(nameToggle.wrap);
+    toggleRow.appendChild(sponsorToggle.wrap);
+    panel.appendChild(toggleRow);
+
+    var videoSection = document.createElement('div');
+    panel.appendChild(videoSection);
+
+    fetch('/api/killevent-settings', { cache: 'no-store' })
+      .then(function(r) { return r.json(); })
+      .then(function(settings) {
+        photoToggle.chk.checked   = settings.photoEnabled;
+        nameToggle.chk.checked    = settings.nameEnabled;
+        sponsorToggle.chk.checked = settings.sponsorEnabled;
+
+        if (!activeProjectId) {
+          var noProjectHint = document.createElement('div');
+          noProjectHint.className = 'edit-asset-hint';
+          noProjectHint.style.marginTop = '10px';
+          noProjectHint.textContent = 'Select or create a Project to upload custom kill-event videos.';
+          videoSection.appendChild(noProjectHint);
+          return;
+        }
+
+        KILL_EVENT_TYPES.forEach(function(opt) {
+          var filename = opt[0], label = opt[1];
+          var overrideUrl = settings.videoOverrides[filename];
+
+          var row = document.createElement('div');
+          row.className = 'edit-asset-block';
+          row.style.marginTop = '10px';
+
+          var titleRow = document.createElement('div');
+          titleRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;';
+
+          var title = document.createElement('div');
+          title.className = 'edit-ctrl-title';
+          title.style.marginBottom = '0';
+          title.textContent = label;
+          titleRow.appendChild(title);
+
+          var enableWrap = document.createElement('label');
+          enableWrap.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:11px;color:#aaa;cursor:pointer;flex-shrink:0;';
+          var enableChk = document.createElement('input');
+          enableChk.type = 'checkbox';
+          enableChk.checked = settings.disabledTypes.indexOf(filename) === -1;
+          enableWrap.appendChild(enableChk);
+          enableWrap.appendChild(document.createTextNode('Enabled'));
+          enableChk.addEventListener('change', function() {
+            var next = settings.disabledTypes.filter(function(f) { return f !== filename; });
+            if (!enableChk.checked) next.push(filename);
+            settings.disabledTypes = next;
+            fetch('/api/killevent-settings', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ disabledTypes: next }),
+            }).then(reloadPreview);
+          });
+          titleRow.appendChild(enableWrap);
+          row.appendChild(titleRow);
+
+          var current = document.createElement('div');
+          current.className = 'edit-asset-current';
+          current.textContent = overrideUrl ? decodeURIComponent(overrideUrl.split('/').pop()) : 'Using default';
+          row.appendChild(current);
+
+          var btnRow = document.createElement('div');
+          btnRow.className = 'edit-asset-btns';
+
+          var fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = 'video/*';
+          fileInput.style.display = 'none';
+
+          var statusEl = document.createElement('span');
+          statusEl.className = 'edit-asset-status';
+
+          var uploadBtn = document.createElement('button');
+          uploadBtn.className = 'edit-btn';
+          uploadBtn.type = 'button';
+          uploadBtn.textContent = 'Upload New…';
+          uploadBtn.addEventListener('click', function() { fileInput.click(); });
+
+          fileInput.addEventListener('change', function() {
+            var file = fileInput.files[0];
+            fileInput.value = '';
+            if (!file) return;
+            if (file.size > MAX_ASSET_BYTES) {
+              statusEl.textContent = 'File exceeds the 50MB limit';
+              statusEl.style.color = '#ff4455';
+              return;
+            }
+            if (!/^video\//.test(file.type)) {
+              statusEl.textContent = 'Unsupported file type';
+              statusEl.style.color = '#ff4455';
+              return;
+            }
+            statusEl.textContent = 'Uploading…';
+            statusEl.style.color = '#888';
+            var fd = new FormData();
+            fd.append('file', file);
+            fetch('/api/projects/' + encodeURIComponent(activeProjectId) + '/killevent-video/' + encodeURIComponent(filename), {
+              method: 'POST',
+              body: fd,
+            }).then(function(r) {
+              return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+            }).then(function(res) {
+              if (!res.ok) {
+                statusEl.textContent = res.data.error || 'Upload failed';
+                statusEl.style.color = '#ff4455';
+                return;
+              }
+              reloadPreview();
+              buildKillEventPanel(config);
+            }).catch(function() {
+              statusEl.textContent = 'Upload failed';
+              statusEl.style.color = '#ff4455';
+            });
+          });
+
+          btnRow.appendChild(uploadBtn);
+          btnRow.appendChild(fileInput);
+
+          if (overrideUrl) {
+            var resetBtn = document.createElement('button');
+            resetBtn.className = 'edit-btn';
+            resetBtn.type = 'button';
+            resetBtn.textContent = 'Reset to Default';
+            resetBtn.addEventListener('click', function() {
+              fetch('/api/projects/' + encodeURIComponent(activeProjectId) + '/killevent-video/' + encodeURIComponent(filename) + '/reset', {
+                method: 'POST',
+              }).then(function() {
+                reloadPreview();
+                buildKillEventPanel(config);
+              });
+            });
+            btnRow.appendChild(resetBtn);
+          }
+
+          btnRow.appendChild(statusEl);
+          row.appendChild(btnRow);
+          videoSection.appendChild(row);
+        });
+      });
+  }
+
+  /* ── File / aspect / sub-panel dropdowns ─────────────────────────────
+     Up to three levels: pick the HTML page first (edit-file-select), then
+     which editable aspect of that page (edit-config-select) — instead of
+     one flat alphabetical list of every EDIT_CONFIGS entry across every
+     page. An aspect can itself be a *category* (EDIT_CONFIGS[key].category,
+     currently only Ingame's "Bottom Events" — Item Check / Gold Diff
+     Check / Emblem Check) — picking it reveals a third dropdown
+     (edit-subcategory-select) for which of that category's panels to
+     edit; a plain (non-category) aspect works exactly as before, third
+     dropdown stays hidden. The file list is also filtered to whatever the
+     active Project has enabled in the Control tab
+     (isOverlayEnabled/OVERLAY_FILE_INFO, defined earlier) — you can't
+     select an element to edit on an overlay you haven't chosen to run. */
+  var EDIT_ASPECT_LABEL = {}; // key -> label with its "· File" suffix stripped
+  Object.keys(EDIT_CONFIGS).forEach(function(key) {
+    var label = EDIT_CONFIGS[key].label;
+    var sepIdx = label.indexOf(' · ');
+    EDIT_ASPECT_LABEL[key] = sepIdx === -1 ? label : label.slice(0, sepIdx);
+  });
+  var CATEGORY_PREFIX = '__category__'; // edit-config-select option value prefix marking a category row
+
+  function editFileGroups() {
+    var seen = {}, groups = [];
+    Object.keys(EDIT_CONFIGS).forEach(function(key) {
+      var file = EDIT_CONFIGS[key].file;
+      if (seen[file]) return;
+      seen[file] = true;
+      var info = OVERLAY_FILE_INFO[file];
+      if (info && !isOverlayEnabled(info.id)) return; // project has this overlay unchecked
+      groups.push({ file: file, name: info ? info.name : file });
     });
+    groups.sort(function(a, b) { return a.name.localeCompare(b.name); });
+    return groups;
+  }
+
+  /* Groups a file's EDIT_CONFIGS entries into { type:'leaf', key } rows
+     (shown directly in edit-config-select) and { type:'category',
+     category, keys:[...] } rows (shown as one row, expanding into
+     edit-subcategory-select when picked). */
+  function editAspectGroups(file) {
+    var byCategory = {}, groups = [];
+    Object.keys(EDIT_CONFIGS).forEach(function(key) {
+      var cfg = EDIT_CONFIGS[key];
+      if (cfg.file !== file) return;
+      if (cfg.category) {
+        if (!byCategory[cfg.category]) {
+          byCategory[cfg.category] = { type: 'category', category: cfg.category, keys: [] };
+          groups.push(byCategory[cfg.category]);
+        }
+        byCategory[cfg.category].keys.push(key);
+      } else {
+        groups.push({ type: 'leaf', key: key });
+      }
+    });
+    groups.forEach(function(g) {
+      if (g.keys) g.keys.sort(function(a, b) { return EDIT_ASPECT_LABEL[a].localeCompare(EDIT_ASPECT_LABEL[b]); });
+    });
+    groups.sort(function(a, b) {
+      var la = a.type === 'category' ? a.category : EDIT_ASPECT_LABEL[a.key];
+      var lb = b.type === 'category' ? b.category : EDIT_ASPECT_LABEL[b.key];
+      return la.localeCompare(lb);
+    });
+    return groups;
+  }
+
+  function populateAspectSelect(file) {
+    var sel = document.getElementById('edit-config-select');
+    sel.innerHTML = '';
+    var groups = editAspectGroups(file);
+    groups.forEach(function(g) {
+      var opt = document.createElement('option');
+      if (g.type === 'category') {
+        opt.value = CATEGORY_PREFIX + g.category;
+        opt.textContent = g.category;
+      } else {
+        opt.value = g.key;
+        opt.textContent = EDIT_ASPECT_LABEL[g.key];
+      }
+      sel.appendChild(opt);
+    });
+    return groups;
+  }
+
+  function populateSubcategorySelect(categoryName, groups) {
+    var subSel = document.getElementById('edit-subcategory-select');
+    var group = groups.filter(function(g) { return g.type === 'category' && g.category === categoryName; })[0];
+    var keys = group ? group.keys : [];
+    subSel.innerHTML = '';
     keys.forEach(function(key) {
       var opt = document.createElement('option');
       opt.value = key;
-      opt.textContent = EDIT_CONFIGS[key].label;
-      sel.appendChild(opt);
+      opt.textContent = EDIT_ASPECT_LABEL[key];
+      subSel.appendChild(opt);
     });
-    sel.value = currentConfigKey;
-    sel.addEventListener('change', function() { loadConfig(sel.value); });
-  })();
+    document.getElementById('edit-subcategory-row').style.display = keys.length ? 'flex' : 'none';
+    return keys;
+  }
 
-  /* Init: load iframe on first Edit tab click */
+  /* Whichever key is actually "loaded" right now, resolving through the
+     category level if the aspect dropdown is currently sitting on a
+     category row (its own value is a CATEGORY_PREFIX sentinel, not a
+     real EDIT_CONFIGS key). */
+  function getActiveConfigKey() {
+    var aspectVal = document.getElementById('edit-config-select').value;
+    if (aspectVal.indexOf(CATEGORY_PREFIX) === 0) {
+      return document.getElementById('edit-subcategory-select').value;
+    }
+    return aspectVal;
+  }
+
+  /* Rebuilds all dropdowns from current project-filter state, preferring
+     to keep whatever's already selected (currentConfigKey) if it's still
+     available, else falling back to the first file/aspect(/sub-panel).
+     Returns the key that ends up selected (possibly different from
+     currentConfigKey if it got filtered out), or undefined if nothing is
+     enabled at all. */
+  function refreshEditSelectors() {
+    var fileSel = document.getElementById('edit-file-select');
+    var fileGroups = editFileGroups();
+    fileSel.innerHTML = '';
+    fileGroups.forEach(function(g) {
+      var opt = document.createElement('option');
+      opt.value = g.file;
+      opt.textContent = g.name;
+      fileSel.appendChild(opt);
+    });
+
+    var curFile = EDIT_CONFIGS[currentConfigKey] && EDIT_CONFIGS[currentConfigKey].file;
+    var wantFile = fileGroups.some(function(g) { return g.file === curFile; })
+      ? curFile : (fileGroups[0] && fileGroups[0].file);
+    fileSel.value = wantFile || '';
+
+    if (!wantFile) {
+      document.getElementById('edit-config-select').innerHTML = '';
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      return undefined;
+    }
+
+    var aspectGroups = populateAspectSelect(wantFile);
+    var curCategory  = EDIT_CONFIGS[currentConfigKey] && EDIT_CONFIGS[currentConfigKey].category;
+
+    var wantAspectValue;
+    if (curCategory && aspectGroups.some(function(g) { return g.type === 'category' && g.category === curCategory; })) {
+      wantAspectValue = CATEGORY_PREFIX + curCategory;
+    } else if (aspectGroups.some(function(g) { return g.type === 'leaf' && g.key === currentConfigKey; })) {
+      wantAspectValue = currentConfigKey;
+    } else {
+      var first = aspectGroups[0];
+      wantAspectValue = first ? (first.type === 'category' ? CATEGORY_PREFIX + first.category : first.key) : undefined;
+    }
+    document.getElementById('edit-config-select').value = wantAspectValue || '';
+
+    if (!wantAspectValue) {
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      return undefined;
+    }
+    if (wantAspectValue.indexOf(CATEGORY_PREFIX) !== 0) {
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      return wantAspectValue;
+    }
+
+    var categoryName = wantAspectValue.slice(CATEGORY_PREFIX.length);
+    var subKeys = populateSubcategorySelect(categoryName, aspectGroups);
+    var wantKey = subKeys.indexOf(currentConfigKey) !== -1 ? currentConfigKey : subKeys[0];
+    document.getElementById('edit-subcategory-select').value = wantKey || '';
+    return wantKey;
+  }
+
+  refreshEditSelectors();
+
+  document.getElementById('edit-file-select').addEventListener('change', function() {
+    var groups = populateAspectSelect(this.value);
+    var first  = groups[0];
+    if (!first) {
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      return;
+    }
+    if (first.type === 'category') {
+      document.getElementById('edit-config-select').value = CATEGORY_PREFIX + first.category;
+      var subKeys = populateSubcategorySelect(first.category, groups);
+      var wantKey = subKeys[0];
+      document.getElementById('edit-subcategory-select').value = wantKey || '';
+      if (wantKey) loadConfig(wantKey);
+    } else {
+      document.getElementById('edit-config-select').value = first.key;
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      loadConfig(first.key);
+    }
+  });
+  document.getElementById('edit-config-select').addEventListener('change', function() {
+    var value = this.value;
+    if (value.indexOf(CATEGORY_PREFIX) === 0) {
+      var categoryName = value.slice(CATEGORY_PREFIX.length);
+      var groups  = editAspectGroups(document.getElementById('edit-file-select').value);
+      var subKeys = populateSubcategorySelect(categoryName, groups);
+      var wantKey = subKeys[0];
+      document.getElementById('edit-subcategory-select').value = wantKey || '';
+      if (wantKey) loadConfig(wantKey);
+    } else {
+      document.getElementById('edit-subcategory-row').style.display = 'none';
+      loadConfig(value);
+    }
+  });
+  document.getElementById('edit-subcategory-select').addEventListener('change', function() {
+    loadConfig(this.value);
+  });
+
+  /* Init: load iframe on first Edit tab click; re-check the filtered
+     selection on every later click too, in case Control tab's "Edit List"
+     changed which overlays are enabled since this tab was last open. */
   (function initEditPage() {
     var editTabBtn  = document.querySelector('.tab-btn[data-page="edit"]');
     var initialized = false;
 
     editTabBtn.addEventListener('click', function() {
-      if (initialized) { requestAnimationFrame(scaleEditIframe); return; }
-      initialized = true;
-      loadConfig(currentConfigKey);
+      var wantKey = refreshEditSelectors();
+      if (!wantKey) {
+        document.getElementById('edit-elements').innerHTML =
+          '<div class="edit-no-sel">No overlays enabled — check some in the Control tab’s Edit List first</div>';
+        return;
+      }
+      if (!initialized) {
+        initialized = true;
+        loadConfig(wantKey);
+        return;
+      }
+      if (wantKey !== currentConfigKey) { loadConfig(wantKey); return; }
+      requestAnimationFrame(scaleEditIframe);
     });
   })();
 

@@ -22,6 +22,22 @@ killPhotoEl.onerror = function() {
   killPhotoEl.style.visibility = 'hidden';
 };
 
+/* Dashboard Edit tab → Kill Events (killevent_settings.json,
+   /api/killevent-settings) — photoEnabled/nameEnabled/sponsorEnabled are
+   on/off switches for whether the player photo/nametag/sponsor logo show
+   at all; videoOverrides maps a default video filename (e.g.
+   'firstblood.webm') to an uploaded replacement URL; disabledTypes lists
+   filenames that should never play at all (see enqueueKillEvent below).
+   Fetched once at load — real broadcast instances pick up a later change
+   via the same 'reload' SSE broadcast every overlay_styles.json save
+   already triggers (routes/projects.js's POST routes below broadcast it
+   too), same as every other saved override in this app. */
+var killEventSettings = { photoEnabled: true, nameEnabled: true, sponsorEnabled: true, videoOverrides: {}, disabledTypes: [] };
+fetch('/api/killevent-settings', { cache: 'no-store' })
+  .then(function(r) { return r.json(); })
+  .then(function(s) { killEventSettings = s; })
+  .catch(function() {});
+
 /* Kill events sponsored by a specific brand — the sponsor logo only
    shows for these videos, popping in alongside the photo. */
 var KILL_EVENT_SPONSOR_LOGO = {
@@ -30,103 +46,23 @@ var KILL_EVENT_SPONSOR_LOGO = {
   'savage.webm':      'assets/ingame/ingamevisawhite.png',
 };
 
-/* ── Timeline pause (all kill events) ──
-   Replaces the earlier slow-motion-middle-third trial: instead of riding
-   playbackRate, the video just pauses outright once it reaches a fixed
-   point in its OWN timeline, holds there for pauseMs, then resumes at
-   normal speed. The player-photo popup's hold time is extended by the
-   same pauseMs so it doesn't retreat while the video is sitting paused.
-
-   Pause points are specified as atFrame — a frame COUNT (every asset
-   here is 60fps, so e.g. 1s+15f = frame 75), not a seconds value. A
-   seconds-based threshold is checked against currentTime on the
-   'timeupdate' event, which only fires on the browser's own coarse
-   schedule — a rendering hiccup elsewhere on the page can delay that
-   check running until well past the intended instant, landing the pause
-   on a visibly later frame than intended. requestVideoFrameCallback
-   (used below when supported — Chrome/Edge; falls back to timeupdate
-   otherwise, e.g. Firefox/Safari) instead fires once per actually
-   decoded/presented video frame with that frame's own exact mediaTime,
-   so the pause always lands on the intended frame regardless of what
-   else is happening on the page. Same atFrame/pauseMs for every video
-   for now (shortest asset — Double/Triple Kill at 2.124s — still leaves
-   ~0.87s after resume, so frame 75 is safe across the board); split any
-   one of these out with its own values once someone wants a different
-   feel for it. */
 var KILL_EVENT_FPS = 60;
-var KILL_EVENT_PAUSE = {
-  'firstblood.webm':  { atFrame: 75, pauseMs: 750 }, // 1s + 15f
-  'doublekill.webm':  { atFrame: 75, pauseMs: 750 },
-  'triplekill.webm':  { atFrame: 75, pauseMs: 750 },
-  'maniac.webm':      { atFrame: 75, pauseMs: 750 },
-  'savage.webm':      { atFrame: 75, pauseMs: 750 },
-  'lordslain.webm':   { atFrame: 75, pauseMs: 750 },
-  'turtleslain.webm': { atFrame: 75, pauseMs: 750 },
-  'wipedout.webm':    { atFrame: 75, pauseMs: 750 },
-};
-var killPauseArmed  = false; /* true until the current video's pause point has fired once */
-var killPauseRvfcId = null;  /* pending requestVideoFrameCallback handle, if in use */
-var KILL_EVENT_HAS_RVFC = typeof HTMLVideoElement !== 'undefined' &&
-  'requestVideoFrameCallback' in HTMLVideoElement.prototype;
-
-function killClearPause() {
-  killPauseArmed = false;
-  if (killPauseRvfcId !== null && killVideoEl.cancelVideoFrameCallback) {
-    killVideoEl.cancelVideoFrameCallback(killPauseRvfcId);
-  }
-  killPauseRvfcId = null;
-}
-
-function killResumeAfterPause(cfg) {
-  killVideoEl.pause();
-  var token = killEventToken;
-  setTimeout(function() {
-    /* Guard against a since-superseded video (queue moved on while this
-       was pending) — only resume if it's still the same playback. */
-    if (killEventToken === token) killVideoEl.play().catch(function() {});
-  }, cfg.pauseMs);
-}
-
-/* Re-arms itself every frame (via the callback's own recursive request)
-   until the target frame is reached, then pauses. */
-function killArmFramePause() {
-  killPauseRvfcId = killVideoEl.requestVideoFrameCallback(function(now, metadata) {
-    killPauseRvfcId = null;
-    if (!killPauseArmed) return;
-    var cfg = KILL_EVENT_PAUSE[killEventCurrent];
-    if (!cfg) return;
-    if (Math.round(metadata.mediaTime * KILL_EVENT_FPS) < cfg.atFrame) {
-      killArmFramePause();
-      return;
-    }
-    killPauseArmed = false;
-    killResumeAfterPause(cfg);
-  });
-}
-
-/* Fallback for browsers without requestVideoFrameCallback — same frame
-   count, converted to seconds against currentTime instead. Less precise
-   under a hiccup (see the comment above), but a graceful degradation
-   rather than a hard requirement. */
-killVideoEl.addEventListener('timeupdate', function() {
-  if (KILL_EVENT_HAS_RVFC) return; /* handled by killArmFramePause instead */
-  if (!killPauseArmed) return;
-  var cfg = KILL_EVENT_PAUSE[killEventCurrent];
-  if (!cfg || killVideoEl.currentTime < cfg.atFrame / KILL_EVENT_FPS) return;
-  killPauseArmed = false;
-  killResumeAfterPause(cfg);
-});
+/* Frame previewKillEventSponsor() below freezes its video at, for
+   positioning the sponsor logo — well past the popup's entrance
+   animation (KILL_POP_DELAY_MS + KILL_POP_ENTER_MS). Unrelated to real
+   kill-event playback, which no longer pauses/resumes mid-video. */
+var KILL_PREVIEW_FREEZE_FRAME = 75; // 1s + 15f
 
 /* Pop timing — start delayed 300ms after the trigger, held up for 1.3s,
    then pops back down. KILL_POP_EXIT_MS must track the exit transition
-   duration in mploverlay_v7.css so the overlay hide (below) never cuts
+   duration in ingame.css so the overlay hide (below) never cuts
    the pop-down transition short. */
 var KILL_POP_DELAY_MS = 300;
 var KILL_POP_HOLD_MS  = 1300;
 var KILL_POP_EXIT_MS  = 300;
 
 /* Must track #kill-event-photo-clip.ke-in #kill-event-photo's transition
-   duration in mploverlay_v7.css — the bounce fires right as the slide-up lands. */
+   duration in ingame.css — the bounce fires right as the slide-up lands. */
 var KILL_POP_ENTER_MS = 480;
 
 /* Rectangle_3 (name text box) is 151px wide — leave a small margin so
@@ -191,8 +127,7 @@ function killSnapHide(clipEl, innerEl) {
   innerEl.style.transition = '';
 }
 
-function showKillEventPlayer(playerName, role, camp, sponsorLogo, extraHoldMs) {
-  extraHoldMs = extraHoldMs || 0;
+function showKillEventPlayer(playerName, role, camp, sponsorLogo) {
   clearKillTimers();
   /* If a previous popup is still up, snap it away instantly instead of
      letting it slide out — the new photo/name/role only get swapped in
@@ -204,21 +139,25 @@ function showKillEventPlayer(playerName, role, camp, sponsorLogo, extraHoldMs) {
 
   killShowTimer = setTimeout(function() {
     killShowTimer = null;
-    killPhotoEl.style.visibility = ''; /* undo any previous missing-photo hide */
-    killPhotoEl.src = killEventPhotoSrc(playerName);
-    killNametagBgEl.style.backgroundImage = 'url(' + killNametagBgSrc(camp) + ')';
-    killNameEl.textContent = playerName;
-    killFitName(killNameEl);
-    if (role && ROLE_ICONS[role]) {
-      killRoleIconEl.src = ROLE_ICONS[role];
-      killRoleIconEl.style.display = '';
-    } else {
-      killRoleIconEl.removeAttribute('src');
-      killRoleIconEl.style.display = 'none';
+    if (killEventSettings.photoEnabled) {
+      killPhotoEl.style.visibility = ''; /* undo any previous missing-photo hide */
+      killPhotoEl.src = killEventPhotoSrc(playerName);
+      killPhotoClipEl.classList.add('ke-in');
     }
-    killPhotoClipEl.classList.add('ke-in');
-    killNametagClipEl.classList.add('ke-in');
-    if (sponsorLogo) {
+    if (killEventSettings.nameEnabled) {
+      killNametagBgEl.style.backgroundImage = 'url(' + killNametagBgSrc(camp) + ')';
+      killNameEl.textContent = playerName;
+      killFitName(killNameEl);
+      if (role && ROLE_ICONS[role]) {
+        killRoleIconEl.src = ROLE_ICONS[role];
+        killRoleIconEl.style.display = '';
+      } else {
+        killRoleIconEl.removeAttribute('src');
+        killRoleIconEl.style.display = 'none';
+      }
+      killNametagClipEl.classList.add('ke-in');
+    }
+    if (sponsorLogo && killEventSettings.sponsorEnabled) {
       killSponsorLogoEl.src = sponsorLogo;
       killSponsorLogoClipEl.classList.add('ke-in');
     }
@@ -233,10 +172,10 @@ function showKillEventPlayer(playerName, role, camp, sponsorLogo, extraHoldMs) {
       killPhotoClipEl.classList.remove('ke-in');
       killNametagClipEl.classList.remove('ke-in');
       killSponsorLogoClipEl.classList.remove('ke-in');
-    }, KILL_POP_HOLD_MS + extraHoldMs);
+    }, KILL_POP_HOLD_MS);
   }, KILL_POP_DELAY_MS);
 
-  killPopCycleEndsAt = Date.now() + KILL_POP_DELAY_MS + KILL_POP_HOLD_MS + extraHoldMs + KILL_POP_EXIT_MS;
+  killPopCycleEndsAt = Date.now() + KILL_POP_DELAY_MS + KILL_POP_HOLD_MS + KILL_POP_EXIT_MS;
 }
 
 function hideKillEventPlayer() {
@@ -262,7 +201,6 @@ function scheduleOverlayHide() {
 }
 
 killVideoEl.addEventListener('ended', function() {
-  killClearPause();
   scheduleOverlayHide();
   killEventPlaying = false;
   killEventCurrent = null;
@@ -271,7 +209,6 @@ killVideoEl.addEventListener('ended', function() {
 
 /* safety net: if video stalls or errors, don't get stuck */
 killVideoEl.addEventListener('error', function() {
-  killClearPause();
   scheduleOverlayHide();
   hideKillEventPlayer();
   killEventPlaying = false;
@@ -284,7 +221,7 @@ killVideoEl.addEventListener('error', function() {
    one of those reads as broken. icShouldShow/eccShouldShow/gdcShouldShow
    are declared in overlay-itemcheck.js/overlay-emblemcheck.js/
    overlay-golddiffcheck.js — safe to reference here even though this
-   script loads first in mploverlay_v7.html, since every call site below
+   script loads first in ingame.html, since every call site below
    only runs from an event handler fired well after all scripts have
    finished their top-level execution. */
 function killEventsBlocked() {
@@ -298,18 +235,13 @@ function playNextKillEvent() {
   killEventToken++;
   var entry = killEventQueue.shift();
   killEventCurrent = entry.video;
-  killClearPause();
-  killVideoEl.src = 'assets/motion/' + entry.video;
+  killVideoEl.src = killEventSettings.videoOverrides[entry.video] || ('assets/motion/' + entry.video);
   killOverlayEl.style.display = 'block';
 
-  var pauseCfg = KILL_EVENT_PAUSE[entry.video];
-  killPauseArmed = !!pauseCfg;
-  if (killPauseArmed && KILL_EVENT_HAS_RVFC) killArmFramePause();
-  if (entry.playerName) showKillEventPlayer(entry.playerName, entry.role, entry.camp, KILL_EVENT_SPONSOR_LOGO[entry.video] || null, pauseCfg ? pauseCfg.pauseMs : 0);
+  if (entry.playerName) showKillEventPlayer(entry.playerName, entry.role, entry.camp, KILL_EVENT_SPONSOR_LOGO[entry.video] || null);
   else hideKillEventPlayer();
 
   killVideoEl.play().catch(function() {
-    killClearPause();
     scheduleOverlayHide();
     hideKillEventPlayer();
     killEventPlaying = false;
@@ -326,6 +258,7 @@ window.addEventListener('message', function(e) {
 
 function enqueueKillEvent(video, priority, playerIdx, playerName, role, camp) {
   if (!featureEnabled.killevents) return;
+  if (killEventSettings.disabledTypes.indexOf(video) !== -1) return; /* this specific type turned off in Edit */
   /* deduplicate: don't queue if same video is already playing or already queued */
   if (killEventCurrent === video) return;
   if (killEventQueue.some(function(e) { return e.video === video; })) return;
@@ -335,23 +268,22 @@ function enqueueKillEvent(video, priority, playerIdx, playerName, role, camp) {
 
 /* Forces a representative sponsored kill event into a frozen, held-open
    state — used only as the dashboard Edit tab's showFn for positioning
-   the sponsor logo (see mploverlay_v7_killevent in dashboard.html). A
+   the sponsor logo (see ingame_scoreboard_killevent in dashboard.html). A
    real kill event plays through in ~2s and auto-hides after ~1.3s, both
    of which make it useless to actually see and drag — this bypasses
-   playNextKillEvent()/the queue entirely, plays the video only up to its
-   normal KILL_EVENT_PAUSE freeze point and leaves it paused there
-   instead of resuming, and shows the player popup + sponsor logo with no
-   auto-hide timer. */
+   playNextKillEvent()/the queue entirely, plays the video only up to
+   KILL_PREVIEW_FREEZE_FRAME and leaves it paused there instead of
+   resuming, and shows the player popup + sponsor logo with no auto-hide
+   timer. */
 function previewKillEventSponsor() {
   var video = 'turtleslain.webm';
   clearKillTimers();
   killEventToken++;
-  killPauseArmed = false;
   killEventCurrent = video;
   killOverlayEl.style.display = 'block';
-  killVideoEl.src = 'assets/motion/' + video;
+  killVideoEl.src = killEventSettings.videoOverrides[video] || ('assets/motion/' + video);
 
-  var freezeAt = ((KILL_EVENT_PAUSE[video] || {}).atFrame || 75) / KILL_EVENT_FPS;
+  var freezeAt = KILL_PREVIEW_FREEZE_FRAME / KILL_EVENT_FPS;
   function holdFrame() {
     if (killVideoEl.currentTime < freezeAt) return;
     killVideoEl.pause();
@@ -360,15 +292,26 @@ function previewKillEventSponsor() {
   killVideoEl.addEventListener('timeupdate', holdFrame);
   killVideoEl.play().catch(function() {});
 
-  killPhotoEl.style.visibility = '';
-  killPhotoEl.src = killEventPhotoSrc('PREVIEW');
-  killNametagBgEl.style.backgroundImage = 'url(' + killNametagBgSrc('blue') + ')';
-  killNameEl.textContent = 'PREVIEW';
-  killFitName(killNameEl);
-  killRoleIconEl.removeAttribute('src');
-  killRoleIconEl.style.display = 'none';
-  killPhotoClipEl.classList.add('ke-in');
-  killNametagClipEl.classList.add('ke-in');
-  killSponsorLogoEl.src = KILL_EVENT_SPONSOR_LOGO[video];
-  killSponsorLogoClipEl.classList.add('ke-in');
+  /* Same on/off checks showKillEventPlayer() uses for a real kill event —
+     without these, this preview always showed everything regardless of
+     the Player Photo / Player Name / Sponsor Logo toggles, which read as
+     those toggles doing nothing (they DID apply to real kill events, just
+     never to this iframe's own preview). */
+  if (killEventSettings.photoEnabled) {
+    killPhotoEl.style.visibility = '';
+    killPhotoEl.src = killEventPhotoSrc('PREVIEW');
+    killPhotoClipEl.classList.add('ke-in');
+  }
+  if (killEventSettings.nameEnabled) {
+    killNametagBgEl.style.backgroundImage = 'url(' + killNametagBgSrc('blue') + ')';
+    killNameEl.textContent = 'PREVIEW';
+    killFitName(killNameEl);
+    killRoleIconEl.removeAttribute('src');
+    killRoleIconEl.style.display = 'none';
+    killNametagClipEl.classList.add('ke-in');
+  }
+  if (killEventSettings.sponsorEnabled) {
+    killSponsorLogoEl.src = KILL_EVENT_SPONSOR_LOGO[video];
+    killSponsorLogoClipEl.classList.add('ke-in');
+  }
 }

@@ -1,7 +1,7 @@
 /* ── [FEATURE: golddiff-check] ────────────────────────────────────
    Coordinates below are measured directly off
    assets/ingame/golddiffback.png (858×286) and golddiffguide.png —
-   see the CSS block in mploverlay_v7.css for the full measurement
+   see the CSS block in ingame.css for the full measurement
    notes. 5 rows (one per lane), using the shared getPlayerByRole()
    from overlay-core.js to resolve lane → seat (seat_N isn't reliably
    lane-ordered).
@@ -25,6 +25,14 @@ let gdcOutTimer   = null;
 let gdcRevealTimer = null;
 let gdcWaitingForData = false; /* animateIn was requested but no poll data has arrived yet */
 const gdcRefs     = [];
+
+/* Dashboard Edit tab → Bottom Events · Gold Diff Check
+   (golddiffcheck_layout.json, routes/devapi.js's
+   /api/golddiffcheck-layout) — homeOffsetX/Y and awayOffsetX/Y shift
+   every element on that side (portrait + bar) together, same model as
+   Item Check's icLayout in overlay-itemcheck.js. No middle/diff-zone
+   offset — it sits between the two sides, not part of either. */
+let gdcLayout = { homeOffsetX: 0, homeOffsetY: 0, awayOffsetX: 0, awayOffsetY: 0 };
 
 function gdcFormatGoldK(v) {
   return ((v || 0) / 1000).toFixed(1) + 'K';
@@ -57,16 +65,16 @@ function gdcBuildRow(lane) {
 
   const homePortrait = document.createElement('img');
   homePortrait.className = 'gdc-portrait';
-  homePortrait.style.left = GDC_HOME_PORT_X + 'px';
-  homePortrait.style.top  = top + 'px';
+  homePortrait.style.left = (GDC_HOME_PORT_X + gdcLayout.homeOffsetX) + 'px';
+  homePortrait.style.top  = (top + gdcLayout.homeOffsetY) + 'px';
   homePortrait.alt = '';
   homePortrait.onerror = () => { homePortrait.onerror = null; homePortrait.removeAttribute('src'); };
 
   const homeTrack = document.createElement('div');
   homeTrack.className = 'gdc-bar-track';
-  homeTrack.style.left  = GDC_HOME_BAR_X + 'px';
+  homeTrack.style.left  = (GDC_HOME_BAR_X + gdcLayout.homeOffsetX) + 'px';
   homeTrack.style.width = GDC_HOME_BAR_W + 'px';
-  homeTrack.style.top   = top + 'px';
+  homeTrack.style.top   = (top + gdcLayout.homeOffsetY) + 'px';
   const homeFill = document.createElement('div');
   homeFill.className = 'gdc-bar-fill gdc-fill-home';
   const homeText = document.createElement('div');
@@ -99,9 +107,9 @@ function gdcBuildRow(lane) {
 
   const awayTrack = document.createElement('div');
   awayTrack.className = 'gdc-bar-track';
-  awayTrack.style.left  = GDC_AWAY_BAR_X + 'px';
+  awayTrack.style.left  = (GDC_AWAY_BAR_X + gdcLayout.awayOffsetX) + 'px';
   awayTrack.style.width = GDC_AWAY_BAR_W + 'px';
-  awayTrack.style.top   = top + 'px';
+  awayTrack.style.top   = (top + gdcLayout.awayOffsetY) + 'px';
   const awayFill = document.createElement('div');
   awayFill.className = 'gdc-bar-fill gdc-fill-away';
   const awayText = document.createElement('div');
@@ -119,20 +127,56 @@ function gdcBuildRow(lane) {
 
   const awayPortrait = document.createElement('img');
   awayPortrait.className = 'gdc-portrait';
-  awayPortrait.style.left = GDC_AWAY_PORT_X + 'px';
-  awayPortrait.style.top  = top + 'px';
+  awayPortrait.style.left = (GDC_AWAY_PORT_X + gdcLayout.awayOffsetX) + 'px';
+  awayPortrait.style.top  = (top + gdcLayout.awayOffsetY) + 'px';
   awayPortrait.alt = '';
   awayPortrait.onerror = () => { awayPortrait.onerror = null; awayPortrait.removeAttribute('src'); };
 
   gdcRefs[lane] = {
-    homePortrait, homeFill, homeAmount,
+    homePortrait, homeTrack, homeFill, homeAmount,
     diffNum, triHome, triAway,
-    awayFill, awayAmount, awayPortrait,
-    homeGold: 0, awayGold: 0,
+    awayTrack, awayFill, awayAmount, awayPortrait,
+    homeGold: 0, awayGold: 0, rowTop: top,
   };
 
   return [homePortrait, homeTrack, diffZone, awayTrack, awayPortrait];
 }
+
+/* Re-applies gdcLayout to every already-built row — called after a fresh
+   fetch in gdcAnimateIn() so a layout change saved from the dashboard
+   takes effect the next time the panel shows, without rebuilding any
+   elements (same pattern as icApplyLayout() in overlay-itemcheck.js). */
+function gdcApplyLayout() {
+  for (let lane = 1; lane <= 5; lane++) {
+    const ref = gdcRefs[lane];
+    if (!ref) continue;
+    ref.homePortrait.style.left = (GDC_HOME_PORT_X + gdcLayout.homeOffsetX) + 'px';
+    ref.homePortrait.style.top  = (ref.rowTop + gdcLayout.homeOffsetY) + 'px';
+    ref.homeTrack.style.left    = (GDC_HOME_BAR_X + gdcLayout.homeOffsetX) + 'px';
+    ref.homeTrack.style.top     = (ref.rowTop + gdcLayout.homeOffsetY) + 'px';
+    ref.awayPortrait.style.left = (GDC_AWAY_PORT_X + gdcLayout.awayOffsetX) + 'px';
+    ref.awayPortrait.style.top  = (ref.rowTop + gdcLayout.awayOffsetY) + 'px';
+    ref.awayTrack.style.left    = (GDC_AWAY_BAR_X + gdcLayout.awayOffsetX) + 'px';
+    ref.awayTrack.style.top     = (ref.rowTop + gdcLayout.awayOffsetY) + 'px';
+  }
+}
+
+function gdcFetchLayout() {
+  return fetch('/api/golddiffcheck-layout', { cache: 'no-store' })
+    .then(r => r.json())
+    .then(layout => { gdcLayout = layout; gdcApplyLayout(); })
+    .catch(() => {});
+}
+
+/* Called from dashboard.html's Bottom Events · Gold Diff Check panel
+   while typing/dragging any of its four fields — same cross-frame-call
+   pattern as icPreviewLayout() in overlay-itemcheck.js. Applies instantly
+   for live preview without writing golddiffcheck_layout.json; Save is
+   what persists it. */
+window.gdcPreviewLayout = function(partial) {
+  gdcLayout = Object.assign({}, gdcLayout, partial);
+  gdcApplyLayout();
+};
 
 function gdcBuildPanel() {
   const overlay = document.getElementById('golddiff-check-overlay');
@@ -245,6 +289,7 @@ function gdcAnimateIn() {
   gdcShouldShow = true;
   clearTimeout(gdcOutTimer);
   clearTimeout(gdcRevealTimer);
+  gdcFetchLayout(); /* re-applies as soon as it resolves; not awaited so a slow fetch never delays the reveal itself */
 
   if (!lastData) {
     /* Fresh server / no poll data yet — don't pop in with all-zero bars
