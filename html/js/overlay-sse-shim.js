@@ -9,8 +9,8 @@
 // change — only the one line that used to say `new EventSource(...)`.
 // Bump on every change to overlay-shared-worker.js (new KNOWN_EVENTS entry,
 // logic change, etc.) — see the comment at its `new SharedWorker(...)` call
-// below for why this exists. Current bump: added 'draftrealme'.
-const OVERLAY_WORKER_VERSION = 8;
+// below for why this exists. Current bump: added 'herolineup'.
+const OVERLAY_WORKER_VERSION = 9;
 
 function createOverlaySSE() {
   if (typeof SharedWorker === 'undefined') {

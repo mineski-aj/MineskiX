@@ -337,6 +337,14 @@
           <option value="BO7">Best of 7</option>
         </select>
       </div>
+      <div class="meta-field grow">
+        <div class="meta-label">Stage</div>
+        <select id="stage">
+          <option value="Quarter Finals" selected>Quarter Finals</option>
+          <option value="Semi Finals">Semi Finals</option>
+          <option value="Grand Finals">Grand Finals</option>
+        </select>
+      </div>
       <div class="meta-field">
         <div class="meta-label">Match</div>
         <select id="match-picker">
@@ -561,6 +569,7 @@
     home:    { teamId: '', name: 'Home Team', short: 'HME', score: 0, lineup: [] },
     away:    { teamId: '', name: 'Away Team', short: 'AWY', score: 0, lineup: [] },
     series:  'BO5',
+    stage:   'Quarter Finals',
     game:    1,
     swapped: false,
     official: false,
@@ -700,6 +709,7 @@
   function renderAll() {
     var s = localState;
     document.getElementById('series').value = s.series || 'BO5';
+    document.getElementById('stage').value  = s.stage  || 'Quarter Finals';
     var cb = document.getElementById('official-cb');
     cb.checked = !!s.official;
     document.getElementById('official-wrap').classList.toggle('on', !!s.official);
@@ -772,7 +782,7 @@
     document.getElementById('pv-right-short').textContent = right.short || 'AWY';
     document.getElementById('pv-right-score').textContent = right.score || 0;
     document.getElementById('pv-right-side').textContent  = s.swapped ? 'HOME' : 'AWAY';
-    document.getElementById('pv-meta').textContent = 'W' + (s.week||1) + ' D' + (s.day||1) + ' · ' + (s.series || 'BO5') + ' · Game ' + computeGame();
+    document.getElementById('pv-meta').textContent = (s.stage || 'Quarter Finals') + ' · W' + (s.week||1) + ' D' + (s.day||1) + ' · ' + (s.series || 'BO5') + ' · Game ' + computeGame();
   }
 
   /* ── ROSTER HELPERS ── */
@@ -1031,6 +1041,12 @@
   document.getElementById('series').addEventListener('change', function () {
     localState.series = this.value;
     push({ series: this.value });
+  });
+
+  /* ── STAGE ── */
+  document.getElementById('stage').addEventListener('change', function () {
+    localState.stage = this.value;
+    push({ stage: this.value });
   });
 
   /* ── COUNTDOWN TIMER (server-authoritative — MM:SS) ──

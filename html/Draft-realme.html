@@ -188,11 +188,15 @@
     /* Player name — separate box below the card (Rectangle_4), NOT
        nested inside the plate; positioned inline in JS at the same X as
        its card, matching CLAUDE.md's "every element independently
-       editable" rule. */
+       editable" rule. Width cut 6px off each side (147 -> 135, same
+       ~4.05%-per-side ratio as Fullscreen.html's Hero Lineup name boxes,
+       10px off a 247px box) for text breathing room — the +6 offset on
+       nameBox.style.left in JS re-centers it on the same midpoint as the
+       card above it. */
     .rname-box {
       position: absolute;
       top: 1016px;
-      width: 147px; height: 39px;
+      width: 135px; height: 39px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -879,7 +883,10 @@
         var nameBox = document.createElement('div');
         nameBox.className = 'rname-box';
         nameBox.id = 'name-' + key;
-        nameBox.style.left = x + 'px';
+        /* +6px re-centers the narrower (135px vs the card's 147px) box on
+           the same midpoint as the card above it — see the .rname-box CSS
+           comment. */
+        nameBox.style.left = (x + 6) + 'px';
         var nameEl = document.createElement('span');
         nameEl.className = 'rname-text';
         nameBox.appendChild(nameEl);

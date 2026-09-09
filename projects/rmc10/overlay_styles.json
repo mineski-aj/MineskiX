@@ -142,6 +142,108 @@
     },
     "#mdb-game-label-text": {
       "fontSize": "31px"
+    },
+    "#mv-hero-img": {
+      "left": "1006px",
+      "top": "-4px",
+      "width": "1014px",
+      "height": "769px"
+    },
+    "#mv-photo": {
+      "left": "849px",
+      "top": "16px",
+      "width": "1062px",
+      "height": "1062px"
+    },
+    "#mv-team-logo": {
+      "left": "138px",
+      "top": "520px",
+      "width": "144px",
+      "height": "144px"
+    },
+    "#mv-name": {
+      "left": "333px",
+      "top": "506px",
+      "width": "435px",
+      "height": "137px"
+    },
+    "#mv-kda": {
+      "left": "143px",
+      "top": "726px",
+      "width": "176px",
+      "height": "65px"
+    },
+    "#mv-gold": {
+      "left": "147px",
+      "top": "882px",
+      "width": "176px",
+      "height": "65px"
+    },
+    "#mv-spell": {
+      "left": "344px",
+      "top": "669px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-item-0": {
+      "left": "462px",
+      "top": "669px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-item-1": {
+      "left": "564px",
+      "top": "669px",
+      "width": "92px",
+      "height": "91px"
+    },
+    "#mv-item-2": {
+      "left": "667px",
+      "top": "669px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-item-3": {
+      "left": "462px",
+      "top": "768px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-item-4": {
+      "left": "564px",
+      "top": "768px",
+      "width": "92px",
+      "height": "91px"
+    },
+    "#mv-item-5": {
+      "left": "667px",
+      "top": "768px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-rune-main": {
+      "left": "344px",
+      "top": "858px",
+      "width": "91px",
+      "height": "91px"
+    },
+    "#mv-rune-1": {
+      "left": "462px",
+      "top": "881px",
+      "width": "67px",
+      "height": "67px"
+    },
+    "#mv-rune-2": {
+      "left": "537px",
+      "top": "881px",
+      "width": "67px",
+      "height": "67px"
+    },
+    "#mv-rune-3": {
+      "left": "612px",
+      "top": "881px",
+      "width": "67px",
+      "height": "67px"
     }
   }
 }

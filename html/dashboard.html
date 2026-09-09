@@ -412,6 +412,14 @@
        feat.nudges / buildNudgeControl */
     .nudge-group { display: inline-flex; align-items: center; gap: 3px; background: #14141e; border: 1px solid #2a2a3a; border-radius: 4px; padding: 2px 4px; }
     .nudge-label { font-size: 10px; color: #666; padding: 0 2px; }
+    /* MVP Scene's player-select row (see feat.mvpPlayerSelect /
+       buildMvpPlayerSelect) — the caster picks who's MVP from the live
+       Game API's current seat list instead of a separate MVP API. */
+    .mvp-select-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .mvp-player-select {
+      flex: 1; background: #14141e; border: 1px solid #2a2a3a; border-radius: 4px;
+      color: #ddd; font-size: 12px; padding: 4px 6px;
+    }
     .btn-nudge { background: #1e1e1e; border-color: #333; color: #aaa; padding: 2px 8px; font-size: 11px; line-height: 16px; }
     .btn-nudge:hover { border-color: #888; color: #fff; }
 
@@ -1774,6 +1782,7 @@
     final_team:     'finalteam',
     team_lineup_blue: 'lineupblue',
     team_lineup_red:  'lineupred',
+    herolineup:       'herolineup',
     consolidated_post: 'consolidated_post',
     consolidated_post_2: 'consolidated_post_2',
     post4key:       'post4key',
@@ -1789,6 +1798,7 @@
     standings: 'Standings', hexagon: 'Team Hexagon', highlights: 'MVP Highlights',
     mvp: 'MVP Scene', credits: 'Credit Reel', finalteam: 'Final Team',
     lineupblue: 'Team Line-Up — Blue', lineupred: 'Team Line-Up — Red',
+    herolineup: 'Hero Lineup',
     consolidated_post: 'Consolidated Post', consolidated_post_2: 'Consolidated Post 2',
     post4key: 'Post 4 Key',
   };
@@ -2253,14 +2263,16 @@
         { name: 'MVP Highlights', show: '/overlay/highlights/show', hide: '/overlay/highlights/hide',
           nudges: [ { label: 'Photo', selector: '.hl-player-photo-wrap', fallback: 1360 } ] },
         { name: 'MVP Scene', show: '/overlay/mvp/show', hide: '/overlay/mvp/hide',
+          mvpPlayerSelect: true,
           nudges: [
-            { label: 'Hero',  selector: '#mv-hero-img', fallback: 953 },
-            { label: 'Photo', selector: '#mv-photo',    fallback: 953 },
+            { label: 'Hero',  selector: '#mv-hero-img', fallback: 906 },
+            { label: 'Photo', selector: '#mv-photo',    fallback: 979 },
           ] },
         { name: 'Credit Reel', show: '/overlay/credits/show', hide: '/overlay/credits/hide' },
         { name: 'Final Team', show: '/overlay/final_team/show', hide: '/overlay/final_team/hide' },
         { name: 'Team Line-Up — Blue', show: '/overlay/team_lineup_blue/show', hide: '/overlay/team_lineup_blue/hide' },
         { name: 'Team Line-Up — Red', show: '/overlay/team_lineup_red/show', hide: '/overlay/team_lineup_red/hide' },
+        { name: 'Hero Lineup', show: '/overlay/herolineup/show', hide: '/overlay/herolineup/hide' },
       ],
       /* Superseded by "Postgame Items" above (Sept 2026 rework), which
          already shows Matchboard/Middleboard alongside itself via
@@ -3234,6 +3246,68 @@
       body.appendChild(kePhotoRow);
     }
 
+    /* MVP Scene's player picker — the caster chooses who's MVP from the
+       CURRENT live game's seat list (same /api/gamedata-proxy feed Hero
+       Lineup/Final Team already read) instead of a separate MVP-designated
+       API. Stores the pick as a roleid (globally unique per seat, unlike
+       name — see /api/mvp-selection in routes/devapi.js) and Fullscreen.
+       html's showMvpScene looks that roleid up in the same feed when the
+       scene is shown. */
+    function buildMvpPlayerSelect() {
+      var wrap = el('div', 'mvp-select-row');
+      var sel = document.createElement('select');
+      sel.className = 'mvp-player-select';
+      var placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Select MVP player…';
+      sel.appendChild(placeholder);
+      wrap.appendChild(sel);
+      var refreshBtn = document.createElement('button');
+      refreshBtn.className = 'btn btn-copy';
+      refreshBtn.textContent = '↺';
+      refreshBtn.title = 'Refresh player list';
+      wrap.appendChild(refreshBtn);
+
+      function loadPlayers() {
+        fetch('/api/gamedata-proxy', { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (gd) {
+            var camps = (gd && gd.data && gd.data.camp_list) || [];
+            var cur = sel.value;
+            while (sel.options.length > 1) sel.remove(1);
+            camps.forEach(function (c) {
+              for (var n = 1; n <= 5; n++) {
+                var seat = c['seat_' + n];
+                if (!seat || seat.judger || !seat.roleid) continue;
+                var opt = document.createElement('option');
+                opt.value = String(seat.roleid);
+                opt.textContent = (seat.team_simple_name ? seat.team_simple_name + ' — ' : '') + seat.name;
+                sel.appendChild(opt);
+              }
+            });
+            if (cur) sel.value = cur;
+          }).catch(function () {});
+      }
+      loadPlayers();
+      refreshBtn.addEventListener('click', loadPlayers);
+
+      fetch('/api/mvp-selection', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.roleid != null) sel.value = String(d.roleid); })
+        .catch(function () {});
+
+      sel.addEventListener('change', function () {
+        var roleid = sel.value ? Number(sel.value) : null;
+        fetch('/api/mvp-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roleid: roleid }),
+        }).catch(function () {});
+      });
+
+      return wrap;
+    }
+
     /* Builds one .feature-row for a { name, show, hide, ... } entry from
        either ov.features or ov.archivedFeatures — same shape, same working
        Show/Hide/Preview/copy buttons either way, just appended to a
@@ -3309,6 +3383,7 @@
         });
       }
       fr.appendChild(fb);
+      if (feat.mvpPlayerSelect) fr.appendChild(buildMvpPlayerSelect());
       return fr;
     }
 
@@ -3711,54 +3786,25 @@
   ];
 
   /* ── Waiting Lobby (Fullscreen.html) element defaults ─────────────── */
+  /* Stripped down (2026-09, rmc10) to match Fullscreen.html's own
+     simplified Waiting Lobby — see the CSS comment above #waiting-lobby-page
+     there for what was removed (header, match card, sponsor box, timer). */
   var WL_DEFAULTS = {
-    '#wl-header':         { left: 40,   top: 80,  width: 967, height: 150 },
-    '#wl-match':          { left: 40,   top: 390 },
-    '#wl-sponsor':        { left: 40,   top: 705 },
-    '#wl-timer':          { left: 40,   top: 862 },
-    /* Pulled out of #wl-timer's flex flow (position:absolute in the CSS
-       now) specifically so it can be dragged/resized independently of
-       #wl-timer — left/top are LOCAL offsets against #wl-timer's own box,
-       not canvas coordinates (40.../41.5... come from the exact cross-
-       axis-centered spot the old flex layout put it at, so this default
-       matches on-air today pixel for pixel). Own group so moving it
-       doesn't also move #wl-timer/#wl-header. */
-    '#wl-timer-label':    { left: 0,    top: 41.5, width: 160, height: 47 },
-    '#wl-timer-label-img': { fontSize: 18 },
-    '.wl-player-blue':    { left: 1035, top: 90,  width: 500, height: 800 },
-    '.wl-player-red':     { left: 1420, top: 40,  width: 500, height: 800 },
-    '.wl-namebox-blue':   { left: 860,  top: 830 },
-    '.wl-namebox-red':    { left: 1580, top: 715 },
-    /* Local offsets against .wlm-box (the #wl-match child that actually
-       positions them) — same local-offset convention as #wl-timer-label
-       above, since buildWlMatch() rebuilds #wl-match's innerHTML on every
-       match-state update and these logos live inside that rebuilt tree. */
-    '.wlm-logo-l':        { left: 146,  top: 55 },
-    '.wlm-logo-r':        { left: 478,  top: 55 },
-    /* Match Card text — grouped by shared class, so one fontSize edit
-       resizes every instance of that text family at once (label/time/BO
-       share one class already, same for the L/R team code and score). */
-    '.wlm-label, .wlm-time, .wlm-bo': { fontSize: 22 },
-    '.wlm-tri':                       { fontSize: 46 },
-    '.wlm-score-l, .wlm-score-r':     { fontSize: 44 },
+    '#wl-pillars':      { left: 0,    top: 0,   width: 1920, height: 1080 },
+    '#wl-league-logo':  { left: 316,  top: 190, width: 1202, height: 1145 },
+    '.wl-player-blue':  { left: 169,  top: 66,  width: 867,  height: 868 },
+    '.wl-player-red':   { left: 877,  top: 66,  width: 867,  height: 868 },
+    '.wl-namebox-blue': { left: 308,  top: 565, width: 311,  height: 86 },
+    '.wl-namebox-red':  { left: 1302, top: 565, width: 311,  height: 86 },
   };
 
   var WL_ELEMENTS = [
-    { group: 'Header',  id: '#wl-header',       name: 'Header Logo'     },
-    { group: 'Header',  id: '#wl-timer',        name: 'Countdown Timer' },
-    { group: 'Timer Label',    id: '#wl-timer-label',    name: 'Timer Label'          },
-    { group: 'Timer Label Text', id: '#wl-timer-label-img', name: 'Timer Label Font Size' },
-    { group: 'Match',   id: '#wl-match',        name: 'Match Card'      },
-    { group: 'Match',   id: '#wl-sponsor',      name: 'Sponsor Box'     },
-    { group: 'Players', id: '.wl-player-blue',  name: 'Photo (Blue)'    },
-    { group: 'Players', id: '.wl-player-red',   name: 'Photo (Red)'     },
-    { group: 'Players', id: '.wl-namebox-blue', name: 'Name Box (Blue)' },
-    { group: 'Players', id: '.wl-namebox-red',  name: 'Name Box (Red)'  },
-    { group: 'Match Logo (Blue)', id: '.wlm-logo-l', name: 'Team Logo (Blue)' },
-    { group: 'Match Logo (Red)',  id: '.wlm-logo-r', name: 'Team Logo (Red)'  },
-    { group: 'Match Card Text', id: '.wlm-label, .wlm-time, .wlm-bo', name: 'Header Text Size' },
-    { group: 'Match Card Text', id: '.wlm-tri',                       name: 'Team Code Size'   },
-    { group: 'Match Card Text', id: '.wlm-score-l, .wlm-score-r',     name: 'Score Size'       },
+    { group: 'Pillars',      id: '#wl-pillars',      name: 'Pillar Decoration' },
+    { group: 'League Logo', id: '#wl-league-logo',  name: 'League Logo' },
+    { group: 'Players',     id: '.wl-player-blue',  name: 'Photo (Blue)' },
+    { group: 'Players',     id: '.wl-player-red',   name: 'Photo (Red)' },
+    { group: 'Players',     id: '.wl-namebox-blue', name: 'Name Box (Blue)' },
+    { group: 'Players',     id: '.wl-namebox-red',  name: 'Name Box (Red)' },
   ];
 
   /* ── Today's / Tomorrow's Schedule (Fullscreen.html) element defaults ──
@@ -4116,6 +4162,67 @@
     { group: 'Team Bar', id: '.lu-teambar-match',  name: 'Week/Day/Match Label' },
   ];
 
+  /* ── Hero Lineup (Fullscreen.html, rmc10) element defaults ──────────
+     Team 1 = blue = campid 1 (top row), Team 2 = red = campid 2 (bottom
+     row) — see the CSS comment above #hlu-page in Fullscreen.html. Each
+     player's hero clip and name box share a group so nudging one moves
+     both; logos/team names/title stand alone. */
+  var HLU_DEFAULTS = {
+    '#hlu-logo-blue':  { left: 207,  top: 253, width: 216, height: 216 },
+    '#hlu-logo-red':   { left: 1478, top: 651, width: 221, height: 221 },
+    '#hlu-t1-hero-1':  { left: 481,  top: 208, width: 247, height: 301 },
+    '#hlu-t1-hero-2':  { left: 734,  top: 208, width: 247, height: 301 },
+    '#hlu-t1-hero-3':  { left: 987,  top: 208, width: 247, height: 301 },
+    '#hlu-t1-hero-4':  { left: 1240, top: 208, width: 247, height: 301 },
+    '#hlu-t1-hero-5':  { left: 1493, top: 208, width: 247, height: 301 },
+    '#hlu-t2-hero-1':  { left: 1177, top: 603, width: 247, height: 301 },
+    '#hlu-t2-hero-2':  { left: 924,  top: 603, width: 247, height: 301 },
+    '#hlu-t2-hero-3':  { left: 671,  top: 603, width: 247, height: 301 },
+    '#hlu-t2-hero-4':  { left: 418,  top: 603, width: 247, height: 301 },
+    '#hlu-t2-hero-5':  { left: 165,  top: 603, width: 247, height: 301 },
+    '#hlu-team1-name': { left: 173,  top: 512, width: 281, height: 69 },
+    '#hlu-team2-name': { left: 1451, top: 907, width: 281, height: 69 },
+    '#hlu-t1-name-1':  { left: 491,  top: 512, width: 227, height: 69 },
+    '#hlu-t1-name-2':  { left: 744,  top: 512, width: 227, height: 69 },
+    '#hlu-t1-name-3':  { left: 997,  top: 512, width: 227, height: 69 },
+    '#hlu-t1-name-4':  { left: 1250, top: 512, width: 227, height: 69 },
+    '#hlu-t1-name-5':  { left: 1503, top: 512, width: 227, height: 69 },
+    '#hlu-t2-name-1':  { left: 1187, top: 906, width: 227, height: 69 },
+    '#hlu-t2-name-2':  { left: 934,  top: 906, width: 227, height: 69 },
+    '#hlu-t2-name-3':  { left: 681,  top: 906, width: 227, height: 69 },
+    '#hlu-t2-name-4':  { left: 428,  top: 906, width: 227, height: 69 },
+    '#hlu-t2-name-5':  { left: 175,  top: 906, width: 227, height: 69 },
+    '#hlu-title':      { left: 1234, top: 75,  width: 496, height: 49 },
+  };
+
+  var HLU_ELEMENTS = [
+    { group: 'Blue Logo',    id: '#hlu-logo-blue',  name: 'Team 1 Logo (Blue)' },
+    { group: 'Red Logo',     id: '#hlu-logo-red',   name: 'Team 2 Logo (Red)' },
+    { group: 'T1 Player 1',  id: '#hlu-t1-hero-1',  name: 'Team 1 · Player 1 Hero' },
+    { group: 'T1 Player 1',  id: '#hlu-t1-name-1',  name: 'Team 1 · Player 1 Name' },
+    { group: 'T1 Player 2',  id: '#hlu-t1-hero-2',  name: 'Team 1 · Player 2 Hero' },
+    { group: 'T1 Player 2',  id: '#hlu-t1-name-2',  name: 'Team 1 · Player 2 Name' },
+    { group: 'T1 Player 3',  id: '#hlu-t1-hero-3',  name: 'Team 1 · Player 3 Hero' },
+    { group: 'T1 Player 3',  id: '#hlu-t1-name-3',  name: 'Team 1 · Player 3 Name' },
+    { group: 'T1 Player 4',  id: '#hlu-t1-hero-4',  name: 'Team 1 · Player 4 Hero' },
+    { group: 'T1 Player 4',  id: '#hlu-t1-name-4',  name: 'Team 1 · Player 4 Name' },
+    { group: 'T1 Player 5',  id: '#hlu-t1-hero-5',  name: 'Team 1 · Player 5 Hero' },
+    { group: 'T1 Player 5',  id: '#hlu-t1-name-5',  name: 'Team 1 · Player 5 Name' },
+    { group: 'T2 Player 1',  id: '#hlu-t2-hero-1',  name: 'Team 2 · Player 1 Hero' },
+    { group: 'T2 Player 1',  id: '#hlu-t2-name-1',  name: 'Team 2 · Player 1 Name' },
+    { group: 'T2 Player 2',  id: '#hlu-t2-hero-2',  name: 'Team 2 · Player 2 Hero' },
+    { group: 'T2 Player 2',  id: '#hlu-t2-name-2',  name: 'Team 2 · Player 2 Name' },
+    { group: 'T2 Player 3',  id: '#hlu-t2-hero-3',  name: 'Team 2 · Player 3 Hero' },
+    { group: 'T2 Player 3',  id: '#hlu-t2-name-3',  name: 'Team 2 · Player 3 Name' },
+    { group: 'T2 Player 4',  id: '#hlu-t2-hero-4',  name: 'Team 2 · Player 4 Hero' },
+    { group: 'T2 Player 4',  id: '#hlu-t2-name-4',  name: 'Team 2 · Player 4 Name' },
+    { group: 'T2 Player 5',  id: '#hlu-t2-hero-5',  name: 'Team 2 · Player 5 Hero' },
+    { group: 'T2 Player 5',  id: '#hlu-t2-name-5',  name: 'Team 2 · Player 5 Name' },
+    { group: 'Team 1 Name',  id: '#hlu-team1-name', name: 'Team 1 Name' },
+    { group: 'Team 2 Name',  id: '#hlu-team2-name', name: 'Team 2 Name' },
+    { group: 'Match Title',  id: '#hlu-title',      name: 'Match Title (Stage/Series/Game)' },
+  ];
+
   /* ── Casters (Fullscreen.html Waiting Screen TVC) element defaults ───
      3 photo slots inside the 571×478 .ws-talent-photos container. Free to
      drag/resize past the container edge — it just gets cropped by the
@@ -4254,68 +4361,50 @@
      Positions follow assets/mvp/mvpfsguide.png; the plaque row (team
      logo / role icon / name / KDA / GPM / KP%) sits on top of
      mvpfsblue.png/mvpfsred.png. */
+  /* Stripped down (2026-09, rmc10) to match Fullscreen.html's own
+     simplified MVP Scene — see the CSS comment above #mvp-page there for
+     what was removed (MVP text video, title row, labels, role icon,
+     plaque background, KDA/KP labels). These are also now the OFFICIAL
+     placement defaults — the project's own overlay_styles.json has no
+     saved #mv-* overrides, so nothing silently overrides these. */
   var MV_DEFAULTS = {
-    '#mv-box-bg':       { left: 953,  top: 74,  width: 867,  height: 470 },
-    '#mv-hero-img':     { left: 953,  top: 74,  width: 867,  height: 470 },
-    '#mv-photo':        { left: 953,  top: 74,  width: 867,  height: 470 },
-    '#mv-ofthegame':    { left: 1086, top: 562, width: 304,  height: 57,  fontSize: 50 },
-    '#mv-matchbox':     { left: 1402, top: 562, width: 224,  height: 57  },
-    '#mv-spell-title':  { left: 1029, top: 672, width: 62,   height: 24  },
-    '#mv-spell':        { left: 1029, top: 707, width: 62,   height: 62  },
-    '#mv-emblem-title': { left: 1142, top: 672, width: 212,  height: 24  },
-    '#mv-rune-main':    { left: 1142, top: 708, width: 58,   height: 58  },
-    '#mv-rune-1':       { left: 1207, top: 718, width: 38,   height: 38  },
-    '#mv-rune-2':       { left: 1250, top: 718, width: 38,   height: 38  },
-    '#mv-rune-3':       { left: 1296, top: 708, width: 58,   height: 58  },
-    '#mv-items-title':  { left: 1404, top: 672, width: 380,  height: 24  },
-    '#mv-item-0':       { left: 1404, top: 708, width: 58,   height: 58  },
-    '#mv-item-1':       { left: 1468, top: 708, width: 58,   height: 58  },
-    '#mv-item-2':       { left: 1533, top: 708, width: 58,   height: 58  },
-    '#mv-item-3':       { left: 1597, top: 708, width: 58,   height: 58  },
-    '#mv-item-4':       { left: 1662, top: 708, width: 58,   height: 58  },
-    '#mv-item-5':       { left: 1726, top: 708, width: 58,   height: 58  },
-    '#mv-backer':       { left: 0,    top: 829, width: 1762, height: 164 },
-    '.mv-logo':         { left: 16,   top: 22,  width: 120,  height: 120 },
-    '.mv-role':         { left: 196,  top: 48,  width: 68,   height: 68  },
-    '#mv-name':         { left: 279,  top: 48,  width: 342,  height: 67, fontSize: 52 },
-    '#mv-kda-label':    { left: 843,  top: 22,  width: 299,  height: 22  },
-    '#mv-kda':          { left: 843,  top: 48,  width: 299,  height: 67, fontSize: 64 },
-    '#mv-gpm-label':    { left: 1312, top: 22,  width: 134,  height: 22  },
-    '#mv-gpm':          { left: 1312, top: 48,  width: 134,  height: 67, fontSize: 64 },
-    '#mv-kp-label':     { left: 1555, top: 22,  width: 204,  height: 22  },
-    '#mv-kp':           { left: 1555, top: 48,  width: 204,  height: 67, fontSize: 64 },
+    '#mv-hero-img':  { left: 906, top: -4,  width: 1014, height: 769 },
+    '#mv-photo':     { left: 979, top: 16,  width: 734,  height: 1062 },
+    '#mv-team-logo': { left: 138, top: 520, width: 144,  height: 144 },
+    '#mv-name':      { left: 333, top: 506, width: 435,  height: 137 },
+    '#mv-kda':       { left: 143, top: 726, width: 176,  height: 65 },
+    '#mv-gold':      { left: 147, top: 882, width: 176,  height: 65 },
+    '#mv-spell':     { left: 344, top: 669, width: 91,   height: 91 },
+    '#mv-item-0':    { left: 462, top: 669, width: 91,   height: 91 },
+    '#mv-item-1':    { left: 564, top: 669, width: 92,   height: 91 },
+    '#mv-item-2':    { left: 667, top: 669, width: 91,   height: 91 },
+    '#mv-item-3':    { left: 462, top: 768, width: 91,   height: 91 },
+    '#mv-item-4':    { left: 564, top: 768, width: 92,   height: 91 },
+    '#mv-item-5':    { left: 667, top: 768, width: 91,   height: 91 },
+    '#mv-rune-main': { left: 344, top: 858, width: 91,   height: 91 },
+    '#mv-rune-1':    { left: 462, top: 881, width: 67,   height: 67 },
+    '#mv-rune-2':    { left: 537, top: 881, width: 67,   height: 67 },
+    '#mv-rune-3':    { left: 612, top: 881, width: 67,   height: 67 },
   };
 
   var MV_ELEMENTS = [
-    { group: 'MVP Video', id: '#mv-box-bg',       name: 'MVP Text Video' },
-    { group: 'Hero Image', id: '#mv-hero-img',    name: 'Hero Image' },
-    { group: 'Signature Photo', id: '#mv-photo',  name: 'Signature Photo' },
-    { group: 'Title Row', id: '#mv-ofthegame',    name: 'Of The Game Text' },
-    { group: 'Title Row', id: '#mv-matchbox',     name: 'Season / Match Box' },
-    { group: 'Icons',     id: '#mv-spell-title',  name: 'Spell Label' },
-    { group: 'Icons',     id: '#mv-spell',        name: 'Spell Icon' },
-    { group: 'Icons',     id: '#mv-emblem-title', name: 'Emblem Label' },
-    { group: 'Icons',     id: '#mv-rune-main',    name: 'Main Rune Icon' },
-    { group: 'Icons',     id: '#mv-rune-1',       name: 'Rune 1 Icon' },
-    { group: 'Icons',     id: '#mv-rune-2',       name: 'Rune 2 Icon' },
-    { group: 'Icons',     id: '#mv-rune-3',       name: 'Rune 3 Icon' },
-    { group: 'Icons',     id: '#mv-items-title',  name: 'Items Label' },
-    { group: 'Icons',     id: '#mv-item-0',       name: 'Item 1' },
-    { group: 'Icons',     id: '#mv-item-1',       name: 'Item 2' },
-    { group: 'Icons',     id: '#mv-item-2',       name: 'Item 3' },
-    { group: 'Icons',     id: '#mv-item-3',       name: 'Item 4' },
-    { group: 'Icons',     id: '#mv-item-4',       name: 'Item 5' },
-    { group: 'Icons',     id: '#mv-item-5',       name: 'Item 6' },
-    { group: 'Plaque',    id: '#mv-backer',       name: 'Plaque Background' },
-    { group: 'Plaque',    id: '.mv-logo',         name: 'Team Logo' },
-    { group: 'Plaque',    id: '.mv-role',         name: 'Role Icon' },
-    { group: 'Plaque',    id: '#mv-name',         name: 'Player Name' },
-    { group: 'KDA Label', id: '#mv-kda-label',    name: 'KDA Label' },
-    { group: 'KDA Value', id: '#mv-kda',          name: 'KDA Value' },
-    { group: 'MVP Stat Label', id: '#mv-gpm-label', name: 'MVP Stat Label (mvp_title)' },
-    { group: 'MVP Stat Value', id: '#mv-gpm',       name: 'MVP Stat Value (mvp_value)' },
-    { group: 'KP% Label', id: '#mv-kp-label',     name: 'KP% Label' },
-    { group: 'KP% Value', id: '#mv-kp',           name: 'KP% Value' },
+    { group: 'Hero Image',     id: '#mv-hero-img',  name: 'Hero Image' },
+    { group: 'Player Photo',   id: '#mv-photo',     name: 'Player Photo' },
+    { group: 'Team Logo',      id: '#mv-team-logo', name: 'Team Logo' },
+    { group: 'Player Name',    id: '#mv-name',       name: 'Player Name' },
+    { group: 'KDA Value',      id: '#mv-kda',        name: 'KDA Value' },
+    { group: 'Gold Value',     id: '#mv-gold',       name: 'Gold Value' },
+    { group: 'Skill Icon',     id: '#mv-spell',      name: 'Skill Icon' },
+    { group: 'Item 1',         id: '#mv-item-0',     name: 'Item 1' },
+    { group: 'Item 2',         id: '#mv-item-1',     name: 'Item 2' },
+    { group: 'Item 3',         id: '#mv-item-2',     name: 'Item 3' },
+    { group: 'Item 4',         id: '#mv-item-3',     name: 'Item 4' },
+    { group: 'Item 5',         id: '#mv-item-4',     name: 'Item 5' },
+    { group: 'Item 6',         id: '#mv-item-5',     name: 'Item 6' },
+    { group: 'Main Rune',      id: '#mv-rune-main',  name: 'Main Rune' },
+    { group: 'Sub Rune 1',     id: '#mv-rune-1',     name: 'Sub Rune 1' },
+    { group: 'Sub Rune 2',     id: '#mv-rune-2',     name: 'Sub Rune 2' },
+    { group: 'Sub Rune 3',     id: '#mv-rune-3',     name: 'Sub Rune 3' },
   ];
 
   /* ── Final Team (Fullscreen.html) element defaults ────────────────────
@@ -4758,6 +4847,15 @@
       elements:    LU_ELEMENTS,
       defaults:    LU_DEFAULTS,
       showFn:      'showTeamLineupBlue',
+    },
+    fullscreen_herolineup: {
+      label:       'Hero Lineup · Fullscreen',
+      file:        'Fullscreen.html',
+      styleFile:   'fullscreen',
+      defaultsKey: 'sb_edit_defaults_fullscreen_herolineup',
+      elements:    HLU_ELEMENTS,
+      defaults:    HLU_DEFAULTS,
+      showFn:      'showHeroLineupScene',
     },
     fullscreen_casters: {
       label:       'Casters · Fullscreen',
@@ -5273,13 +5371,6 @@
        it live-preview like every other field despite the special case. */
     if (editValues['.sidecheck-name'] && editValues['.sidecheck-name'].fontSize !== undefined) {
       try { editIframe.contentWindow.sidecheckSetNameFontCeiling(editValues['.sidecheck-name'].fontSize); } catch (e) {}
-    }
-    /* MVP Scene's #mv-name — same reasoning as .sidecheck-name above (see
-       MV_NAME_FONT_CEILING in Fullscreen.html): a blanket !important font-size
-       would permanently defeat mvFitNameMeasure's own shrink-to-fit,
-       which is exactly what let long names overflow/get cropped before. */
-    if (editValues['#mv-name'] && editValues['#mv-name'].fontSize !== undefined) {
-      try { editIframe.contentWindow.mvSetNameFontCeiling(editValues['#mv-name'].fontSize); } catch (e) {}
     }
     /* Caster Box fontSize — same reasoning as .sidecheck-name above (see
        SB_MI_FIT_CONFIG in overlay-scoreboard.js): a blanket !important

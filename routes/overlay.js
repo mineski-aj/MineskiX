@@ -570,6 +570,20 @@ router.get('/overlay/team_lineup_red/hide', (req, res) => {
   res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
 });
 
+// GET /overlay/herolineup/show
+router.get('/overlay/herolineup/show', (req, res) => {
+  state.fullscreenScene.activeFeature = 'herolineup';
+  state.overlayClients.forEach(c => { try { c.write('event: herolineup\ndata: {"action":"show"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "show" });
+});
+
+// GET /overlay/herolineup/hide
+router.get('/overlay/herolineup/hide', (req, res) => {
+  state.fullscreenScene.activeFeature = null;
+  state.overlayClients.forEach(c => { try { c.write('event: herolineup\ndata: {"action":"hide"}\n\n'); } catch {} });
+  res.set({ "Cache-Control": "no-store" }).json({ ok: true, action: "hide" });
+});
+
 // GET /overlay/today_schedule/show
 // Pressing Show again while the scene is ALREADY live doesn't re-trigger
 // the whole scene — it cycles a "currently being talked about" highlight

@@ -841,7 +841,16 @@
     }
     #waiting-screen-page.ws-on { display: block; }
     #waiting-screen-page.ws-visible { opacity: 1; }
-    /* ── WAITING LOBBY PAGE ── */
+    /* ── WAITING LOBBY PAGE ──
+       Stripped down (2026-09, rmc10) to just: two rotating player-photo
+       cutouts, one static league logo overlapping both, and two name
+       plates (team logo static now, player name still rotating with the
+       photo). Everything the scene used to also show — header/week label,
+       match card, sponsor box, countdown timer — was removed outright.
+       .wl-sponsor-bg/.wl-sponsor-loop/.sponsor-cat-label below are KEPT
+       even though THIS scene no longer uses them: Today's/Tomorrow's
+       Schedule and Consolidated Post 2 still share these same class
+       definitions for their own sponsor boxes. */
     #waiting-lobby-page {
       position: absolute;
       top: 0; left: 0;
@@ -854,91 +863,27 @@
     }
     #waiting-lobby-page.wl-on { display: block; }
     #waiting-lobby-page.wl-visible { opacity: 1; }
-    #wl-header {
-      position: absolute;
-      left: 40px; top: 80px;
-      width: 967px; height: 150px;
+    #wl-league-logo {
+      position: absolute; left: 316px; top: 190px; width: 1202px; height: 1145px;
+      z-index: 3; object-fit: contain;
     }
-    #wl-header img { display: block; width: 967px; height: 150px; }
-    #wl-week-label {
-      position: absolute;
-      left: 714px; top: 106px;
-      width: 253px; height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'General Sans', sans-serif;
-      font-weight: 800; font-size: 26px;
-      color: #fff; letter-spacing: 0.02em;
+    /* Decorative pillar corners — full-bleed, sits in front of the shared
+       #bg-video but behind everything else in this scene (z-index:0, lower
+       than the photos/logo/nameplates above), so it reads as "in front of
+       the background". Subtle continuous breathing: grows slightly off its
+       own normal size then settles back — never shrinks below 1.0, per
+       spec ("grow and back to its normal shape, not shrink"). */
+    #wl-pillars {
+      position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+      z-index: 0;
+      animation: wl-pillars-breathe 4s ease-in-out infinite;
     }
-    #wl-match {
-      position: absolute;
-      left: 40px; top: 390px;
-      width: 786px; height: 240px;
-      font-family: 'General Sans', sans-serif;
+    @keyframes wl-pillars-breathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.02); }
     }
-    .wlm-box { position: relative; width: 786px; height: 240px; }
-    .wlm-box > img.wlm-box-bg { position: absolute; left: 0; top: 0; width: 786px; height: 240px; }
-    .wlm-label, .wlm-time, .wlm-bo {
-      position: absolute; top: 0; height: 55px;
-      display: flex; align-items: center;
-      font-weight: 800; font-size: 22px; color: #0a0a0a;
-      text-transform: uppercase; white-space: nowrap;
-    }
-    .wlm-label { left: 24px; }
-    .wlm-time  { left: 0; width: 100%; justify-content: center; }
-    .wlm-bo    { right: 24px; }
-    /* Rivalry blinker band — same masked-shine loop as the Waiting Screen
-       TVC's .wsm-band-cot (see @keyframes wsm-cot-*), just resized/recentered
-       to this box's 786×240 band instead of duplicating the animation. */
-    .wlm-box .wlm-band-cot     { position: absolute; left: 228px; top: 0; width: 330px; height: 55px; animation: wsm-cot-mask 9s ease-in-out infinite; }
-    .wlm-box .wlm-band-cot-img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    .wlm-box .wlm-band-cot::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.9) 50%, transparent 65%);
-      background-size: 300% 100%;
-      background-position: 150% 0;
-      mix-blend-mode: screen;
-      pointer-events: none;
-      -webkit-mask-image: var(--cot-mask); -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat;
-      mask-image: var(--cot-mask); mask-size: 100% 100%; mask-repeat: no-repeat;
-      animation: wsm-cot-shine 9s linear infinite;
-    }
-    .wlm-time.star { animation: wsm-cot-pulse-inv 9s ease-in-out infinite; }
-    .wlm-slot { position: absolute; top: 55px; height: 185px; display: flex; align-items: center; justify-content: center; }
-    .wlm-tri {
-      font-family: 'Anton', sans-serif;
-      font-weight: 400; font-size: 46px;
-      color: #fff; text-transform: uppercase; white-space: nowrap;
-    }
-    .wlm-tri-l { left: 0;   width: 128px; }
-    .wlm-tri-r { right: 0;  width: 128px; }
-    .wlm-logo-l { left: 146px; width: 180px; }
-    .wlm-logo-r { left: 478px; width: 180px; }
-    .wlm-logo-l img, .wlm-logo-r img { width: 132px; height: 116px; object-fit: contain; }
-    .wlm-center { left: 308px; width: 170px; }
-    .wlm-center img.wlm-vs { width: 98px; height: 54px; object-fit: contain; }
-    .wlm-score { display: flex; flex-direction: column; align-items: center; line-height: 1; }
-    .wlm-score .wlm-score-l { font-weight: 800; font-size: 44px; color: #1656d5; }
-    .wlm-score .wlm-score-div { width: 46px; height: 4px; background: #0a0a0a; margin: 4px 0; }
-    .wlm-score .wlm-score-r { font-weight: 800; font-size: 44px; color: #d92027; }
-    #wl-sponsor {
-      position: absolute;
-      left: 40px; top: 705px;
-      width: 340px; height: 94px;
-    }
-    /* 100%/100%, not a fixed pixel size — must track whatever size the
-       dashboard Edit tab sets on the container (#cp2-sponsor etc.), same
-       as .wl-sponsor-loop's relative left/right/top/bottom already do.
-       A fixed 340x94 here meant resizing the box in the Edit tab shrank
-       the logo but left this background at its original size, sticking
-       out past the (now smaller) box. */
+    /* ── shared sponsor-box classes — still used elsewhere, do not remove ── */
     .wl-sponsor-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-    /* Draft/in-game style sponsor loop — same slot region the old crossfade
-       slide used, but a single image sliding in from the left (decelerating
-       into place) then out to the right (accelerating away), matching
-       Draft.html's #sponsor-loop exactly (same easing + durations). */
     .wl-sponsor-loop { position: absolute; left: 140px; right: 8px; top: 8px; bottom: 8px; overflow: hidden; }
     .wl-sponsor-loop img {
       position: absolute; top: 0; left: 0;
@@ -954,12 +899,6 @@
       transform: translateX(110%);
       transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
     }
-    /* Category label — white rectangle in the sponsor box's left slot,
-       showing which sponsor category (Official Sponsor, Partner in
-       Esports, etc.) the box is currently on. Shared by every scene that
-       uses a sponsor box (Waiting Screen TVC, Waiting Lobby, Today's/
-       Tomorrow's Schedule) since they're all the same 340x94 frame with
-       the logo loop starting at left:140px. */
     .sponsor-cat-label {
       position: absolute;
       left: 4px; top: 4px;
@@ -979,66 +918,20 @@
       text-transform: uppercase;
       word-break: break-word;
     }
-    #wl-timer {
-      position: absolute;
-      left: 40px; top: 862px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      font-family: 'General Sans', sans-serif;
-      color: #0a0a0a;
-    }
-    /* position:absolute (not a flex child) so it's independently
-       draggable from #wl-timer in the dashboard Edit tab — left/top are
-       LOCAL offsets against #wl-timer's own box, matching exactly where
-       align-items:center + being the first flex item used to put it
-       (cross-axis center of the 130px-tall row = (130-47)/2 = 41.5px;
-       first item = left:0), so pulling it out of the flex flow doesn't
-       shift anything. #wl-timer-value is unaffected: it's left-anchored
-       and was already the only OTHER item, so it keeps sitting at the
-       row's start regardless of how much intrinsic width the row loses
-       by removing the label from flow. */
-    #wl-timer-label {
-      position: absolute;
-      left: 0px; top: 41.5px;
-      width: 160px; height: 47px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      z-index: 0;
-    }
-    /* Plain text label — no background plaque. white-space:nowrap keeps
-       "SHOW STARTS IN"/"SHOW RESUMES IN" on one line regardless of the
-       #wl-timer-label box width (that box is just a drag anchor now, not
-       a clipping frame). */
-    #wl-timer-label-img {
-      font-family: 'General Sans', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      text-transform: uppercase;
-      white-space: nowrap;
-      color: #0a0a0a;
-    }
-    #wl-timer-value {
-      width: 355px;
-      font-family: 'Anton', sans-serif;
-      font-weight: 400;
-      font-size: 130px;
-      line-height: 1;
-      letter-spacing: 0.02em;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      text-align: left;
-    }
-    /* Source cutouts are plain 300x300 square headshots shown whole (no
-       crop/zoom) — stacked nameboxes > left/blue photo > right/red photo. */
+    /* Source cutouts are plain headshots shown whole (no crop/zoom) —
+       stacked league logo > name plates > photos. */
     .wl-player {
       position: absolute;
     }
-    .wl-player-blue { left: 635px !important; top: 130px !important; width: 1080px !important; height: 1080px !important; z-index: 2; }
-    .wl-player-red  { left: 1190px !important; top: 130px !important; width: 1080px !important; height: 1080px !important; z-index: 1; }
+    /* Boxes overlap (877px < 169+867=1036px) — blue stays on top of red in
+       that overlap zone, same relative order as before this rework. */
+    .wl-player-blue { left: 169px; top: 66px; width: 867px; height: 868px; z-index: 2; }
+    .wl-player-red  { left: 877px; top: 66px; width: 867px; height: 868px; z-index: 1; }
     /* Two stacked layers per side (see wlApplyPlayer) — opacity/transform
-       for the cross-fade are driven entirely from JS with inline styles. */
+       for the cross-fade are driven entirely from JS with inline styles.
+       mask-image feathers the lower ~1/5 of the photo (opaque through 80%
+       of the height, fading to fully transparent by 100%) so the cutout's
+       own bottom edge is never a hard visible line. */
     .wl-player-photo {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
@@ -1046,39 +939,43 @@
       object-position: 50% 0%;
       display: block;
       opacity: 0;
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
     }
     .wl-namebox {
       position: absolute;
-      width: 347px; height: 62px;
-      font-family: 'Anton', sans-serif;
-      z-index: 3;
+      width: 311px; height: 86px;
+      z-index: 4;
     }
-    .wl-namebox-blue { left: 860px;  top: 830px; }
-    .wl-namebox-red  { left: 1580px; top: 715px; }
-    .wl-namebox img.wl-namebox-bg { position: absolute; left: 0; top: 0; width: 347px; height: 62px; }
+    .wl-namebox-blue { left: 308px;  top: 565px; }
+    .wl-namebox-red  { left: 1302px; top: 565px; }
+    .wl-namebox img.wl-namebox-bg { position: absolute; left: 0; top: 0; width: 311px; height: 86px; }
+    /* Team logo — static, does NOT cycle with the player rotation (unlike
+       the role icon this replaces), so no filter/brightness forcing either:
+       it's shown in its own real color. */
     .wl-namebox-logo {
-      position: absolute; top: 0; width: 62px; height: 62px;
+      position: absolute; top: 17px; width: 50px; height: 50px;
       display: flex; align-items: center; justify-content: center;
     }
-    .wl-namebox-blue .wl-namebox-logo { left: 6px; }
-    .wl-namebox-red  .wl-namebox-logo { right: 6px; }
-    /* Role icon PNGs on disk are tan/gray, not black — force it regardless
-       of source color (brightness(0) zeroes RGB, alpha/shape untouched). */
-    .wl-namebox-logo img { width: 40px; height: 40px; object-fit: contain; filter: brightness(0); }
+    .wl-namebox-blue .wl-namebox-logo { left: 243px; }
+    /* Mirrored from the blue plate's position: 311 - (243 + 50) = 18. */
+    .wl-namebox-red  .wl-namebox-logo { left: 18px; }
+    .wl-namebox-logo img { width: 100%; height: 100%; object-fit: contain; }
+    /* Player name — Exima, 10pt@300dpi = 41.67px ceiling, shrinks to fit
+       (see wlFitName). Still rotates with the photo. */
     .wl-namebox-name {
-      position: absolute; top: 0; width: 285px; height: 62px;
+      position: absolute; top: 2px; width: 199px; height: 60px;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'General Sans', sans-serif; font-weight: 700;
-      font-size: 28px; color: #fff;
-      text-transform: uppercase; white-space: nowrap;
+      font-family: 'Exima', sans-serif; color: #fff;
+      text-transform: uppercase; white-space: nowrap; overflow: hidden;
       text-align: center;
     }
-    .wl-namebox-blue .wl-namebox-name { left: 62px; }
-    .wl-namebox-red  .wl-namebox-name { left: 0; }
-    /* Scoreboard-style rotation: outgoing name/logo/photo slides down while
-       fading out, incoming starts above (translateY negative) and slides
-       down into place while fading in — same direction for both halves of
-       the swap, like a flip-scoreboard tile. */
+    .wl-namebox-blue .wl-namebox-name { left: 14px; }
+    /* Mirrored from the blue plate's position: 311 - (14 + 199) = 98. */
+    .wl-namebox-red  .wl-namebox-name { left: 98px; }
+    /* Scoreboard-style rotation: outgoing name slides down while fading
+       out, incoming starts above (translateY negative) and slides down
+       into place while fading in. */
     .wl-slide-el { transition: opacity 260ms ease, transform 260ms ease; }
     .wl-slide-el.wl-slide-out { opacity: 0; transform: translateY(28px); }
     .wl-slide-el.wl-slide-in  { opacity: 0; transform: translateY(-28px); }
@@ -1340,12 +1237,17 @@
        words (e.g. "GPM" vs "GOLD LEAD"). */
     #hlst-mvp-label { left: 331px; width: 52px;  z-index: 14; white-space: normal; line-height: 1.15; }
     #hlst-mvp-value { left: 383px; width: 78px;  z-index: 12; }
-    /* ── MVP SCENE PAGE — full MVP-of-the-game card. Positions follow
-       assets/mvp/mvpfsguide.png; the bottom plaque row (team logo/role
-       icon/name + KDA/GPM/KP%) is backed by mvpfsblue.png/mvpfsred.png,
-       swapped by campid same as MVP Highlights above. Player data comes
-       from the same game-mvp/view API (see hlFetchMvp/hlExtractPlayer);
-       match/game number comes from /match/state instead. */
+    /* ── MVP SCENE PAGE — rebuilt (2026-09, rmc10). Stripped down to just:
+       hero image + player photo (both sit BEHIND the background art —
+       rmc10_mvpbg.png bakes in the "MVP OF THE GAME" title and the
+       KDA/GOLD panel chrome, so anything peeking past its own edges is
+       naturally covered instead of needing separate masking), team logo,
+       player name, KDA/Gold values, skill icon, 6 items, main rune + 3
+       sub runes. Player data now comes from the live Game API
+       (/api/gamedata-proxy), picked by roleid via the dashboard's MVP
+       player-select dropdown (/api/mvp-selection) — see mvFindSeat/
+       showMvpScene — instead of the separate MVP-designated API MVP
+       Highlights still uses (hlFetchMvp/hlExtractPlayer, untouched). */
     #mvp-page {
       position: absolute;
       top: 0; left: 0;
@@ -1359,115 +1261,79 @@
     #mvp-page.mv-on { display: block; }
     #mvp-page.mv-visible { opacity: 1; }
 
-    /* Independently positioned/sized (not nested in a shared box) so each
-       can be dragged/resized on its own from the dashboard Edit tab. */
-    #mv-box-bg {
-      position: absolute; left: 953px; top: 74px; width: 867px; height: 470px;
-      z-index: 10; object-fit: cover;
-    }
+    /* Hero image behind the player photo, which is itself behind the
+       background art — z-index 1 < 2 < 3. Same bottom-50px feathering the
+       old layout already used on this element. */
+    /* Feathered on all 4 sides now (left/top/right + the original bottom):
+       one gradient fades the left+right edges, a second fades top+bottom,
+       and the two masks are intersected (mask-composite/-webkit-mask-
+       composite:source-in) so a pixel is only fully opaque where BOTH say
+       so — i.e. away from every edge, not just one axis. */
     #mv-hero-img {
-      position: absolute; left: 953px; top: 74px; width: 867px; height: 470px;
-      z-index: 11; object-fit: contain; object-position: 50% 100%; display: block;
-      /* Feather the bottom 50px so the hero art fades into #mv-box-bg
-         instead of cutting off with a hard edge. */
-      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), transparent 100%);
-      mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 50px), transparent 100%);
+      position: absolute; left: 906px; top: -4px; width: 1014px; height: 769px;
+      z-index: 1; object-fit: contain; object-position: 50% 100%; display: block;
+      -webkit-mask-image:
+        linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
+        linear-gradient(to bottom, transparent 0%, #000 10%, #000 calc(100% - 50px), transparent 100%);
+      -webkit-mask-composite: source-over, source-in;
+      mask-image:
+        linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%),
+        linear-gradient(to bottom, transparent 0%, #000 10%, #000 calc(100% - 50px), transparent 100%);
+      mask-composite: intersect;
     }
+    /* Player photo — hires/LEFT/<name>_LEFT.png (see mvPhotoUrl). */
     #mv-photo {
-      position: absolute; left: 953px; top: 74px; width: 867px; height: 470px;
-      z-index: 12; object-fit: contain; object-position: 50% 100%; display: block;
+      position: absolute; left: 979px; top: 16px; width: 734px; height: 1062px;
+      z-index: 2; object-fit: contain; object-position: 50% 100%; display: block;
+    }
+    #mv-bg {
+      position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+      z-index: 3;
     }
 
-    #mv-ofthegame {
-      position: absolute; left: 1086px; top: 562px; width: 304px; height: 57px; z-index: 13;
-      display: flex; align-items: center; justify-content: flex-start;
-      font-family: 'Anton', sans-serif; font-size: 50px; line-height: 1;
-      color: #0a0a0a; text-transform: uppercase; white-space: nowrap;
+    #mv-team-logo {
+      position: absolute; left: 138px; top: 520px; width: 144px; height: 144px;
+      z-index: 10; object-fit: contain;
     }
-    #mv-matchbox {
-      position: absolute; left: 1402px; top: 562px; width: 224px; height: 57px; z-index: 13;
-      background: #0a0a0a; color: #fff;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    /* Player name — Bebas Neue, 90pt@72dpi = 90px ceiling, shrinks to fit
+       (see mvFitText). */
+    /* Player name — same gold-gradient text treatment as KDA/Gold below
+       (.mv-gold-stat), just its own position/box size. */
+    #mv-name {
+      left: 333px; top: 506px; width: 435px; height: 137px;
     }
-    #mv-matchbox-season {
-      font-family: 'General Sans', sans-serif; font-weight: 700; font-size: 16px;
-      letter-spacing: 0.5px; text-transform: uppercase;
-    }
-    #mv-matchbox-game {
-      font-family: 'General Sans', sans-serif; font-weight: 600; font-size: 13px;
-      opacity: 0.85; text-transform: uppercase;
-    }
-
-    .mv-icon-title {
-      position: absolute; z-index: 14; top: 672px; height: 24px;
+    /* Player name + KDA/Gold values — Bebas Neue, gold gradient text (dark
+       gold at top, toward light gold at bottom) via background-clip:text.
+       Name's own ceiling is 90pt@72dpi = 90px, KDA/Gold's is 60pt@72dpi =
+       60px (see mvFitAllText) — this shared class only carries what's
+       identical between them; position/size stays per-id below. */
+    .mv-gold-stat {
+      position: absolute; z-index: 10;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'General Sans', sans-serif; font-weight: 600; font-size: 16px;
-      color: #0a0a0a; text-transform: uppercase; white-space: nowrap;
+      font-family: 'Bebas Neue', sans-serif; text-transform: uppercase;
+      text-align: center; white-space: nowrap; overflow: hidden;
+      background: linear-gradient(180deg, #B8860B 0%, #FFE9A8 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
-    #mv-spell-title  { left: 1029px; width: 62px; }
-    #mv-emblem-title { left: 1142px; width: 212px; }
-    #mv-items-title  { left: 1404px; width: 380px; }
+    #mv-kda  { left: 143px; top: 726px; width: 176px; height: 65px; }
+    #mv-gold { left: 147px; top: 882px; width: 176px; height: 65px; }
 
     #mv-spell {
-      position: absolute; left: 1029px; top: 707px; width: 62px; height: 62px; z-index: 14;
-      border-radius: 50%; object-fit: cover;
+      position: absolute; left: 344px; top: 669px; width: 91px; height: 91px;
+      z-index: 10; border-radius: 50%; object-fit: cover;
     }
-    .mv-rune { position: absolute; top: 708px; z-index: 14; object-fit: contain; }
-    #mv-rune-main { left: 1142px; width: 58px; height: 58px; }
-    #mv-rune-1    { left: 1207px; top: 718px; width: 38px; height: 38px; }
-    #mv-rune-2    { left: 1250px; top: 718px; width: 38px; height: 38px; }
-    #mv-rune-3    { left: 1296px; width: 58px; height: 58px; }
-    .mv-item { position: absolute; top: 708px; width: 58px; height: 58px; z-index: 14; object-fit: contain; }
-    #mv-item-0 { left: 1404px; }
-    #mv-item-1 { left: 1468px; }
-    #mv-item-2 { left: 1533px; }
-    #mv-item-3 { left: 1597px; }
-    #mv-item-4 { left: 1662px; }
-    #mv-item-5 { left: 1726px; }
-
-    #mv-backer {
-      position: absolute; left: 0px; top: 829px; width: 1762px; height: 164px; z-index: 15;
-      background: url('/assets/mvp/mvpfsblue.png') no-repeat; background-size: 100% 100%;
-    }
-    .mv-logo {
-      position: absolute; left: 16px; top: 22px; width: 120px; height: 120px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .mv-logo img { width: 100%; height: 100%; object-fit: contain; }
-    .mv-role {
-      position: absolute; left: 196px; top: 48px; width: 68px; height: 68px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .mv-role img { width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); } /* role/*.png icons — forced solid white */
-    #mv-name {
-      position: absolute; left: 279px; top: 48px; width: 342px; height: 67px;
-      display: flex; align-items: center; justify-content: flex-start;
-      font-family: 'General Sans', sans-serif; font-weight: 700; color: #fff;
-      text-transform: uppercase; white-space: nowrap; overflow: hidden;
-    }
-    /* Each label and value below is its own independently positioned
-       element (not grouped in a shared column) so they can be moved
-       and resized separately from the dashboard Edit tab. */
-    .mv-stat-label {
-      position: absolute; top: 22px; height: 22px; text-align: center;
-      font-family: 'General Sans', sans-serif; font-weight: 600; font-size: 18px;
-      color: #0a0a0a; text-transform: uppercase; white-space: nowrap;
-    }
-    #mv-kda-label { left: 843px;  width: 299px; }
-    #mv-gpm-label { left: 1312px; width: 134px; }
-    #mv-kp-label  { left: 1555px; width: 204px; }
-
-    /* KDA/GPM/KP values — Anton, black, sized to fill the box height (see
-       mvFitStatValue), fitted to width by JS if it ever overflows. */
-    .mv-stat-value {
-      position: absolute; top: 48px; height: 67px; text-align: center;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Anton', sans-serif; font-weight: 400; font-size: 64px;
-      color: #0a0a0a; white-space: nowrap;
-    }
-    #mv-kda { left: 843px;  width: 299px; }
-    #mv-gpm { left: 1312px; width: 134px; }
-    #mv-kp  { left: 1555px; width: 204px; }
+    .mv-rune { position: absolute; z-index: 10; object-fit: contain; }
+    #mv-rune-main { left: 344px; top: 858px; width: 91px; height: 91px; }
+    #mv-rune-1    { left: 462px; top: 881px; width: 67px; height: 67px; }
+    #mv-rune-2    { left: 537px; top: 881px; width: 67px; height: 67px; }
+    #mv-rune-3    { left: 612px; top: 881px; width: 67px; height: 67px; }
+    .mv-item { position: absolute; width: 91px; height: 91px; z-index: 10; object-fit: contain; }
+    #mv-item-0 { left: 462px; top: 669px; }
+    #mv-item-1 { left: 564px; top: 669px; width: 92px; }
+    #mv-item-2 { left: 667px; top: 669px; }
+    #mv-item-3 { left: 462px; top: 768px; }
+    #mv-item-4 { left: 564px; top: 768px; width: 92px; }
+    #mv-item-5 { left: 667px; top: 768px; }
 
     /* ── FINAL TEAM PAGE ── */
     #final-team-page {
@@ -1603,6 +1469,109 @@
     /* Filter goes on the icon itself, not the box — putting it on
        .ft-card-role would also whiten the colored background behind it. */
     .ft-card-role img { width: 70%; height: 70%; object-fit: contain; filter: brightness(0) invert(1); }
+
+    /* ── HERO LINEUP (rmc10) ──
+       Full-bleed background art (rmc10_herolineup.png, project-scoped —
+       see hluBgUrl) already draws the two team-logo frames, the 10
+       hero-photo frames and the name-plate strips under each; every
+       element below is just the live content laid on top of that art,
+       positioned to match it. Team 1 = blue = campid 1 (top row, logo on
+       the left), Team 2 = red = campid 2 (bottom row, logo on the right)
+       — same strict campid convention as Final Team, independent of the
+       Match Board's own home/away/swapped call. */
+    #hlu-page {
+      position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+      display: none; overflow: hidden;
+      background: transparent;
+      opacity: 0; transition: opacity 400ms ease;
+    }
+    #hlu-page.hlu-on { display: block; }
+    #hlu-page.hlu-visible { opacity: 1; }
+    #hlu-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 0; }
+    #hlu-logo-blue, #hlu-logo-red {
+      position: absolute; object-fit: contain;
+    }
+    #hlu-logo-blue { left: 207px; top: 253px; width: 216px; height: 216px; z-index: 4; }
+    /* Rectangle_9's updated spec (was 1545/650/216x216 — nudged +2px right/
+       +3px down from the original design). */
+    #hlu-logo-red  { left: 1478px; top: 651px; width: 221px; height: 221px; z-index: 5; }
+    /* Hero pick clip — HERO_PICK_DRAFT_<heroid>.webm, object-fit:cover.
+       object-position:top anchors the crop to the top of the source clip
+       (where the hero's head/portrait is) so the taller-than-wide source
+       only loses height off the BOTTOM to fill this shorter box, instead
+       of cropping evenly off both top and bottom. */
+    .hlu-hero {
+      position: absolute; width: 247px; height: 301px;
+      object-fit: cover; object-position: top; background: #000;
+      opacity: 0; transform: scale(0.5);
+      /* Monotonic ease-out (no back/overshoot past scale(1)) — an
+         overshooting bounce briefly renders the clip larger than its own
+         247x301 box, which visibly pokes into the 6px gap between cards.
+         Scale never exceeds 1, so the animated content never leaves its
+         own bounds. */
+      transition: opacity 260ms ease-out, transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .hlu-hero.hlu-in { opacity: 1; transform: scale(1); }
+    #hlu-t1-hero-1 { left: 481px;  top: 208px; z-index: 6; }
+    #hlu-t1-hero-2 { left: 734px;  top: 208px; z-index: 6; }
+    #hlu-t1-hero-3 { left: 987px;  top: 208px; z-index: 6; }
+    #hlu-t1-hero-4 { left: 1240px; top: 208px; z-index: 6; }
+    #hlu-t1-hero-5 { left: 1493px; top: 208px; z-index: 6; }
+    /* Team 2 hero row: shifted 62px left of the original design spec, then
+       nudged +2px right / +3px down. */
+    #hlu-t2-hero-1 { left: 1177px; top: 603px; z-index: 7; }
+    #hlu-t2-hero-2 { left: 924px;  top: 603px; z-index: 7; }
+    #hlu-t2-hero-3 { left: 671px;  top: 603px; z-index: 7; }
+    #hlu-t2-hero-4 { left: 418px;  top: 603px; z-index: 7; }
+    #hlu-t2-hero-5 { left: 165px;  top: 603px; z-index: 7; }
+    /* Team name — Exima, 16pt@300dpi = 66.67px ceiling, shrinks to fit
+       (see hluFitText). Always visible with the rest of the scene, no
+       stagger — only the hero/name-box "cards" button in. */
+    /* Width cut 10px off each side (301 → 281) for text breathing room —
+       box is still centered on the same midpoint as the original spec,
+       since each side lost the same 10px. */
+    .hlu-team-name {
+      position: absolute; width: 281px; height: 69px; z-index: 121;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Exima', sans-serif; color: #fff; text-transform: uppercase;
+      text-align: center; white-space: nowrap; overflow: hidden;
+    }
+    #hlu-team1-name { left: 173px;  top: 512px; }
+    /* Reset back to the original design spec's left:1441px (Rectangle_8) —
+       no longer following the Team 2 hero row's 62px-left shift — plus the
+       10px-each-side margin (1441 + 10 = 1451). */
+    #hlu-team2-name { left: 1451px; top: 907px; }
+    /* Player name — Exima, 8pt@300dpi = 33.33px ceiling. Buttons in
+       together with its hero clip (see hluPlayReveal). Width cut 10px off
+       each side (247 → 227), same breathing-room trim as the team name. */
+    .hlu-name-box {
+      position: absolute; width: 227px; height: 69px; z-index: 122;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Exima', sans-serif; color: #fff; text-transform: uppercase;
+      text-align: center; white-space: nowrap; overflow: hidden;
+      opacity: 0; transform: scale(0.5);
+      transition: opacity 260ms ease-out, transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .hlu-name-box.hlu-in { opacity: 1; transform: scale(1); }
+    #hlu-t1-name-1 { left: 491px;  top: 512px; }
+    #hlu-t1-name-2 { left: 744px;  top: 512px; }
+    #hlu-t1-name-3 { left: 997px;  top: 512px; }
+    #hlu-t1-name-4 { left: 1250px; top: 512px; }
+    #hlu-t1-name-5 { left: 1503px; top: 512px; }
+    #hlu-t2-name-1 { left: 1187px; top: 906px; z-index: 123; }
+    #hlu-t2-name-2 { left: 934px;  top: 906px; z-index: 123; }
+    #hlu-t2-name-3 { left: 681px;  top: 906px; z-index: 123; }
+    #hlu-t2-name-4 { left: 428px;  top: 906px; z-index: 123; }
+    #hlu-t2-name-5 { left: 175px;  top: 906px; z-index: 123; }
+    /* Match title — Bebas Neue, 8pt@300dpi = 33.33px ceiling. Text comes
+       from the Match Board (stage/series/game — see hluApplyTitle). Width
+       cut 10px off each side (516 → 496), same breathing-room trim. */
+    #hlu-title {
+      position: absolute; left: 1234px; top: 75px; width: 496px; height: 49px; z-index: 123;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif; font-size: 33.33px; color: #fff; text-transform: uppercase;
+      text-align: center; white-space: nowrap; overflow: hidden;
+    }
 
     /* ── TEAM LINE-UP PAGES ──
        Two independent fullscreen instances (Blue = home team, Red = away
@@ -3108,6 +3077,16 @@
       </div>
     </div>
 
+    <!-- HERO LINEUP (rmc10) -->
+    <div class="feature-card">
+      <div class="feature-card-label">Hero Lineup</div>
+      <div class="feature-card-btns">
+        <button class="dbg-btn show" onclick="showHeroLineupScene()">▶ SHOW</button>
+        <button class="dbg-btn hide" onclick="hideHeroLineupScene()">■ HIDE</button>
+        <button class="dbg-btn preview" id="preview-herolineup" onclick="toggleLocalPreview('herolineup', this)">◈ PREVIEW</button>
+      </div>
+    </div>
+
     <!-- TODAY'S SCHEDULE -->
     <div class="feature-card">
       <div class="feature-card-label">Today's Schedule</div>
@@ -3293,16 +3272,7 @@
       </div>
     </div>
     <div id="waiting-lobby-page">
-      <div id="wl-header">
-        <img src="/assets/Waiting Lobby/MPL Header.png" alt="MPL Philippines">
-        <div id="wl-week-label">WEEK 8 DAY 3</div>
-      </div>
-      <div id="wl-match"></div>
-      <div id="wl-sponsor"></div>
-      <div id="wl-timer">
-        <div id="wl-timer-label"><div id="wl-timer-label-img">SHOW STARTS IN</div></div>
-        <div id="wl-timer-value">30:30</div>
-      </div>
+      <img id="wl-pillars" src="" alt="">
       <div class="wl-player wl-player-blue">
         <img class="wl-player-photo" id="wl-blue-photo-0" src="" alt="">
         <img class="wl-player-photo" id="wl-blue-photo-1" src="" alt="">
@@ -3311,14 +3281,15 @@
         <img class="wl-player-photo" id="wl-red-photo-0" src="" alt="">
         <img class="wl-player-photo" id="wl-red-photo-1" src="" alt="">
       </div>
+      <img id="wl-league-logo" src="" alt="">
       <div class="wl-namebox wl-namebox-blue">
-        <img class="wl-namebox-bg" src="/assets/Waiting Lobby/Blue_NameBox.png" alt="">
-        <div class="wl-namebox-logo"><img class="wl-slide-el" id="wl-blue-logo" src="" alt="" onerror="this.style.display='none'"></div>
+        <img class="wl-namebox-bg" src="" alt="">
+        <div class="wl-namebox-logo"><img id="wl-blue-logo" src="" alt="" onerror="this.style.display='none'"></div>
         <div class="wl-namebox-name wl-slide-el" id="wl-blue-name"></div>
       </div>
       <div class="wl-namebox wl-namebox-red">
-        <img class="wl-namebox-bg" src="/assets/Waiting Lobby/Red_NameBox.png" alt="">
-        <div class="wl-namebox-logo"><img class="wl-slide-el" id="wl-red-logo" src="" alt="" onerror="this.style.display='none'"></div>
+        <img class="wl-namebox-bg" src="" alt="">
+        <div class="wl-namebox-logo"><img id="wl-red-logo" src="" alt="" onerror="this.style.display='none'"></div>
         <div class="wl-namebox-name wl-slide-el" id="wl-red-name"></div>
       </div>
     </div>
@@ -3370,6 +3341,34 @@
           <div class="th-bar-row th-bar-row-rev"><div class="th-bar" id="th-bar-time"></div><span class="th-bar-label">AVG GAME TIME</span></div>
         </div>
       </div>
+    </div>
+    <div id="hlu-page">
+      <img id="hlu-bg" src="" alt="">
+      <img id="hlu-logo-blue" src="" alt="" onerror="this.style.display='none'">
+      <img id="hlu-logo-red"  src="" alt="" onerror="this.style.display='none'">
+      <video class="hlu-hero" id="hlu-t1-hero-1" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t1-hero-2" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t1-hero-3" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t1-hero-4" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t1-hero-5" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t2-hero-1" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t2-hero-2" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t2-hero-3" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t2-hero-4" autoplay muted loop playsinline></video>
+      <video class="hlu-hero" id="hlu-t2-hero-5" autoplay muted loop playsinline></video>
+      <div class="hlu-team-name" id="hlu-team1-name"></div>
+      <div class="hlu-team-name" id="hlu-team2-name"></div>
+      <div class="hlu-name-box" id="hlu-t1-name-1"></div>
+      <div class="hlu-name-box" id="hlu-t1-name-2"></div>
+      <div class="hlu-name-box" id="hlu-t1-name-3"></div>
+      <div class="hlu-name-box" id="hlu-t1-name-4"></div>
+      <div class="hlu-name-box" id="hlu-t1-name-5"></div>
+      <div class="hlu-name-box" id="hlu-t2-name-1"></div>
+      <div class="hlu-name-box" id="hlu-t2-name-2"></div>
+      <div class="hlu-name-box" id="hlu-t2-name-3"></div>
+      <div class="hlu-name-box" id="hlu-t2-name-4"></div>
+      <div class="hlu-name-box" id="hlu-t2-name-5"></div>
+      <div id="hlu-title"></div>
     </div>
     <div id="final-team-page">
       <div class="ft-teambox ft-teambox-blue">
@@ -3573,46 +3572,26 @@
       </div>
     </div>
     <div id="mvp-page">
-      <video id="mv-box-bg" autoplay muted loop playsinline src="/assets/mvp/mvptext.webm"></video>
       <img id="mv-hero-img" src="" alt="" onerror="this.style.display='none'">
       <img id="mv-photo" src="" alt="" onerror="this.style.display='none'">
+      <img id="mv-bg" src="" alt="">
 
-      <div id="mv-ofthegame">OF THE GAME</div>
-      <div id="mv-matchbox">
-        <div id="mv-matchbox-season">REGULAR SEASON</div>
-        <div id="mv-matchbox-game">MATCH 1 - GAME 1</div>
-      </div>
+      <img id="mv-team-logo" src="" alt="" onerror="this.style.display='none'">
+      <div id="mv-name" class="mv-gold-stat"></div>
+      <div id="mv-kda" class="mv-gold-stat">-/-/-</div>
+      <div id="mv-gold" class="mv-gold-stat">-</div>
 
-      <div id="mv-spell-title" class="mv-icon-title">SPELL</div>
       <img id="mv-spell" src="" alt="" onerror="this.style.visibility='hidden'">
-
-      <div id="mv-emblem-title" class="mv-icon-title">EMBLEM</div>
       <img id="mv-rune-main" class="mv-rune" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-rune-1" class="mv-rune" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-rune-2" class="mv-rune" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-rune-3" class="mv-rune" src="" alt="" onerror="this.style.visibility='hidden'">
-
-      <div id="mv-items-title" class="mv-icon-title">IN-GAME EQUIPMENTS</div>
       <img id="mv-item-0" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-item-1" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-item-2" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-item-3" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-item-4" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
       <img id="mv-item-5" class="mv-item" src="" alt="" onerror="this.style.visibility='hidden'">
-
-      <div id="mv-backer">
-        <div class="mv-logo"><img id="mv-team-logo" src="" alt="" onerror="this.style.display='none'"></div>
-        <div class="mv-role"><img id="mv-role-icon" src="" alt="" onerror="this.style.display='none'"></div>
-        <div id="mv-name"></div>
-        <div id="mv-kda-label" class="mv-stat-label">KDA</div>
-        <div id="mv-kda" class="mv-stat-value">-/-/-</div>
-        <!-- driven by the API's own mvp_title/mvp_value (see mvApply) —
-             not always literally GPM, e.g. can read "DAMAGE DEALT" / "26.88K" -->
-        <div id="mv-gpm-label" class="mv-stat-label">GPM</div>
-        <div id="mv-gpm" class="mv-stat-value">-</div>
-        <div id="mv-kp-label" class="mv-stat-label">KP%</div>
-        <div id="mv-kp" class="mv-stat-value">-</div>
-      </div>
     </div>
     <div id="credits-page">
       <div id="credits-viewport">
@@ -4087,6 +4066,14 @@
         if (msg.action === 'show') {
           document.getElementById('config-bar').classList.remove('debug-open');
           setTimeout(showTeamLineupRed, 100);
+        } else if (msg.action === 'hide') hideActiveFeature();
+      });
+
+      sseSource.addEventListener('herolineup', (e) => {
+        const msg = JSON.parse(e.data);
+        if (msg.action === 'show') {
+          document.getElementById('config-bar').classList.remove('debug-open');
+          setTimeout(showHeroLineupScene, 100);
         } else if (msg.action === 'hide') hideActiveFeature();
       });
 
@@ -5500,148 +5487,70 @@
     }
 
     /* ════════════════════════════════════════════════
-       WAITING LOBBY
+       WAITING LOBBY — stripped down (2026-09, rmc10) to just the rotating
+       player photos, a static league logo, and two name plates (team
+       logo static, player name still rotating). See the CSS comment above
+       #waiting-lobby-page for what was removed.
     ════════════════════════════════════════════════ */
-    const wlPage  = document.getElementById('waiting-lobby-page');
+    const wlPage = document.getElementById('waiting-lobby-page');
+    /* This scene no longer has its own sponsor box, but WL_ASSET stays —
+       Today's Schedule/Tomorrow's Schedule/Consolidated Post 2's own
+       sponsor-box builders (buildTsSponsor/buildTwSponsor/buildCp2Sponsor)
+       still read Sponsor_Box.png from this same folder via WL_ASSET. */
     const WL_ASSET = '/assets/Waiting Lobby/';
 
-    /* Match type → box art + pulsing rivalry banner, both sourced straight
-       from the Waiting Screen TVC folder (WS_MATCH_TYPE_ASSETS, defined
-       above) and resized via CSS to this box's 786×240 / band's 330×55
-       instead of keeping separate resized copies in the Waiting Lobby
-       folder. Box art no longer bakes in a VS graphic, so the no-score case
-       overlays the same SCORES/vs.png the Waiting Screen TVC uses. */
+    /* rmc10_lobbylogo.png / rmctag_left.png / rmctag_right.png live in the
+       active project's own assets folder (projects/<id>/assets/Fullscreen/),
+       same per-project asset resolution as Hero Lineup's loadHluBg().
+       Fetched once at load, not per-show — the active project doesn't
+       change mid-broadcast. */
+    (function loadWlAssets() {
+      fetch(buildUrl('/api/projects'), { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          const base = (d && d.active) ? '/projects/' + encodeURIComponent(d.active) + '/assets/Fullscreen/' : '';
+          document.getElementById('wl-league-logo').src = base ? base + 'rmc10_lobbylogo.png' : '';
+          document.getElementById('wl-pillars').src = base ? base + 'rmc10_pillars.png' : '';
+          const blueBg = document.querySelector('.wl-namebox-blue .wl-namebox-bg');
+          const redBg  = document.querySelector('.wl-namebox-red .wl-namebox-bg');
+          if (blueBg) blueBg.src = base ? base + 'rmctag_left.png' : '';
+          if (redBg)  redBg.src  = base ? base + 'rmctag_right.png' : '';
+        })
+        .catch(() => {});
+    })();
 
-    /* Current/next match — the single card the Waiting Lobby spotlights,
-       driven by ms.match (the same "which match is live" index the
-       middleboard's GAME/MATCH label uses) against ms.home/ms.away. */
-    function wlBuildMatch(state) {
-      if (!state) return null;
-      const matchNum = state.match || 1;
-      const tm = (state.todayMatches || [])[matchNum - 1] || {};
-      const seriesRaw = (state.series || 'BO3').toUpperCase();
-      const boMatch = seriesRaw.match(/^BO(\d+)$/);
-      const bo = boMatch ? 'BEST OF ' + boMatch[1] : seriesRaw;
-      const home = state.home || {}, away = state.away || {};
-      const s1 = home.score || tm.score1 || 0, s2 = away.score || tm.score2 || 0;
-      return {
-        label: 'MATCH ' + matchNum,
-        time: tm.time || '',
-        bo,
-        matchType: tm.matchType || (tm.star ? 'clash' : 'regular'),
-        left:  { tri: home.short || tm.team1Short || '', logo: (home.short || tm.team1Short) ? '/logos/' + encodeURIComponent(home.short || tm.team1Short) + '.png' : null },
-        right: { tri: away.short || tm.team2Short || '', logo: (away.short || tm.team2Short) ? '/logos/' + encodeURIComponent(away.short || tm.team2Short) + '.png' : null },
-        score: (s1 === 0 && s2 === 0) ? null : { l: s1, r: s2 },
-      };
+    /* Team logo — static, set once per show from the Match Board's own
+       home/away (blue = home, red = away — same convention the player
+       photo rotation below already uses), never touched again by the
+       player rotation (unlike the role icon this replaces). */
+    function wlApplyTeamLogos(ms) {
+      const home = (ms && ms.home) || {};
+      const away = (ms && ms.away) || {};
+      const blueLogo = document.getElementById('wl-blue-logo');
+      const redLogo  = document.getElementById('wl-red-logo');
+      blueLogo.onerror = () => { blueLogo.style.display = 'none'; };
+      blueLogo.style.display = '';
+      blueLogo.src = home.short ? '/logos/' + encodeURIComponent(home.short) + '.png' : '';
+      redLogo.onerror = () => { redLogo.style.display = 'none'; };
+      redLogo.style.display = '';
+      redLogo.src = away.short ? '/logos/' + encodeURIComponent(away.short) + '.png' : '';
     }
 
-    function buildWlMatch(state) {
-      const root = document.getElementById('wl-match');
-      const m = wlBuildMatch(state);
-      if (!m) { root.innerHTML = ''; return; }
-      const logo = (side) =>
-        `<div class="wlm-slot wlm-logo-${side}"><img src="${(side === 'l' ? m.left.logo : m.right.logo) || (WS_ASSET + 'Null_Icon.png')}" ` +
-        `onerror="this.onerror=null;this.src='${WS_ASSET}Null_Icon.png'" alt=""></div>`;
-      const center = m.score
-        ? `<div class="wlm-score"><span class="wlm-score-l">${m.score.l}</span><span class="wlm-score-div"></span><span class="wlm-score-r">${m.score.r}</span></div>`
-        : `<img class="wlm-vs" src="${WS_TVC_ASSET}SCORES/vs.png" alt="VS">`;
-      const typeAssets = WS_MATCH_TYPE_ASSETS[m.matchType] || WS_MATCH_TYPE_ASSETS.regular;
-      root.innerHTML =
-        `<div class="wlm-box"><img class="wlm-box-bg" src="${WS_TVC_ASSET}${typeAssets.box}.png" alt="">` +
-        `<span class="wlm-label">${m.label}</span>` +
-        (typeAssets.blinker
-          ? `<span class="wlm-time star">${m.time}</span>` +
-            `<div class="wlm-band-cot" style="--cot-mask:url('${WS_TVC_ASSET}${typeAssets.blinker}.png')"><img class="wlm-band-cot-img" src="${WS_TVC_ASSET}${typeAssets.blinker}.png" alt="${typeAssets.blinker}"></div>`
-          : `<span class="wlm-time">${m.time}</span>`) +
-        `<span class="wlm-bo">${m.bo}</span>` +
-        `<div class="wlm-slot wlm-tri wlm-tri-l">${m.left.tri}</div>` +
-        logo('l') +
-        `<div class="wlm-slot wlm-center">${center}</div>` +
-        logo('r') +
-        `<div class="wlm-slot wlm-tri wlm-tri-r">${m.right.tri}</div></div>`;
-    }
-
-    /* Sponsor box — Draft/in-game style loop (see startWlSponsorLoop below):
-       same /api/sponsors source, per-sponsor duration, and slide timing as
-       Draft.html's #sponsor-loop, instead of the Waiting Screen TVC's fixed
-       3s crossfade. */
-    function buildWlSponsor() {
-      document.getElementById('wl-sponsor').innerHTML =
-        `<img class="wl-sponsor-bg" src="${WL_ASSET}Sponsor_Box.png" alt="Official Sponsor">` +
-        `<div class="sponsor-cat-label" id="wl-sponsor-cat"></div>` +
-        `<div class="wl-sponsor-loop"><img id="wl-sponsor-img" src="" alt=""></div>`;
-    }
-    buildWlSponsor();
-
-    let wlSponsors = [], wlSponsorIdx = 0, wlSponsorActive = false;
-    let wlSponsorInHandler = null, wlSponsorOutHandler = null, wlSponsorHoldTimer = null;
-
-    function startWlSponsorLoop() {
-      wlSponsorActive = true;
-      fetch('/api/sponsors').then(r => r.json()).then(list => {
-        if (!wlSponsorActive || !list || !list.length) return;
-        wlSponsors = list;
-        wlSponsorIdx = 0;
-        runWlSponsorLoop();
-      }).catch(() => {});
-    }
-
-    function runWlSponsorLoop() {
-      if (!wlSponsorActive) return;
-      const img = document.getElementById('wl-sponsor-img');
-      if (!img) return;
-      const s = wlSponsors[wlSponsorIdx];
-      img.className = '';
-      img.src = s.src;
-      updateSponsorCatLabel('wl-sponsor-cat', s.category);
-      void img.offsetWidth;
-      img.classList.add('spon-in');
-
-      wlSponsorInHandler = (ev) => {
-        if (ev.propertyName !== 'transform') return;
-        img.removeEventListener('transitionend', wlSponsorInHandler);
-        wlSponsorHoldTimer = setTimeout(() => {
-          if (!wlSponsorActive) return;
-          img.classList.remove('spon-in');
-          img.classList.add('spon-out');
-          wlSponsorOutHandler = (ev2) => {
-            if (ev2.propertyName !== 'transform') return;
-            img.removeEventListener('transitionend', wlSponsorOutHandler);
-            if (!wlSponsorActive) return;
-            wlSponsorIdx = (wlSponsorIdx + 1) % wlSponsors.length;
-            runWlSponsorLoop();
-          };
-          img.addEventListener('transitionend', wlSponsorOutHandler);
-        }, s.dur);
-      };
-      img.addEventListener('transitionend', wlSponsorInHandler);
-    }
-
-    function stopWlSponsorLoop() {
-      wlSponsorActive = false;
-      clearTimeout(wlSponsorHoldTimer);
-      const img = document.getElementById('wl-sponsor-img');
-      if (img) {
-        img.removeEventListener('transitionend', wlSponsorInHandler);
-        img.removeEventListener('transitionend', wlSponsorOutHandler);
+    /* Shrink-to-fit — same pattern as hluFitText/hlFitName/mvFitName
+       elsewhere in this file. */
+    function wlFitNameMeasure(el, maxSize, minSize) {
+      let size = maxSize;
+      el.style.fontSize = size + 'px';
+      while (el.scrollWidth > el.clientWidth && size > minSize) {
+        size -= 1;
+        el.style.fontSize = size + 'px';
       }
     }
-
-    /* Countdown timer — server-authoritative, same ms.timer/countdownLabel
-       binding as the Waiting Screen TVC (see renderTimerFromState above),
-       using this scene's own label art. */
-    let wlTimerState = WS_TIMER_DEFAULT;
-    const wlTimerValue = document.getElementById('wl-timer-value');
-    let wlTimerInt = null;
-
-    function startWlTimer() {
-      clearInterval(wlTimerInt);
-      renderTimerFromState(wlTimerValue, wlTimerState);
-      wlTimerInt = setInterval(() => renderTimerFromState(wlTimerValue, wlTimerState), 250);
-    }
-    function stopWlTimer() {
-      clearInterval(wlTimerInt);
-      wlTimerInt = null;
+    function wlFitName(el) {
+      wlFitNameMeasure(el, 41.67, 20);
+      if (document.fonts && document.fonts.status !== 'loaded') {
+        document.fonts.ready.then(() => wlFitNameMeasure(el, 41.67, 20));
+      }
     }
 
     /* Player spotlight — rotates through each side's 5-man lineup, home side
@@ -5669,23 +5578,21 @@
     }
 
     function wlApplyPlayer(side, player) {
-      const ign  = player && player.ign;
-      const role = player && player.role;
-      const nameEl  = document.getElementById('wl-' + side + '-name');
-      const logoEl  = document.getElementById('wl-' + side + '-logo');
-      const nameEls = [nameEl, logoEl];
+      const ign = player && player.ign;
+      const nameEl = document.getElementById('wl-' + side + '-name');
 
-      // Name/role: scoreboard-style — out slides down + fades, in starts
-      // above and slides down + fades in.
-      nameEls.forEach(el => el.classList.add('wl-slide-out'));
+      // Name: scoreboard-style — out slides down + fades, in starts above
+      // and slides down + fades in. The team logo beside it is static (see
+      // wlApplyTeamLogos) and is no longer touched here.
+      nameEl.classList.add('wl-slide-out');
       setTimeout(() => {
         nameEl.textContent = ign || '';
-        logoEl.onerror = () => { logoEl.style.display = 'none'; };
-        logoEl.style.display = '';
-        logoEl.src = role ? '/role/' + encodeURIComponent(roleFile(role)) + '.png' : '';
-        nameEls.forEach(el => { el.classList.add('wl-no-transition'); el.classList.remove('wl-slide-out'); el.classList.add('wl-slide-in'); });
+        wlFitName(nameEl);
+        nameEl.classList.add('wl-no-transition');
+        nameEl.classList.remove('wl-slide-out');
+        nameEl.classList.add('wl-slide-in');
         void nameEl.offsetWidth; // force reflow so the jump is applied before we transition back
-        nameEls.forEach(el => el.classList.remove('wl-no-transition', 'wl-slide-in'));
+        nameEl.classList.remove('wl-no-transition', 'wl-slide-in');
       }, 260);
 
       // Photo: cross-fade the two layers — no fallback image on a missing
@@ -5750,31 +5657,22 @@
       wlPlayerInt = null;
     }
 
-    function updateWlFromState(ms) {
-      if (!ms) return;
-      syncClockOffset(ms);
-      if (ms.week != null && ms.day != null) {
-        document.getElementById('wl-week-label').textContent = 'WEEK ' + ms.week + ' - DAY ' + ms.day;
-      }
-      buildWlMatch(ms);
-      const labelImg = document.getElementById('wl-timer-label-img');
-      const label = ms.countdownLabel === 'SHOW RESUMES IN' ? 'SHOW RESUMES IN' : 'SHOW STARTS IN';
-      if (labelImg.textContent !== label) labelImg.textContent = label;
-      wlTimerState = ms.timer || WS_TIMER_DEFAULT;
-      startWlPlayerCycle(ms);
-    }
-
     async function showWaitingLobby() {
       const msPromise = fetch(buildUrl('/match/state'), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null).catch(() => null);
       await transitionTo('lobby');
       const ms = await msPromise;
       if (activeFeature !== 'lobby') return; /* superseded while awaiting match state */
-      updateWlFromState(ms);
+      wlApplyTeamLogos(ms);
       showBgVideo();
-      startWlTimer();
-      startWlSponsorLoop();
       wlPage.classList.add('wl-on');
+      /* startWlPlayerCycle (and its first wlShowPlayers -> wlApplyPlayer ->
+         wlFitName) must run AFTER 'wl-on' sets display:block — an element
+         inside a display:none ancestor reports clientWidth/scrollWidth of
+         0, which would silently defeat wlFitName's shrink-to-fit on the
+         very first player shown (same bug/fix as Hero Lineup's
+         hluFitAllText — see that scene's comment for the full story). */
+      startWlPlayerCycle(ms);
       void wlPage.offsetWidth; /* force reflow so the opacity transition runs */
       wlPage.classList.add('wl-visible');
     }
@@ -5786,8 +5684,6 @@
         setTimeout(() => {
           wlPage.classList.remove('wl-on');
           hideBgVideo();
-          stopWlTimer();
-          stopWlSponsorLoop();
           stopWlPlayerCycle();
           resolve();
         }, 420);
@@ -6342,15 +6238,30 @@
     }
 
     /* ════════════════════════════════════════════════
-       MVP SCENE — full MVP-of-the-game card: team plaque row (logo /
-       role icon / name / KDA / GPM / KP%), giant MVP box (hero art +
-       signature photo behind mvptext.webm), spell / emblem (rune) /
-       item row, and season + match/game plate. Player stats come from
-       the same game-mvp/view API as MVP Highlights above (reuses
-       hlFetchMvp/hlExtractPlayer); match/game number comes from
-       /match/state instead, same source middleboard uses.
+       MVP SCENE — rebuilt (2026-09, rmc10). Hero art + player photo
+       (behind the background art), team logo, player name, KDA/Gold
+       values, skill icon, item row, main rune + 3 sub runes. Player data
+       now comes from the live Game API (/api/gamedata-proxy) — the same
+       feed Hero Lineup/Final Team read — picked by roleid via the
+       dashboard's MVP player-select dropdown (/api/mvp-selection), NOT
+       the separate MVP-designated API MVP Highlights above still uses
+       (hlFetchMvp/hlExtractPlayer are untouched, still theirs alone).
     ════════════════════════════════════════════════ */
     const mvPage = document.getElementById('mvp-page');
+
+    /* rmc10_mvpbg.png lives in the active project's own assets folder,
+       same per-project asset resolution as Hero Lineup's loadHluBg() /
+       Waiting Lobby's loadWlAssets(). Fetched once at load, not per-show. */
+    (function loadMvBg() {
+      fetch(buildUrl('/api/projects'), { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          document.getElementById('mv-bg').src = (d && d.active)
+            ? '/projects/' + encodeURIComponent(d.active) + '/assets/Fullscreen/rmc10_mvpbg.png'
+            : '';
+        })
+        .catch(() => {});
+    })();
 
     function mvRuneUrl(id) {
       return id ? '/emblem/square_' + id + '_RUNES.png' : '';
@@ -6363,130 +6274,84 @@
       return '/heromvp/MVP_' + heroid + '.png';
     }
 
+    /* /hires/LEFT/<name>_LEFT.png — same folder/convention as Waiting
+       Lobby's wlPhotoUrl('blue' side), NOT hlPhotoUrl's SIGNATURE folder
+       (that one stays MVP Highlights' own, untouched). */
+    function mvPhotoUrl(name) {
+      return name ? '/hires/LEFT/' + encodeURIComponent(name + '_LEFT.png') : '';
+    }
+
     /* Centered, starts near the box height, shrinks to fit the box width
-       if it ever overflows — same approach as mvFitName/hlFitName. */
+       if it ever overflows — still shared with MVP Highlights' own stat
+       values (hlst-kda-value etc.), untouched. */
     function mvFitStatValue(el, maxSize, minSize) {
       let size = maxSize;
       el.style.fontSize = size + 'px';
-      /* Strict > (not >=) — same as every other shrink-to-fit helper in
-         this file. scrollWidth is spec'd to never read below clientWidth,
-         so short content that fits comfortably still reports
-         scrollWidth === clientWidth (the normal "fits fine" case, not an
-         edge case) — a >= comparison misreads that as "still overflowing"
-         and shrinks every value straight to minSize regardless of actual
-         length, which is what was happening here. A previous version used
-         >= to catch one specific near-exact-fit case ("DAMAGE DEALT" at
-         width 134 == 134) clipping a sub-pixel glyph sliver, but that
-         traded a correct, universal case for a rare, minor cosmetic one. */
       while (el.scrollWidth > el.clientWidth && size > minSize) {
         size -= 1;
         el.style.fontSize = size + 'px';
       }
     }
 
-    /* User-editable ceiling for the shrink-to-fit search below (dashboard
-       Edit tab: MVP Scene → Player Name → Font Size). A blanket
-       `!important` CSS override (the normal mechanism every other
-       editable property uses — see the fullscreen-overrides IIFE near the
-       bottom of this file) would always beat mvFitNameMeasure's own
-       inline font-size assignment and permanently pin the name at
-       whatever size was last saved — exactly the bug this was: the name
-       overflowed and got cropped because #mv-name had a saved fontSize
-       that silenced the shrink-to-fit entirely, no matter how long the
-       name was. Same fix as .sidecheck-name (SIDECHECK_NAME_FONT_CEILING
-       in overlay-sidecheck-core.js) — this value is a ceiling the fit
-       search starts from and shrinks below as needed, not a fixed size. */
-    let MV_NAME_FONT_CEILING = 52;
-    (function loadMvNameFontSize() {
-      fetch('/api/overlay-styles?file=fullscreen')
-        .then(r => r.json())
-        .then(styles => {
-          const v = styles && styles['#mv-name'] && styles['#mv-name'].fontSize;
-          const n = v && parseFloat(v);
-          if (n) MV_NAME_FONT_CEILING = n;
-        })
-        .catch(() => {});
-    })();
-
-    /* Left-aligned single line that starts near the box height, then
-       shrinks to fit the box width — same approach as hlFitName, just
-       left- instead of center-aligned. */
-    function mvFitNameMeasure(el) {
-      const MIN_SIZE = 12;
-      let size = MV_NAME_FONT_CEILING;
+    /* Shrink-to-fit for this scene's own Bebas Neue text (name/KDA/gold) —
+       same pattern as hluFitText/wlFitName elsewhere in this file: re-
+       measure once document.fonts.ready resolves, since Bebas Neue loads
+       async and an early measurement can under/over-size the text. */
+    function mvFitTextMeasure(el, maxSize, minSize) {
+      let size = maxSize;
       el.style.fontSize = size + 'px';
-      while (el.scrollWidth > el.clientWidth && size > MIN_SIZE) {
+      while (el.scrollWidth > el.clientWidth && size > minSize) {
         size -= 1;
         el.style.fontSize = size + 'px';
       }
     }
-    function mvFitName(el) {
-      mvFitNameMeasure(el);
-      /* General Sans loads async (font-display:block) — if this runs
-         before it's ready, the measurement above is against fallback-font
-         glyphs and can under/over-size the text (same issue as
-         killFitName in overlay-killevents.js). Re-measure once the real
-         face is in. */
+    function mvFitText(el, maxSize, minSize) {
+      mvFitTextMeasure(el, maxSize, minSize);
       if (document.fonts && document.fonts.status !== 'loaded') {
-        document.fonts.ready.then(() => mvFitNameMeasure(el));
+        document.fonts.ready.then(() => mvFitTextMeasure(el, maxSize, minSize));
       }
     }
-    /* Called from dashboard.html's applyToEditIframe() while dragging the
-       Font Size field for #mv-name — same cross-frame-call pattern as
-       window.sidecheckSetNameFontCeiling. */
-    window.mvSetNameFontCeiling = function(v) {
-      const n = parseFloat(v);
-      if (!n) return;
-      MV_NAME_FONT_CEILING = n;
-      const el = document.getElementById('mv-name');
-      if (el) mvFitNameMeasure(el);
-    };
+    /* Must run AFTER #mvp-page has 'mv-on' (display:block) — see
+       Hero Lineup's hluFitAllText comment for why (clientWidth/scrollWidth
+       both read 0 inside a display:none ancestor, silently defeating the
+       shrink loop above). */
+    function mvFitAllText() {
+      mvFitText(document.getElementById('mv-name'), 90, 45);
+      mvFitText(document.getElementById('mv-kda'), 60, 30);
+      mvFitText(document.getElementById('mv-gold'), 60, 30);
+    }
 
-    async function mvFetchMatchState() {
+    /* The caster's MVP pick (dashboard MVP dropdown) — a roleid into the
+       live Game API's current seat list, not a player picked by the API
+       itself. */
+    async function mvFetchSelection() {
       try {
-        const r = await fetch(buildUrl('/match/state'), { cache: 'no-store' });
+        const r = await fetch(buildUrl('/api/mvp-selection'), { cache: 'no-store' });
         if (!r.ok) return null;
         return await r.json();
       } catch (e) { return null; }
     }
 
-    function mvApplyMatchLabel(ms) {
-      /* Match number is the manually-set /match/state field; game number
-         must track the actual series score, not the separate (and easily
-         stale) ms.game counter — the current total score IS the current
-         game number (1-1 → Game 2), no +1. */
-      const matchNum = (ms && ms.match) || 1;
-      const homeScore = (ms && ms.home && ms.home.score) || 0;
-      const awayScore = (ms && ms.away && ms.away.score) || 0;
-      const gameNum   = homeScore + awayScore;
-      document.getElementById('mv-matchbox-game').textContent = 'MATCH ' + matchNum + ' - GAME ' + gameNum;
+    function mvFindSeat(gameData, roleid) {
+      if (roleid == null) return null;
+      const camps = (gameData && gameData.camp_list) || [];
+      for (const c of camps) {
+        for (let n = 1; n <= 5; n++) {
+          const seat = c && c['seat_' + n];
+          if (seat && seat.roleid === roleid) return seat;
+        }
+      }
+      return null;
     }
 
-    function mvApply(player, ms) {
-      /* campid 1 = left/team1 (blue), campid 2 = right/team2 (red) —
-         same convention as MVP Highlights / the main-info API. */
-      const isRed = player && player.campid === 2;
-      document.getElementById('mv-backer').style.backgroundImage =
-        `url('/assets/mvp/${isRed ? 'mvpfsred' : 'mvpfsblue'}.png')`;
-
+    function mvApply(player) {
       const logoEl = document.getElementById('mv-team-logo');
       const tricode = ((player && player.team_simple_name) || '').toUpperCase();
       logoEl.onerror = () => { logoEl.style.display = 'none'; };
       logoEl.style.display = '';
       logoEl.src = tricode ? '/logos/' + encodeURIComponent(tricode) + '.png' : '';
 
-      const roleEl = document.getElementById('mv-role-icon');
-      roleEl.onerror = () => { roleEl.style.display = 'none'; };
-      roleEl.style.display = '';
-      roleEl.src = (player && player.role) ? '/role/' + encodeURIComponent(roleFile(player.role)) + '.png' : '';
-
-      const nameEl = document.getElementById('mv-name');
-      nameEl.textContent = (player && player.name) || '';
-      /* Not fit here — #mvp-page is still display:none at this point (see
-         showMvpScene, which calls mvApply before adding .mv-on), so
-         clientWidth/scrollWidth both read 0 and the shrink loop below
-         never actually runs, leaving every name at MAX_SIZE regardless of
-         length. Fit again once the page is actually laid out instead. */
+      document.getElementById('mv-name').textContent = (player && player.name) || '';
 
       const heroImg = document.getElementById('mv-hero-img');
       heroImg.onerror = () => { heroImg.style.display = 'none'; };
@@ -6496,7 +6361,7 @@
       const photoEl = document.getElementById('mv-photo');
       photoEl.onerror = () => { photoEl.style.display = 'none'; };
       photoEl.style.display = '';
-      photoEl.src = hlPhotoUrl(player && player.name);
+      photoEl.src = mvPhotoUrl(player && player.name);
 
       const spellEl = document.getElementById('mv-spell');
       spellEl.onerror = () => { spellEl.style.visibility = 'hidden'; };
@@ -6530,39 +6395,26 @@
       }
 
       const kdaEl = document.getElementById('mv-kda');
-      kdaEl.textContent = (player && player.kda) || '-/-/-';
-      mvFitStatValue(kdaEl, 64, 32);
+      kdaEl.textContent = player
+        ? ((player.kill_num || 0) + '/' + (player.dead_num || 0) + '/' + (player.assist_num || 0))
+        : '-/-/-';
 
-      /* mv-gpm-label/mv-gpm double as a generic "MVP stat" slot — the API
-         itself decides which stat earned MVP (GPM, damage dealt, damage
-         taken, assists, ...) and names it via mvp_title/mvp_value, so we
-         just display whatever it says instead of hardcoding gpm/GPM. */
-      const gpmLabelEl = document.getElementById('mv-gpm-label');
-      gpmLabelEl.textContent = (player && player.mvp_title) || 'GPM';
-
-      const gpmEl = document.getElementById('mv-gpm');
-      gpmEl.textContent = mvFormatStatValue(player && player.mvp_value);
-      mvFitStatValue(gpmEl, 64, 32);
-
-      const kpEl = document.getElementById('mv-kp');
-      kpEl.textContent = (player && player.kp != null) ? player.kp + '%' : '-';
-      mvFitStatValue(kpEl, 64, 32);
-
-      mvApplyMatchLabel(ms);
+      document.getElementById('mv-gold').textContent =
+        (player && player.gold != null) ? mvFormatStatValue(player.gold) : '-';
     }
 
     async function showMvpScene() {
-      const dataPromise = hlFetchMvp();
-      const msPromise   = mvFetchMatchState();
+      const selPromise = mvFetchSelection();
+      const gdPromise  = fetch(buildUrl('/api/gamedata-proxy'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
       await transitionTo('mvp');
-      const [payload, ms] = await Promise.all([dataPromise, msPromise]);
+      const [sel, gd] = await Promise.all([selPromise, gdPromise]);
       if (activeFeature !== 'mvp') return; /* superseded while awaiting data */
-      mvApply(hlExtractPlayer(payload), ms);
-      await preloadMedia(mvPage.querySelectorAll('img, video'), 1500);
+      mvApply(mvFindSeat(gd && gd.data, sel && sel.roleid));
+      await preloadMedia(mvPage.querySelectorAll('img'), 1500);
       if (activeFeature !== 'mvp') return; /* superseded while preloading */
       showBgVideo();
       mvPage.classList.add('mv-on');
-      mvFitName(document.getElementById('mv-name')); /* now has real layout to measure against */
+      mvFitAllText(); /* now has real layout to measure against */
       void mvPage.offsetWidth; /* force reflow so the opacity transition runs */
       mvPage.classList.add('mv-visible');
     }
@@ -6964,6 +6816,184 @@
         setTimeout(() => {
           ftPage.classList.remove('ft-on');
           hideBgVideo();
+          resolve();
+        }, 420);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       HERO LINEUP (rmc10) — fullscreen 10-player hero reveal
+    ════════════════════════════════════════════════ */
+    const hluPage = document.getElementById('hlu-page');
+
+    /* rmc10_herolineup.png lives in the active project's own assets folder
+       (projects/<id>/assets/Fullscreen/rmc10_herolineup.png), same
+       per-project asset resolution as overlay-emblemcheck.js's eccBgUrl —
+       resolved fresh via the active project instead of a hardcoded
+       project id. Fetched once at load, not per-show: the active project
+       doesn't change mid-broadcast. */
+    (function loadHluBg() {
+      fetch(buildUrl('/api/projects'), { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          document.getElementById('hlu-bg').src = (d && d.active)
+            ? '/projects/' + encodeURIComponent(d.active) + '/assets/Fullscreen/rmc10_herolineup.png'
+            : '';
+        })
+        .catch(() => {});
+    })();
+
+    function hluHeroUrl(heroId) { return heroId ? '/assets/draft/webm/HERO_PICK_DRAFT_' + heroId + '.webm' : ''; }
+    function hluLogoUrl(tri) { return tri ? '/logos/' + encodeURIComponent(tri) + '.png' : ''; }
+
+    /* Same campid-strict convention as Final Team's ftResolveCardCamps —
+       campid 1 is always blue/Team 1 (top row), campid 2 always red/Team 2
+       (bottom row), regardless of the Match Board's own home/away/swapped
+       call. */
+    function hluResolveCamps(gameData) {
+      const camps = (gameData && gameData.camp_list) || [];
+      return {
+        blueCamp: camps.find(c => c.campid === 1) || null,
+        redCamp:  camps.find(c => c.campid === 2) || null,
+      };
+    }
+
+    /* Shrink-to-fit — same pattern as hlFitName/mvFitNameMeasure elsewhere
+       in this file. maxSize is the Exima/Bebas point size converted from
+       the design spec's Npt@300dpi (N * 300/72). */
+    function hluFitTextMeasure(el, maxSize, minSize) {
+      let size = maxSize;
+      el.style.fontSize = size + 'px';
+      while (el.scrollWidth > el.clientWidth && size > minSize) {
+        size -= 1;
+        el.style.fontSize = size + 'px';
+      }
+    }
+    /* Exima/Bebas Neue load async (font-display:block, like every @font-face
+       in this app) — measuring before the real face is in sizes against
+       fallback-font glyphs, which can under-shrink and then overflow (get
+       clipped by .hlu-name-box's overflow:hidden) once the real face swaps
+       in. Same fix as mvFitName/hlFitName elsewhere in this file: re-measure
+       once document.fonts.ready resolves. */
+    function hluFitText(el, maxSize, minSize) {
+      hluFitTextMeasure(el, maxSize, minSize);
+      if (document.fonts && document.fonts.status !== 'loaded') {
+        document.fonts.ready.then(() => hluFitTextMeasure(el, maxSize, minSize));
+      }
+    }
+
+    function hluApplyTeam(prefix, logoEl, nameEl, camp) {
+      /* Some upstream feed variants put team_simple_name directly on the
+         camp object (matches Final Team's ftResolveCardCamps), others only
+         nest it inside each seat — fall back to seat_1's copy rather than
+         rendering a blank team name/logo if the camp-level field is
+         missing. */
+      const tri = (camp && camp.team_simple_name) || (camp && camp.seat_1 && camp.seat_1.team_simple_name) || '';
+      logoEl.onerror = () => { logoEl.style.display = 'none'; };
+      logoEl.style.display = '';
+      logoEl.src = hluLogoUrl(tri);
+      nameEl.textContent = tri;
+
+      for (let n = 1; n <= 5; n++) {
+        const seat = camp && camp['seat_' + n];
+        const heroEl = document.getElementById('hlu-' + prefix + '-hero-' + n);
+        const nameBox = document.getElementById('hlu-' + prefix + '-name-' + n);
+        const heroUrl = seat && seat.heroid ? hluHeroUrl(seat.heroid) : '';
+        heroEl.src = heroUrl;
+        /* autoplay attribute alone isn't reliable once a src is assigned
+           to an already-parsed <video> — explicit .play() is the same
+           belt-and-suspenders idiom Draft.html/Draft-realme.html use for
+           this exact HERO_PICK_DRAFT asset (e.g. heroVid.play()). .catch
+           swallows a browser autoplay-policy rejection instead of an
+           unhandled promise rejection. Checking heroUrl (not heroEl.src —
+           reading back an emptied video/img src resolves to the current
+           page's own URL, not '') avoids calling .play() with no real
+           source. */
+        if (heroUrl) heroEl.play().catch(() => {});
+        nameBox.textContent = (seat && seat.name) || '';
+      }
+    }
+
+    function hluApplyTitle(ms) {
+      const stage  = ((ms && ms.stage)  || 'Quarter Finals').toUpperCase();
+      const series = ((ms && ms.series) || 'BO5').toUpperCase();
+      const game   = (ms && ms.game != null) ? ms.game : 1;
+      document.getElementById('hlu-title').textContent = stage + ' - ' + series + ' - GAME ' + game;
+    }
+
+    /* Shrink-to-fit every text element in the scene — must run AFTER
+       #hlu-page has 'hlu-on' (display:block), not while it's still
+       display:none: an element inside a display:none ancestor reports
+       clientWidth/scrollWidth of 0, so the shrink loop's own overflow
+       check (scrollWidth > clientWidth) never fires and the text is left
+       at maxSize, overflowing once the page actually becomes visible.
+       Same "now has real layout to measure against" ordering as
+       showMvpScene's mvFitName call. */
+    function hluFitAllText() {
+      hluFitText(document.getElementById('hlu-team1-name'), 66.67, 33);
+      hluFitText(document.getElementById('hlu-team2-name'), 66.67, 33);
+      for (let n = 1; n <= 5; n++) {
+        hluFitText(document.getElementById('hlu-t1-name-' + n), 33.33, 16);
+        hluFitText(document.getElementById('hlu-t2-name-' + n), 33.33, 16);
+      }
+      hluFitText(document.getElementById('hlu-title'), 33.33, 16);
+    }
+
+    /* Staggered "button-in" reveal — Team 1 Player 1 and Team 2 Player 1
+       button in together, then both Player 2s, and so on. 4 gaps of 250ms
+       plus the last card's own 480ms transition lands the whole reveal
+       inside 1.5s. */
+    const HLU_REVEAL_STAGGER_MS = 250;
+    function hluPlayReveal() {
+      for (let n = 1; n <= 5; n++) {
+        setTimeout(() => {
+          if (activeFeature !== 'herolineup') return; /* superseded mid-reveal */
+          document.getElementById('hlu-t1-hero-' + n).classList.add('hlu-in');
+          document.getElementById('hlu-t1-name-' + n).classList.add('hlu-in');
+          document.getElementById('hlu-t2-hero-' + n).classList.add('hlu-in');
+          document.getElementById('hlu-t2-name-' + n).classList.add('hlu-in');
+        }, (n - 1) * HLU_REVEAL_STAGGER_MS);
+      }
+    }
+    function hluResetReveal() {
+      hluPage.querySelectorAll('.hlu-in').forEach(el => el.classList.remove('hlu-in'));
+    }
+
+    /* Live feed can be slow/unavailable — cap how long the reveal waits on
+       it, same as Final Team's FT_FEED_TIMEOUT_MS. */
+    const HLU_FEED_TIMEOUT_MS = 1200;
+
+    async function showHeroLineupScene() {
+      const msPromise = fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+      const gdPromise = fetch(buildUrl('/api/gamedata-proxy'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+      await transitionTo('herolineup');
+      const ms = await msPromise;
+      if (activeFeature !== 'herolineup') return; /* superseded while awaiting match state */
+      hluApplyTitle(ms);
+
+      const gd = await Promise.race([gdPromise, new Promise(r => setTimeout(r, HLU_FEED_TIMEOUT_MS))]);
+      if (activeFeature !== 'herolineup') return; /* superseded while awaiting the feed */
+      const { blueCamp, redCamp } = hluResolveCamps(gd && gd.data);
+      hluApplyTeam('t1', document.getElementById('hlu-logo-blue'), document.getElementById('hlu-team1-name'), blueCamp);
+      hluApplyTeam('t2', document.getElementById('hlu-logo-red'),  document.getElementById('hlu-team2-name'), redCamp);
+
+      await preloadMedia(hluPage.querySelectorAll('img, video'), 1500);
+      if (activeFeature !== 'herolineup') return; /* superseded while preloading */
+
+      hluPage.classList.add('hlu-on');
+      hluFitAllText(); /* now has real layout to measure against */
+      void hluPage.offsetWidth; /* force reflow so the opacity transition runs */
+      hluPage.classList.add('hlu-visible');
+      hluPlayReveal();
+    }
+
+    function hideHeroLineupScene() {
+      activeFeature = null;
+      hluPage.classList.remove('hlu-visible');
+      return new Promise(resolve => {
+        setTimeout(() => {
+          hluPage.classList.remove('hlu-on');
+          hluResetReveal();
           resolve();
         }, 420);
       });
@@ -7569,8 +7599,8 @@
       if (mbVisible) fetchMatchBoardData();
       /* Waiting Screen TVC rows + week/day chip */
       if (activeFeature === 'waiting') updateWsFromState(ms);
-      /* Waiting Lobby match card + week/day chip + timer */
-      if (activeFeature === 'lobby') updateWlFromState(ms);
+      /* Waiting Lobby team logos + player rotation */
+      if (activeFeature === 'lobby') { wlApplyTeamLogos(ms); startWlPlayerCycle(ms); }
       /* Today's Schedule rows + week/day chip */
       if (activeFeature === 'schedule') {
         if (ms.week != null && ms.day != null) {
@@ -7589,14 +7619,10 @@
       }
       /* Standings week/day chip */
       if (activeFeature === 'standings') stApplyWeekDay(ms);
-      /* MVP Scene match/game plate is intentionally NOT kept live here —
-         MVP is a post-game segment for the game that just ended, and the
-         Match Board's game/match counter is often bumped to the next game
-         before MVP is shown/while it's still on screen. Reacting to that
-         live would make MVP show the upcoming game instead of the one it's
-         actually about. mvApplyMatchLabel only runs once, in showMvpScene,
-         so it stays locked to whatever Match Board said at that moment —
-         same number Middle Board was showing during that game. */
+      /* MVP Scene no longer reads /match/state at all (it has no
+         match/game plate anymore) — it's fully driven by the live Game
+         API + the dashboard's MVP player-select, so there's nothing here
+         for a Match Board update to refresh. */
     }
 
     /* ════════════════════════════════════════════════
@@ -7729,6 +7755,7 @@
       if (prev === 'finalteam') return hideFinalTeam();
       if (prev === 'lineupblue') return hideTeamLineupBlue();
       if (prev === 'lineupred') return hideTeamLineupRed();
+      if (prev === 'herolineup') return hideHeroLineupScene();
       if (prev === 'schedule') return hideTodaySchedule();
       if (prev === 'tomorrow') return hideTomorrowSchedule();
       if (prev === 'standings') return hideStandings();
@@ -9819,6 +9846,7 @@
           else if (scene.activeFeature === 'finalteam') showFinalTeam();
           else if (scene.activeFeature === 'lineupblue') showTeamLineupBlue();
           else if (scene.activeFeature === 'lineupred') showTeamLineupRed();
+          else if (scene.activeFeature === 'herolineup') showHeroLineupScene();
           else if (scene.activeFeature === 'schedule') showTodaySchedule().then(() => applyTsHighlight(scene.scheduleHighlight || 0));
           else if (scene.activeFeature === 'tomorrow') showTomorrowSchedule();
           else if (scene.activeFeature === 'standings') showStandings();
@@ -9854,6 +9882,7 @@
         if (feature === 'finalteam') showFinalTeam();
         if (feature === 'lineupblue') showTeamLineupBlue();
         if (feature === 'lineupred') showTeamLineupRed();
+        if (feature === 'herolineup') showHeroLineupScene();
         if (feature === 'schedule') showTodaySchedule();
         if (feature === 'tomorrow') showTomorrowSchedule();
         if (feature === 'standings') showStandings();
@@ -9868,7 +9897,7 @@
     window.previewTrigger = function(event, action) {
       document.querySelectorAll('.dbg-btn.preview').forEach(b => b.classList.remove('active'));
       if (action === 'show') {
-        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_lobby: 'preview-lobby', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', standings: 'preview-standings', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key' };
+        const btnMap = { post_hearts: 'preview-hearts', post_itemline: 'preview-timeline', post_richguy: 'preview-richguy', post_emblems: 'preview-emblems', post_items: 'preview-items', waiting_tvc: 'preview-waiting', waiting_lobby: 'preview-lobby', today_schedule: 'preview-schedule', tomorrow_schedule: 'preview-tomorrowschedule', standings: 'preview-standings', team_hexagon: 'preview-hexagon', highlights: 'preview-highlights', mvp: 'preview-mvp', final_team: 'preview-finalteam', team_lineup_blue: 'preview-lineupblue', team_lineup_red: 'preview-lineupred', post4key: 'preview-post4key', herolineup: 'preview-herolineup' };
         const btn = document.getElementById(btnMap[event]);
         if (btn) btn.classList.add('active');
       }
@@ -9884,6 +9913,7 @@
         if (event === 'final_team') showFinalTeam();
         if (event === 'team_lineup_blue') showTeamLineupBlue();
         if (event === 'team_lineup_red') showTeamLineupRed();
+        if (event === 'herolineup')    showHeroLineupScene();
         if (event === 'today_schedule') showTodaySchedule();
         if (event === 'tomorrow_schedule') showTomorrowSchedule();
         if (event === 'standings')     showStandings();
@@ -9922,16 +9952,6 @@
         .then(function(r) { return r.json(); })
         .then(function(styles) {
           if (!styles || !Object.keys(styles).length) return;
-          /* #mv-name's saved fontSize is read directly by mvFitNameMeasure
-             (MV_NAME_FONT_CEILING, see loadMvNameFontSize above) instead of
-             being injected as a blanket override here — a `!important`
-             rule would always win over that function's own inline
-             font-size assignment, permanently defeating its shrink-to-
-             fit-the-box protection for long names (same reasoning as
-             .sidecheck-name/#sb-mi-patch/#sb-mi-casters in
-             overlay-scoreboard.js's loadSbOverrides). Left/top/width/
-             height are NOT excluded — still real CSS box dimensions. */
-          var skipFontSize = function(sel) { return sel === '#mv-name'; };
           var css = Object.keys(styles).map(function(sel) {
             var props = styles[sel];
             var native = TW_MATCHES_SCALE_NATIVE[sel];
@@ -9947,7 +9967,7 @@
               return sel + '{' + decls.join(';') + '}';
             }
             var decls = Object.keys(props).filter(function(prop) {
-              return prop !== 'asset' && !(skipFontSize(sel) && prop === 'fontSize');
+              return prop !== 'asset';
             }).map(function(prop) {
               var cssProp = prop === 'fontSize' ? 'font-size' : prop;
               return cssProp + ':' + props[prop] + ' !important';

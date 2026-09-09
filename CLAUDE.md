@@ -931,20 +931,52 @@ compositing operators and was deliberately left on the JS path.
   KP% values, "OF THE GAME", scene titles.
 - **General Sans** — labels, player names, secondary text. Bold/700 for
   names, semibold/600 for small uppercase labels.
+- **Every text box defaults to center-center alignment and auto-scaling
+  (shrink-to-fit) — this is the standard treatment for any new text
+  element (name, stat value, title, label...), not an opt-in.** Only
+  left-align or fix the size when explicitly told to do otherwise for
+  that specific element. Concretely: `display:flex; align-items:center;
+  justify-content:center; text-align:center;` on the box, plus the fit
+  helper below run against it — copy this by default when building a new
+  scene's text element instead of waiting to be asked.
 - Any text element that must never overflow its box uses a shrink-to-fit
   helper, e.g.:
   ```js
-  function fooFitValue(el, maxSize, minSize) {
+  function fooFitTextMeasure(el, maxSize, minSize) {
     let size = maxSize;
     el.style.fontSize = size + 'px';
     while (el.scrollWidth > el.clientWidth && size > minSize) {
       el.style.fontSize = (--size) + 'px';
     }
   }
+  function fooFitText(el, maxSize, minSize) {
+    fooFitTextMeasure(el, maxSize, minSize);
+    // The font can still be loading (font-display:block) — an early
+    // measurement runs against fallback-font glyphs and can under/over-
+    // size the text. Re-measure once the real face is in.
+    if (document.fonts && document.fonts.status !== 'loaded') {
+      document.fonts.ready.then(() => fooFitTextMeasure(el, maxSize, minSize));
+    }
+  }
   ```
   Start `maxSize` near the box height for "maximized" display numbers
   (e.g. a 67px-tall box → ~64px Anton), and give it a sane `minSize` floor
-  (~half of max) so worst-case long values don't disappear.
+  (~half of max) so worst-case long values don't disappear. A design
+  spec given as "Npt @ 300dpi" converts to px via `N * 300/72`; "Npt @
+  72dpi" is just `N` px directly (1pt = 1px at 72dpi) — check which one
+  the spec says before picking `maxSize`.
+- **The single most common way this shrink-to-fit silently does nothing:
+  calling the fit function while the scene's page is still
+  `display:none`.** An element inside a `display:none` ancestor reports
+  `clientWidth`/`scrollWidth` of 0, so the loop's own overflow check
+  (`scrollWidth > clientWidth`) never fires and the text is left at
+  `maxSize`, overflowing (and getting clipped by the box's own
+  `overflow:hidden`) the moment the scene actually becomes visible. Set
+  the element's text content wherever's convenient, but call the actual
+  fit function AFTER the page's `.xx-on`/display:block class has been
+  added — same "now has real layout to measure against" ordering
+  `showMvpScene`/Hero Lineup's `hluFitAllText`/Waiting Lobby's
+  `wlApplyPlayer` all use.
 
 ## Master checklist — adding any new feature (this is a moving target — use this every time, don't rely on memory)
 

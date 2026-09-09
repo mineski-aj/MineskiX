@@ -173,6 +173,29 @@ router.post('/api/credits-speed', (req, res) => {
   res.json({ ok: true, speed });
 });
 
+// MVP Scene player pick — GET to read, POST { roleid } to update. The
+// caster picks who's MVP from the dashboard's MVP player-select dropdown
+// (built from /api/gamedata-proxy's current seat list), storing a roleid
+// (globally unique per seat, unlike name) rather than the MVP scene
+// pulling from a separate MVP-designated API. Fullscreen.html's
+// showMvpScene looks this roleid up in that same live feed.
+const MVP_SELECTION_FILE = path.join(__dirname, '..', 'mvp_selection.json');
+
+router.get('/api/mvp-selection', (req, res) => {
+  try {
+    res.set('Cache-Control', 'no-store').json(JSON.parse(fs.readFileSync(MVP_SELECTION_FILE, 'utf8')));
+  } catch (e) {
+    res.set('Cache-Control', 'no-store').json({ roleid: null });
+  }
+});
+
+router.post('/api/mvp-selection', (req, res) => {
+  const raw = (req.body || {}).roleid;
+  const roleid = (raw === null || raw === undefined || raw === '') ? null : Number(raw);
+  fs.writeFileSync(MVP_SELECTION_FILE, JSON.stringify({ roleid }));
+  res.json({ ok: true, roleid });
+});
+
 // Credit Reel font sizes, in px — GET to read, POST { headingSize, bodySize } to update
 const CREDITS_STYLE_FILE = path.join(__dirname, '..', 'credits_style.json');
 
