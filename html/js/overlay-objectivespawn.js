@@ -21,7 +21,19 @@ var objSpawnQueue = []; /* { kind: 'lord'|'turtle', video } */
 var objSpawnOverlayEl = document.getElementById('objective-spawn-overlay');
 var objSpawnVideoEl   = document.getElementById('objective-spawn-video');
 
-var OBJ_SPAWN_VIDEO = { lord: 'lordspawn.webm', turtle: 'turtlespawn.webm' };
+var OBJ_SPAWN_VIDEO = { lord: 'rmc_lord.webm', turtle: 'rmc_turtle.webm' };
+
+/* rmc_lord.webm/rmc_turtle.webm live in the active project's own assets
+   folder (projects/<id>/assets/Ingame/), not the old plain global
+   assets/ingame/ path — resolved once at load from the active project,
+   same convention as overlay-emblemcheck.js's eccBgUrl()/ingame_blue.html's
+   pbBgUrl(). Falls back to the rmc10 copy directly since this page is
+   itself an RMC10-specific template. */
+var objSpawnAssetBase = '/projects/rmc10/assets/Ingame/';
+fetch('/api/projects', { cache: 'no-store' })
+  .then(function(r) { return r.ok ? r.json() : null; })
+  .then(function(d) { if (d && d.active) objSpawnAssetBase = '/projects/' + encodeURIComponent(d.active) + '/assets/Ingame/'; })
+  .catch(function() {});
 
 /* Turtle-specific permanent disable, once true for the rest of the match:
    - 8:00 game time: the turtle has fully transformed into the Lord.
@@ -57,7 +69,7 @@ function objSpawnPlayNext() {
   if (objSpawnPlaying || objSpawnQueue.length === 0) return;
   objSpawnPlaying = true;
   var entry = objSpawnQueue.shift();
-  objSpawnVideoEl.src = 'assets/ingame/' + entry.video;
+  objSpawnVideoEl.src = objSpawnAssetBase + entry.video;
   objSpawnOverlayEl.style.display = 'block';
   objSpawnVideoEl.play().catch(function() {
     objSpawnOverlayEl.style.display = 'none';
