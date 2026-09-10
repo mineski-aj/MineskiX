@@ -5,24 +5,23 @@
       "name": "OFFICIAL SPONSOR",
       "duration": 4,
       "logos": [
-        "SMART.png"
+        "REALME.png",
+        "CYBERZONE.png",
+        "EPROJECT.png",
+        "SKG.png"
       ]
     },
     {
       "id": "cat_msofvnao999",
       "name": "PARTNER IN ESPORTS",
       "duration": 2,
-      "logos": [
-        "CLEAR.png"
-      ]
+      "logos": []
     },
     {
       "id": "cat_msofvrqo889",
       "name": "STRATEGIC PARTNER",
       "duration": 2,
-      "logos": [
-        "TTRACING.png"
-      ]
+      "logos": []
     }
   ],
   "hiddenInIngame": [

@@ -448,12 +448,12 @@
     var nameText = nameBox.querySelector('span');
     var logoEl   = document.getElementById('di-' + prefix + '-logo');
     var short    = (teamObj && teamObj.short) || '';
-    /* Name text and logo both follow the live game feed's own campid (see
-       diApplyPhase2Data/diResolveCamps), not the Match Board's home/away —
-       keeps the tricode label and the logo always matching. Falls back to
-       the Match Board short code only if the live feed has no tricode for
-       that camp yet. */
-    var logoTri = logoTricode || short;
+    /* Name text and logo both follow the Match Board's home/away (see
+       diApplyPhase2Data), not the live game feed's own campid — keeps the
+       tricode label and logo matching whatever the caster set on the
+       Match Board tab. Falls back to the live feed's tricode only if
+       Match Board has no short code yet. */
+    var logoTri = short || logoTricode;
     nameText.textContent = logoTri;
     diFitTeamName(nameBox, nameText, 34, 18);
     logoEl.onerror = function () { logoEl.style.display = 'none'; };
@@ -521,9 +521,15 @@
   function diApplyPhase2Data(ms, lu, animate, gd) {
     var home = (ms && ms.home) || {};
     var away = (ms && ms.away) || {};
+    /* campid 1 = blue, campid 2 = red — resolve which of home/away sits
+       on which side via Match Board's own swapped flag, same convention
+       as the rest of this codebase (e.g. Fullscreen.html's isSwapped). */
+    var swapped  = ms ? (ms.swapped !== undefined ? ms.swapped : (ms.blueTeam === 'B')) : false;
+    var blueTeam = swapped ? away : home;
+    var redTeam  = swapped ? home : away;
     var liveTri = diResolveCamps(gd);
-    diApplyTeamBox('blue', home, liveTri.blue);
-    diApplyTeamBox('red', away, liveTri.red);
+    diApplyTeamBox('blue', blueTeam, liveTri.blue);
+    diApplyTeamBox('red', redTeam, liveTri.red);
 
     var sides = diNormalizeSides(lu);
     var blue = sides.blue, red = sides.red;

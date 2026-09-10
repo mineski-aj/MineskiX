@@ -6338,15 +6338,27 @@
       for (const c of camps) {
         for (let n = 1; n <= 5; n++) {
           const seat = c && c['seat_' + n];
-          if (seat && seat.roleid === roleid) return seat;
+          /* campid carried alongside the seat (not always present on the
+             raw seat itself) so mvApply can resolve Match Board's
+             home/away tricode for whichever side this player is on. */
+          if (seat && seat.roleid === roleid) return { ...seat, campid: c.campid };
         }
       }
       return null;
     }
 
-    function mvApply(player) {
+    function mvApply(player, ms) {
       const logoEl = document.getElementById('mv-team-logo');
-      const tricode = ((player && player.team_simple_name) || '').toUpperCase();
+      /* Tricode from Match Board (/match/state), not the game API's
+         team_simple_name — resolve home/away by campid via swapped, same
+         convention as applyMatchBoardData/updateFtScoreBars. */
+      const homeTeam  = (ms && (ms.home || ms.teamA)) || null;
+      const awayTeam  = (ms && (ms.away || ms.teamB)) || null;
+      const isSwapped = ms ? (ms.swapped !== undefined ? ms.swapped : (ms.blueTeam === 'B')) : false;
+      const campTeam = player && player.campid === 1 ? (isSwapped ? awayTeam : homeTeam)
+        : player && player.campid === 2 ? (isSwapped ? homeTeam : awayTeam)
+        : null;
+      const tricode = ((campTeam && campTeam.short) || '').toUpperCase();
       logoEl.onerror = () => { logoEl.style.display = 'none'; };
       logoEl.style.display = '';
       logoEl.src = tricode ? '/logos/' + encodeURIComponent(tricode) + '.png' : '';
@@ -6406,10 +6418,11 @@
     async function showMvpScene() {
       const selPromise = mvFetchSelection();
       const gdPromise  = fetch(buildUrl('/api/gamedata-proxy'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+      const msPromise  = fetch(buildUrl('/match/state'), { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
       await transitionTo('mvp');
-      const [sel, gd] = await Promise.all([selPromise, gdPromise]);
+      const [sel, gd, ms] = await Promise.all([selPromise, gdPromise, msPromise]);
       if (activeFeature !== 'mvp') return; /* superseded while awaiting data */
-      mvApply(mvFindSeat(gd && gd.data, sel && sel.roleid));
+      mvApply(mvFindSeat(gd && gd.data, sel && sel.roleid), ms);
       await preloadMedia(mvPage.querySelectorAll('img'), 1500);
       if (activeFeature !== 'mvp') return; /* superseded while preloading */
       showBgVideo();
@@ -6882,13 +6895,14 @@
       }
     }
 
-    function hluApplyTeam(prefix, logoEl, nameEl, camp) {
-      /* Some upstream feed variants put team_simple_name directly on the
-         camp object (matches Final Team's ftResolveCardCamps), others only
-         nest it inside each seat — fall back to seat_1's copy rather than
-         rendering a blank team name/logo if the camp-level field is
-         missing. */
-      const tri = (camp && camp.team_simple_name) || (camp && camp.seat_1 && camp.seat_1.team_simple_name) || '';
+    function hluApplyTeam(prefix, logoEl, nameEl, camp, msTeam) {
+      /* Tricode + logo come from Match Board (home/away), not the game
+         API — falls back to the live feed's team_simple_name (camp-level,
+         or seat_1's copy) only if Match Board has no short code yet. */
+      const tri = (msTeam && msTeam.short)
+        || (camp && camp.team_simple_name)
+        || (camp && camp.seat_1 && camp.seat_1.team_simple_name)
+        || '';
       logoEl.onerror = () => { logoEl.style.display = 'none'; };
       logoEl.style.display = '';
       logoEl.src = hluLogoUrl(tri);
@@ -6974,8 +6988,18 @@
       const gd = await Promise.race([gdPromise, new Promise(r => setTimeout(r, HLU_FEED_TIMEOUT_MS))]);
       if (activeFeature !== 'herolineup') return; /* superseded while awaiting the feed */
       const { blueCamp, redCamp } = hluResolveCamps(gd && gd.data);
-      hluApplyTeam('t1', document.getElementById('hlu-logo-blue'), document.getElementById('hlu-team1-name'), blueCamp);
-      hluApplyTeam('t2', document.getElementById('hlu-logo-red'),  document.getElementById('hlu-team2-name'), redCamp);
+
+      /* campid 1 = blue, campid 2 = red — resolve which of Match Board's
+         home/away sits on which side via swapped, same convention as
+         applyMatchBoardData/updateFtScoreBars. */
+      const homeTeam  = (ms && (ms.home || ms.teamA)) || null;
+      const awayTeam  = (ms && (ms.away || ms.teamB)) || null;
+      const isSwapped = ms ? (ms.swapped !== undefined ? ms.swapped : (ms.blueTeam === 'B')) : false;
+      const blueMsTeam = isSwapped ? awayTeam : homeTeam;
+      const redMsTeam  = isSwapped ? homeTeam : awayTeam;
+
+      hluApplyTeam('t1', document.getElementById('hlu-logo-blue'), document.getElementById('hlu-team1-name'), blueCamp, blueMsTeam);
+      hluApplyTeam('t2', document.getElementById('hlu-logo-red'),  document.getElementById('hlu-team2-name'), redCamp, redMsTeam);
 
       await preloadMedia(hluPage.querySelectorAll('img, video'), 1500);
       if (activeFeature !== 'herolineup') return; /* superseded while preloading */
@@ -9723,26 +9747,6 @@
         const gc1 = camps.find(c => c.campid === 1);
         const gc2 = camps.find(c => c.campid === 2);
 
-        /* tricode + logo from team_simple_name */
-        const t1 = gc1?.team_simple_name || '';
-        const t2 = gc2?.team_simple_name || '';
-        const tri1  = document.getElementById('mb-tricode1');
-        const tri2  = document.getElementById('mb-tricode2');
-        const logo1 = document.getElementById('mb-logo1');
-        const logo2 = document.getElementById('mb-logo2');
-        if (tri1) tri1.textContent = t1;
-        if (tri2) tri2.textContent = t2;
-        if (logo1 && t1) {
-          logo1.style.display = 'none';
-          document.getElementById('mb-logo-fb1').style.display = '';
-          logo1.src = `logos/${t1}.png`;
-        }
-        if (logo2 && t2) {
-          logo2.style.display = 'none';
-          document.getElementById('mb-logo-fb2').style.display = '';
-          logo2.src = `logos/${t2}.png`;
-        }
-
         /* kill score from camp.score */
         const k1 = document.getElementById('mb-kills1');
         const k2 = document.getElementById('mb-kills2');
@@ -9773,6 +9777,28 @@
         const isSwapped = ms.swapped !== undefined ? ms.swapped : (ms.blueTeam === 'B');
         const c1 = isSwapped ? awayTeam : homeTeam;
         const c2 = isSwapped ? homeTeam : awayTeam;
+
+        /* tricode + logo from Match Board (home/away), not the game API's
+           team_simple_name */
+        const t1 = c1?.short || '';
+        const t2 = c2?.short || '';
+        const tri1  = document.getElementById('mb-tricode1');
+        const tri2  = document.getElementById('mb-tricode2');
+        const logo1 = document.getElementById('mb-logo1');
+        const logo2 = document.getElementById('mb-logo2');
+        if (tri1) tri1.textContent = t1;
+        if (tri2) tri2.textContent = t2;
+        if (logo1 && t1) {
+          logo1.style.display = 'none';
+          document.getElementById('mb-logo-fb1').style.display = '';
+          logo1.src = `logos/${t1}.png`;
+        }
+        if (logo2 && t2) {
+          logo2.style.display = 'none';
+          document.getElementById('mb-logo-fb2').style.display = '';
+          logo2.src = `logos/${t2}.png`;
+        }
+
         const maxW = Math.ceil(parseInt((ms.series || 'BO3').replace('BO', '')) / 2);
         mbRenderScoreBars(1, maxW, c1.score);
         mbRenderScoreBars(2, maxW, c2.score);

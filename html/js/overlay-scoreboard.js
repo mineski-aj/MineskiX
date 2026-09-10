@@ -207,6 +207,12 @@ function formatGold(g) {
   return (g / 1000).toFixed(1) + 'k';
 }
 
+/* Match Board's per-camp team (campid 1/2, resolved from home/away via
+   swapped) — see sbPollMatchState(). Tricode + logo for the scoreboard
+   come from here, not the live game feed's team_simple_name. */
+var sbMsC1Team = null;
+var sbMsC2Team = null;
+
 /* ── Local timer (smooth game clock) ── */
 var _sb = {
   running:    false,
@@ -294,14 +300,16 @@ registerPollHandler(function(data) {
   sbUpdateKill('scoreboard-kills-c1', c1 ? (c1.score != null ? c1.score : 0) : 0);
   sbUpdateKill('scoreboard-kills-c2', c2 ? (c2.score != null ? c2.score : 0) : 0);
 
+  /* Tricode + logo come from Match Board (/match/state), not this live
+     game feed — see sbMsC1Team/sbMsC2Team in sbPollMatchState(). */
   var t1 = document.getElementById('scoreboard-tricode-c1');
   var t2 = document.getElementById('scoreboard-tricode-c2');
-  if (t1 && c1) {
-    var name1 = c1.team_simple_name || '';
+  if (t1) {
+    var name1 = (sbMsC1Team && sbMsC1Team.short) || '';
     if (name1) t1.textContent = name1.toUpperCase();
   }
-  if (t2 && c2) {
-    var name2 = c2.team_simple_name || '';
+  if (t2) {
+    var name2 = (sbMsC2Team && sbMsC2Team.short) || '';
     if (name2) t2.textContent = name2.toUpperCase();
   }
 
@@ -310,7 +318,7 @@ registerPollHandler(function(data) {
   var li2 = document.getElementById('sb-logo-c2');
   if (li1) {
     var limg1  = li1.querySelector('.sb-logo-img');
-    var lname1 = c1 ? (c1.team_simple_name || '').toUpperCase() : '';
+    var lname1 = ((sbMsC1Team && sbMsC1Team.short) || '').toUpperCase();
     if (limg1 && lname1 && limg1.dataset.team !== lname1) {
       limg1.dataset.team    = lname1;
       limg1.style.display   = 'none';
@@ -319,7 +327,7 @@ registerPollHandler(function(data) {
   }
   if (li2) {
     var limg2  = li2.querySelector('.sb-logo-img');
-    var lname2 = c2 ? (c2.team_simple_name || '').toUpperCase() : '';
+    var lname2 = ((sbMsC2Team && sbMsC2Team.short) || '').toUpperCase();
     if (limg2 && lname2 && limg2.dataset.team !== lname2) {
       limg2.dataset.team    = lname2;
       limg2.style.display   = 'none';
@@ -517,6 +525,8 @@ function sbPollMatchState() {
       var swapped = s.swapped !== undefined ? s.swapped : (s.blueTeam === 'B');
       var c1Team  = swapped ? away : home;
       var c2Team  = swapped ? home : away;
+      sbMsC1Team = c1Team;
+      sbMsC2Team = c2Team;
       sbRenderBars(document.getElementById('sb-score-c1'), maxWins, c1Team.score, true);
       sbRenderBars(document.getElementById('sb-score-c2'), maxWins, c2Team.score, false);
 

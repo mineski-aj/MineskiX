@@ -826,6 +826,8 @@
   var banEls   = {};  /* campid_i → { banplate, bhi } */
   var prevBan  = {};  /* campid_i → { ban_heroid, banning } */
   var logoEls  = {};  /* campid → { img, fb } */
+  var msC1Team = null; /* campid 1's Match Board team (home/away resolved via swapped) — see pollMatchState() */
+  var msC2Team = null; /* campid 2's Match Board team */
 
   /* ── Build pick plates ─────────────────────────────────────── */
   function buildPickPlates() {
@@ -979,6 +981,8 @@
         var swapped = s.swapped !== undefined ? s.swapped : (s.blueTeam === 'B');
         var c1Team  = swapped ? away : home;
         var c2Team  = swapped ? home : away;
+        msC1Team = c1Team;
+        msC2Team = c2Team;
         renderBars(scoreEls[1], maxWins, c1Team.score, true);
         renderBars(scoreEls[2], maxWins, c2Team.score, false);
 
@@ -1138,8 +1142,10 @@
     slot.prevStatus = cls;
   }
 
-  function drApplySide(card, camp, gameNum, reversePickOrder) {
-    var teamAbbr = (camp && camp.team_name_simple) || '';
+  function drApplySide(card, camp, gameNum, reversePickOrder, msTeam) {
+    /* Tricode from Match Board (/match/state), not the recap feed's own
+       team_name_simple — see msC1Team/msC2Team in pollMatchState(). */
+    var teamAbbr = (msTeam && msTeam.short) || '';
     card.titleText.textContent = teamAbbr + ' DRAFT RECAP - GAME ' + gameNum;
     var players = (camp && camp.player_list) || [];
     /* Blue's player_list is already left-to-right in display order
@@ -1206,8 +1212,8 @@
       var data    = results[0];
       var gameNum = results[1];
       var camps   = (data && data.camp_list) || [];
-      drApplySide(drBlue, camps[0], gameNum, false);
-      drApplySide(drRed,  camps[1], gameNum, true);
+      drApplySide(drBlue, camps[0], gameNum, false, msC1Team);
+      drApplySide(drRed,  camps[1], gameNum, true,  msC2Team);
     });
   }
 
@@ -1769,12 +1775,14 @@
 
         /* Team logos — only reload when team name changes. No team NAME
            text in this skin (logo only) and coach comes from Match Board
-           now (pollMatchState → updateCoachDisplay), not this feed. */
+           now (pollMatchState → updateCoachDisplay), not this feed. Logo
+           tricode also comes from Match Board (msC1Team/msC2Team), not
+           this live draft feed's team_simple_name. */
         [1, 2].forEach(function(campid) {
-          var camp = campid === 1 ? camp1 : camp2;
-          var le   = logoEls[campid];
+          var msTeam = campid === 1 ? msC1Team : msC2Team;
+          var le     = logoEls[campid];
           if (!le) return;
-          var name = ((camp && camp.team_simple_name) || '').toUpperCase();
+          var name = ((msTeam && msTeam.short) || '').toUpperCase();
           if (name && le.img.dataset.team !== name) {
             le.img.dataset.team  = name;
             le.img.style.display = 'none';

@@ -1,78 +1,78 @@
 {
   "home": {
-    "teamId": "11149",
+    "teamId": "20004",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "JMPINKMAN",
-        "id": "1478121287"
+        "ign": "Toshiro",
+        "id": "990000022"
       },
       {
         "role": "JUNGLER",
-        "ign": "JamesPangks",
-        "id": "1475950942"
+        "ign": "Hysterax",
+        "id": "990000020"
       },
       {
         "role": "MID LANER",
-        "ign": "LanceCy",
-        "id": "1271650145"
+        "ign": "Nyxsie",
+        "id": "990000019"
       },
       {
         "role": "ROAMER",
-        "ign": "Escalera",
-        "id": "1155833675"
+        "ign": "DEKS",
+        "id": "990000018"
       },
       {
         "role": "GOLD LANER",
-        "ign": "Shizou",
-        "id": "1373808356"
+        "ign": "KIRR",
+        "id": "990000021"
       }
     ],
-    "name": "AP.BREN",
-    "short": "APBR",
+    "name": "MDM",
+    "short": "MDM",
     "score": 2,
-    "coach": "Bitoy"
+    "coach": ""
   },
   "away": {
-    "teamId": "10763",
+    "teamId": "20003",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "Sanford",
-        "id": "1025593308"
+        "ign": "siwa123",
+        "id": "990000017"
       },
       {
         "role": "JUNGLER",
-        "ign": "KarlTzy",
-        "id": "1271650163"
+        "ign": "cold",
+        "id": "990000014"
       },
       {
         "role": "MID LANER",
-        "ign": "Sanji",
-        "id": "1271650190"
+        "ign": "heyhaye",
+        "id": "990000015"
       },
       {
         "role": "ROAMER",
-        "ign": "Jaypee",
-        "id": "1582754314"
+        "ign": "natz",
+        "id": "990000016"
       },
       {
         "role": "GOLD LANER",
-        "ign": "Teddy",
-        "id": "1810330654"
+        "ign": "YU NO",
+        "id": "990000013"
       }
     ],
-    "name": "Team Liquid PH",
-    "short": "TLPH",
+    "name": "LOVE - READING BOOKS",
+    "short": "LRB",
     "score": 0,
-    "coach": "Aeon"
+    "coach": ""
   },
   "series": "BO3",
   "game": 3,
   "swapped": false,
   "official": true,
   "week": 2,
-  "day": 1,
+  "day": 2,
   "patch": "Scarlet Embers 0826",
   "hosts": [
     "Denisse",
@@ -86,12 +86,12 @@
   ],
   "todayMatches": [
     {
-      "team1Id": "11149",
-      "team1Name": "AP.BREN",
-      "team1Short": "APBR",
-      "team2Id": "10763",
-      "team2Name": "Team Liquid PH",
-      "team2Short": "TLPH",
+      "team1Id": "20004",
+      "team1Name": "MDM",
+      "team1Short": "MDM",
+      "team2Id": "20003",
+      "team2Name": "LOVE - READING BOOKS",
+      "team2Short": "LRB",
       "score1": 0,
       "score2": 0,
       "vsDisplay": "VS",
@@ -180,5 +180,6 @@
     "Leo",
     "Naisou",
     "Wolf"
-  ]
+  ],
+  "stage": "Grand Finals"
 }
