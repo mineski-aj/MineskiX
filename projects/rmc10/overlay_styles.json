@@ -83,10 +83,10 @@
       "top": "56px"
     },
     "#sb-sponsor-loop": {
-      "left": "1748px",
-      "top": "9px",
+      "left": "1749px",
+      "top": "-14px",
       "width": "161px",
-      "height": "58px"
+      "height": "99px"
     },
     "#sb-logo-c1": {
       "left": "357px",
@@ -135,10 +135,10 @@
       "fontSize": "42px"
     },
     "#mdb-game-time-label": {
-      "fontSize": "26px"
+      "fontSize": "24px"
     },
     "#mdb-game-time-value": {
-      "fontSize": "107px"
+      "fontSize": "105px"
     },
     "#mdb-game-label-text": {
       "fontSize": "31px"
@@ -244,6 +244,20 @@
       "top": "881px",
       "width": "67px",
       "height": "67px"
+    },
+    "#mdb-sponsor": {
+      "left": "761px",
+      "top": "845px",
+      "width": "396px",
+      "height": "130.5px"
+    }
+  },
+  "Draft": {
+    "#rsponsor-loop": {
+      "left": "762px",
+      "top": "746px",
+      "width": "397px",
+      "height": "95px"
     }
   }
 }

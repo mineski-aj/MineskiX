@@ -1159,14 +1159,14 @@
     top: 0; left: 0;
     width: 100%; height: 100%; /* tracks #sb-sponsor-loop's own size, so resizing the box from the Edit tab resizes this too */
     object-fit: contain; /* keeps every logo within the box regardless of its own aspect ratio */
-    transform: translateY(-110%);
+    transform: translateX(110%); /* right-to-left, matching every other sponsor loop's direction */
   }
   #sb-sponsor-img.sb-spon-in {
-    transform: translateY(0);
+    transform: translateX(0);
     transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
   }
   #sb-sponsor-img.sb-spon-out {
-    transform: translateY(110%);
+    transform: translateX(-110%);
     transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
   }
   #scoreboard-tricode-c1 {

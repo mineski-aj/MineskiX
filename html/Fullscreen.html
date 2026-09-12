@@ -889,14 +889,14 @@
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: contain;
-      transform: translateX(-110%);
+      transform: translateX(110%);
     }
     .wl-sponsor-loop img.spon-in {
       transform: translateX(0);
       transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
     }
     .wl-sponsor-loop img.spon-out {
-      transform: translateX(110%);
+      transform: translateX(-110%);
       transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
     }
     .sponsor-cat-label {
@@ -2352,22 +2352,22 @@
     }
     .wsm-sponsor > img { position: absolute; left: 0; top: 0; width: 340px; height: 94px; }
     /* Draft/in-game style sponsor loop — same slot region the old crossfade
-       slide used, but a single image sliding in from the left (decelerating
-       into place) then out to the right (accelerating away), matching
+       slide used, but a single image sliding in from the right (decelerating
+       into place) then out to the left (accelerating away), matching
        Draft.html's #sponsor-loop and the Waiting Lobby's sponsor box. */
     .ws-sponsor-loop { position: absolute; left: 140px; right: 8px; top: 8px; bottom: 8px; overflow: hidden; }
     .ws-sponsor-loop img {
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       object-fit: contain;
-      transform: translateX(-110%);
+      transform: translateX(110%);
     }
     .ws-sponsor-loop img.spon-in {
       transform: translateX(0);
       transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
     }
     .ws-sponsor-loop img.spon-out {
-      transform: translateX(110%);
+      transform: translateX(-110%);
       transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
     }
 
@@ -2836,11 +2836,17 @@
     /* Middle Board's sponsor loop — replaces the old Map Selection box
        (background art + logo + map name) that used to sit here, removed
        entirely (map name/logo aren't shown on this board anymore). Same
-       simple vertical-reel style as ingame.html's #sb-sponsor-loop
-       (no category label, plain image, object-fit:contain keeps every
-       logo within bounds) — see makeVerticalSponsorLoop() in the JS
-       below, reused for this instead of the Waiting-Lobby-style
+       simple vertical-reel style ingame.html's #sb-sponsor-loop used to
+       have (no category label, plain image, object-fit:contain keeps
+       every logo within bounds) — see makeVerticalSponsorLoop() in the
+       JS below, reused for this instead of the Waiting-Lobby-style
        makeSponsorLoop() every other sponsor box on this page uses.
+       Middleboard is archived (superseded by Postgame Items — see
+       ov.archivedFeatures in dashboard.html) so this was deliberately
+       left on the old top-to-bottom slide when every other sponsor loop
+       (ingame.html's #sb-sponsor-loop included) was switched to a
+       right-to-left slide — flip this too if Middleboard ever comes
+       back into active use.
        Positioned directly under the 6th (final/Purple Buff) stat box —
        see .mdb-box:nth-child(6) above (top:791px + its own 58px height
        = 849px bottom edge). Lives as its own top-level canvas element
@@ -7291,11 +7297,14 @@
 
     /* Simpler sponsor loop, same shape/API as makeSponsorLoop() above but
        WITHOUT the Waiting-Lobby-style frame/category-label — just a bare
-       image reeling top-to-bottom (matching ingame.html's #sb-sponsor-loop
-       exactly: object-fit:contain keeps every logo within the container's
-       own bounds regardless of aspect ratio, .mdb-spon-in/out classes
-       drive the translateY transition — see the CSS above Middle Board's
-       markup). Used for Middle Board's #mdb-sponsor. */
+       image reeling top-to-bottom (object-fit:contain keeps every logo
+       within the container's own bounds regardless of aspect ratio,
+       .mdb-spon-in/out classes drive the translateY transition — see the
+       CSS above Middle Board's markup). ingame.html's #sb-sponsor-loop
+       used to work identically but has since moved to a right-to-left
+       slide along with every other sponsor loop; this one was left as-is
+       since Middle Board is archived — see the CSS comment above
+       #mdb-sponsor. Used for Middle Board's #mdb-sponsor. */
     function makeVerticalSponsorLoop(imgId) {
       let sponsors = [], idx = 0, active = false;
       let inHandler = null, outHandler = null, holdTimer = null;

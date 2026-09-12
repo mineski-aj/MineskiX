@@ -157,18 +157,21 @@
       overflow: hidden;
     }
 
-    /* Hero WebM video — fills the card, cropping top/bottom (or
-       sides, whichever the source video's aspect requires) via
-       object-fit:cover, per the design spec's "scale accordingly, crop
-       from the top and bottom". transform-origin centred so the
-       button-in pop (see .hero-pop-in below) scales from the middle,
-       staying clipped by this element's own overflow:hidden. */
+    /* Hero WebM video — fills the card via object-fit:cover, top-aligned
+       (object-position:top) so the crop comes entirely off the bottom of
+       the frame instead of splitting it top+bottom — keeps the hero's
+       head/face (top of the source portrait) fully in frame. Source
+       videos are 198x316 vs this box's 147x181, so cover scales to
+       147x234.6 and top-alignment crops the extra ~53.6px off the bottom
+       only. transform-origin stays centred so the button-in pop (see
+       .hero-pop-in below) scales from the middle of the box, staying
+       clipped by this element's own overflow:hidden. */
     .hero-video {
       position: absolute;
       inset: 0;
       width: 100%; height: 100%;
       object-fit: cover;
-      object-position: center;
+      object-position: top;
       display: none;
       pointer-events: none;
       z-index: 1;
@@ -239,6 +242,38 @@
       transition: opacity 0.4s ease;
       pointer-events: none;
       z-index: 2;
+    }
+
+    /* ── Sponsor loop — sits in the flat black cell directly above the
+       center logo (background art has a plain black ~390×65 band there,
+       x:762-1152 y:761-826, one row of the ban-plate strip that has no
+       ban slot of its own since it's the center column). Same
+       slide-in/hold/slide-out loop as Draft.html's #sponsor-loop
+       (own r-prefixed ids so it doesn't collide with that page's
+       overlay-styles entries, since both pages share the "Draft" style
+       bucket — see loadDraftOverrides()). Editable position/size via
+       the dashboard Edit tab (EDIT_CONFIGS['draftrealme_sponsor']). */
+    #rsponsor-loop {
+      position: absolute;
+      left: 772px; top: 766px;
+      width: 370px; height: 55px;
+      overflow: hidden;
+      z-index: 2;
+    }
+    #rsponsor-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      transform: translateX(110%);
+    }
+    #rsponsor-img.spon-in {
+      transform: translateX(0);
+      transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
+    }
+    #rsponsor-img.spon-out {
+      transform: translateX(-110%);
+      transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
     }
 
     /* ── Center logo — RMC badge, sits centered between the pick rows
@@ -397,43 +432,35 @@
     }
 
 
-    /* ── Coach name + headset — Rectangle_1 from the design CSS.
-       home=blue/left (left:27), away=red/right mirrored:
-       mirror(27, 251) = 1920 − 27 − 251 = 1642. Single box (no separate
-       BPM heart-rate readout in this skin — dropped along with the rest
-       of the matte-wipe-era coach UI). Headset sits outward of the name
-       (left of it on the home/blue side, right of it on the away/red
-       side, per the mirrored DOM order buildCoachSide() builds). ── */
-    .rcoach {
+    /* ── Team name — Rectangle_1 from the design CSS. home=blue/left
+       (left:27), away=red/right mirrored: mirror(27, 251) = 1920 − 27 −
+       251 = 1642. Single box (no separate BPM heart-rate readout in this
+       skin — dropped along with the rest of the matte-wipe-era coach UI;
+       this box used to show the coach name + a headset icon, now shows
+       the team name instead, icon removed). ── */
+    .rteam-name {
       position: absolute;
       top: 761px;
       width: 251px; height: 65px;
       display: flex;
       align-items: center;
-      gap: 18px; /* more breathing room between headset and name */
       overflow: hidden;
     }
-    .rcoach-home { left: 27px;   justify-content: flex-start; }
-    .rcoach-away { left: 1642px; justify-content: flex-end; }
-    .rcoach-headset {
-      flex-shrink: 0;
-      width: 34px; height: 34px;
-      color: #ffce54; /* gold */
-    }
-    .rcoach-headset svg { width: 100%; height: 100%; display: block; }
-    .rcoach-name {
+    .rteam-name-home { left: 27px;   justify-content: flex-start; }
+    .rteam-name-away { left: 1642px; justify-content: flex-end; }
+    .rteam-name-inner {
       min-width: 0;
       display: flex;
       align-items: center;
     }
-    .rcoach-name-text {
+    .rteam-name-text {
       display: block;
       font-family: 'Exima', 'General Sans', sans-serif;
       color: #fff;
       white-space: nowrap;
     }
-    .rcoach-home .rcoach-name-text { text-align: left; }
-    .rcoach-away .rcoach-name-text { text-align: right; }
+    .rteam-name-home .rteam-name-text { text-align: left; }
+    .rteam-name-away .rteam-name-text { text-align: right; }
 
     /* ── Draft Recap — previous game's pick/ban recap. Independent of
        #scene (shown/hidden via its own toggle, not tied to the main
@@ -986,13 +1013,13 @@
         renderBars(scoreEls[1], maxWins, c1Team.score, true);
         renderBars(scoreEls[2], maxWins, c2Team.score, false);
 
-        /* Coach name — realme skin sources this from the Match Board
-           dashboard's manually-set home/away.coach field, NOT the draft
-           API's coach_in (unlike the original Draft.html). c1Team/c2Team
-           are already swap-aware from the score-bar logic above, so no
-           extra swap handling needed here. */
-        updateCoachDisplay('home', c1Team.coach);
-        updateCoachDisplay('away', c2Team.coach);
+        /* Team name box — realme skin shows the team name here (not the
+           coach, unlike the original Draft.html), sourced from Match
+           Board's home/away.name field. c1Team/c2Team are already
+           swap-aware from the score-bar logic above, so no extra swap
+           handling needed here. */
+        updateTeamNameDisplay('home', c1Team.name);
+        updateTeamNameDisplay('away', c2Team.name);
       })
       .catch(function() {});
   }
@@ -1030,6 +1057,60 @@
     img.alt = '';
     img.src = DRAFT_LOGO_URL;
     scene.appendChild(img);
+  }
+
+  /* ── Sponsor loop — same fetch + slide-in/hold/slide-out cycle as
+     Draft.html's, ported over for the black cell above the center logo
+     (see the #rsponsor-loop CSS comment above). ── */
+  function buildSponsorLoop() {
+    var box = document.createElement('div');
+    box.id = 'rsponsor-loop';
+    var img = document.createElement('img');
+    img.id = 'rsponsor-img';
+    box.appendChild(img);
+    scene.appendChild(box);
+  }
+
+  var RSPONSORS = [];
+  var rsponsorIdx = 0;
+
+  function startSponsorLoop() {
+    fetch('/api/sponsors')
+      .then(function (r) { return r.json(); })
+      .then(function (list) {
+        if (!list || !list.length) return;
+        RSPONSORS = list;
+        runSponsorLoop();
+      })
+      .catch(function () {});
+  }
+
+  function runSponsorLoop() {
+    var img = document.getElementById('rsponsor-img');
+    (function nextSponsor() {
+      var s = RSPONSORS[rsponsorIdx];
+      img.className = '';
+      img.src = s.src;
+      void img.offsetWidth;
+      img.classList.add('spon-in');
+
+      function onIn(ev) {
+        if (ev.propertyName !== 'transform') return;
+        img.removeEventListener('transitionend', onIn);
+        setTimeout(function () {
+          img.classList.remove('spon-in');
+          img.classList.add('spon-out');
+          function onExit(ev) {
+            if (ev.propertyName !== 'transform') return;
+            img.removeEventListener('transitionend', onExit);
+            rsponsorIdx = (rsponsorIdx + 1) % RSPONSORS.length;
+            nextSponsor();
+          }
+          img.addEventListener('transitionend', onExit);
+        }, s.dur);
+      }
+      img.addEventListener('transitionend', onIn);
+    })();
   }
 
   /* ── Draft Recap — previous game's pick/ban recap. Lives outside
@@ -1283,58 +1364,36 @@
     .then(function (d) { if (d && d.draftrecap) drAnimateIn(); })
     .catch(function () {});
 
-  /* ── Build coach name + headset (home + away) ──────────────────
-     realme design drops the BPM heart-rate readout entirely — just a
-     gold headset icon next to the coach name, mirrored per side. Icon
-     sits OUTWARD of the name (left of it on home/blue, right of it on
-     away/red) — built via DOM order (icon-then-name for home, name-
-     then-icon for away) rather than flex-direction tricks, so it's
-     unambiguous which element ends up on which visual side. */
-  var DCOACH_HEADSET_SVG =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/>' +
-    '<rect x="2" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
-    '<rect x="16" y="14" width="6" height="8" rx="2.5" fill="currentColor" stroke="none"/>' +
-    '</svg>';
+  /* ── Build team name box (home + away) ──────────────────────────
+     realme design drops the BPM heart-rate readout entirely — this box
+     used to show the coach name plus a gold headset icon; now just
+     shows the team name, no icon. */
+  var dteamNameRefs = {};   /* 'home'|'away' -> { nameTextEl } */
+  var RTEAM_NAME_MAXW = 251; /* full box width, no headset to subtract any more */
 
-  var dcoachRefs = {};   /* 'home'|'away' -> { nameTextEl, headsetEl } */
-  var RCOACH_NAME_MAXW = 251 - 34 - 18; /* box width minus headset + gap */
-
-  function buildCoachSide(side) {
+  function buildTeamNameSide(side) {
     var box = document.createElement('div');
-    box.className = 'rcoach rcoach-' + side;
-
-    var headset = document.createElement('div');
-    headset.className = 'rcoach-headset';
-    headset.innerHTML = DCOACH_HEADSET_SVG;
-    /* Hidden until pollMatchState() confirms a real coach name (see
-       updateCoachDisplay) — starting hidden avoids a flash of a headset
-       icon with no coach name next to it before the first poll. */
-    headset.style.display = 'none';
+    box.className = 'rteam-name rteam-name-' + side;
 
     var name = document.createElement('div');
-    name.className = 'rcoach-name';
+    name.className = 'rteam-name-inner';
     var nameText = document.createElement('span');
-    nameText.className = 'rcoach-name-text';
+    nameText.className = 'rteam-name-text';
     name.appendChild(nameText);
 
-    /* Home: icon then name (icon ends up at the left/outer edge).
-       Away: name then icon (icon ends up at the right/outer edge) —
-       mirror of home, per the "headset to the right on red side" spec. */
-    if (side === 'away') { box.appendChild(name); box.appendChild(headset); }
-    else                 { box.appendChild(headset); box.appendChild(name); }
+    box.appendChild(name);
     scene.appendChild(box);
 
-    dcoachRefs[side] = { nameTextEl: nameText, headsetEl: headset };
+    dteamNameRefs[side] = { nameTextEl: nameText };
   }
 
-  /* Coach name fit — maximize a single line to fill the box height;
+  /* Team name fit — maximize a single line to fill the box height;
      only wrap to two (smaller) lines when a name genuinely doesn't fit
      on one ("if it doesn't fit, move to second row" per spec). Same
-     binary-shrink shape as the original dcoachFitName, resized for the
-     bigger 9.5pt/40px ceiling and wider box. */
-  function dcoachFitName(el, nameStr) {
-    var maxW = RCOACH_NAME_MAXW, maxH = 65, ceilingPx = 40;
+     binary-shrink shape as the original coach-name fit logic, resized
+     for the bigger 9.5pt/40px ceiling and wider box. */
+  function fitTeamName(el, nameStr) {
+    var maxW = RTEAM_NAME_MAXW, maxH = 65, ceilingPx = 40;
 
     function fitsOneLine(size) {
       el.textContent      = nameStr;
@@ -1379,27 +1438,22 @@
     fitsTwoLines(9); /* smallest fallback if even that won't fit */
   }
 
-  function buildCoachUI() {
-    buildCoachSide('home');
-    buildCoachSide('away');
-    /* Left blank (and headset hidden, per buildCoachSide) until
-       pollMatchState() gets a real coach name — see updateCoachDisplay. */
+  function buildTeamNameUI() {
+    buildTeamNameSide('home');
+    buildTeamNameSide('away');
+    /* Left blank until pollMatchState() gets a real team name — see
+       updateTeamNameDisplay. */
   }
 
-  /* Coach name + headset visibility. realme sources this from the Match
-     Board dashboard's home/away.coach field (see pollMatchState()) —
-     NOT the draft API's coach_in like the original Draft.html — so
-     casters/producers can set it from the same panel they already use
-     for team names/scores. campid is already positional (1=blue/left,
-     2=red/right), so camp1 always maps to 'home', camp2 to 'away'. Any
-     falsy value (including the unset default '') means blank name,
-     headset hidden. */
-  function updateCoachDisplay(side, coachName) {
-    var refs = dcoachRefs[side];
+  /* Team name box content. Sourced from the Match Board dashboard's
+     home/away.name field (see pollMatchState()) — same panel
+     casters/producers already use for scores. campid is already
+     positional (1=blue/left, 2=red/right), so camp1 always maps to
+     'home', camp2 to 'away'. */
+  function updateTeamNameDisplay(side, teamName) {
+    var refs = dteamNameRefs[side];
     if (!refs) return;
-    var known = !!coachName;
-    dcoachFitName(refs.nameTextEl, known ? coachName : '');
-    if (refs.headsetEl) refs.headsetEl.style.display = known ? '' : 'none';
+    fitTeamName(refs.nameTextEl, teamName || '');
   }
 
   /* ── Build draft timer + turn indicator ───────────────────────
@@ -1773,11 +1827,11 @@
         var camp1 = campList.find(function (c) { return c.campid === 1; });
         var camp2 = campList.find(function (c) { return c.campid === 2; });
 
-        /* Team logos — only reload when team name changes. No team NAME
-           text in this skin (logo only) and coach comes from Match Board
-           now (pollMatchState → updateCoachDisplay), not this feed. Logo
-           tricode also comes from Match Board (msC1Team/msC2Team), not
-           this live draft feed's team_simple_name. */
+        /* Team logos — only reload when team name changes. The team
+           NAME text box comes from Match Board now (pollMatchState →
+           updateTeamNameDisplay), not this feed. Logo tricode also comes
+           from Match Board (msC1Team/msC2Team), not this live draft
+           feed's team_simple_name. */
         [1, 2].forEach(function(campid) {
           var msTeam = campid === 1 ? msC1Team : msC2Team;
           var le     = logoEls[campid];
@@ -1925,6 +1979,14 @@
     }
   };
 
+  /* Dashboard Edit-tab force-show (see EDIT_CONFIGS' draftrealme_sponsor
+     in dashboard.html) — the Edit iframe always loads with ?preview=1,
+     which starts #scene hidden (see the PREVIEW_ONLY branch above);
+     without this, every element inside #scene (pick plates, center
+     logo, timer bar, and now the sponsor loop) would be invisible while
+     trying to drag/resize them. */
+  window.showDraftRealmeForEdit = function () { showDraftScene(true); };
+
   buildPickPlates();
   buildBanPlates();
   buildScoreBoxes();
@@ -1932,8 +1994,10 @@
   buildCenterLogo();
   buildStatusArea();
   buildDraftRecap();
-  buildCoachUI();
+  buildTeamNameUI();
   buildTimerBar();
+  buildSponsorLoop();
+  startSponsorLoop();
   pollMatchState();
   setInterval(pollMatchState, 3000);
 

@@ -4091,6 +4091,19 @@
     '#dr-red-ban-4':    { left: 240.5,top: 172, width: 73,  height: 39  },
     '#dr-red-ban-5':    { left: 318,  top: 172, width: 73,  height: 39  },
   };
+
+  /* ── Sponsor Loop (Draft-realme.html) — sits in the flat black cell
+     above the center RMC logo (see #rsponsor-loop's CSS comment in
+     Draft-realme.html). Saved under the same "Draft" style bucket that
+     page's loadDraftOverrides() already reads, via r-prefixed ids so it
+     never collides with Draft.html's own #sponsor-loop. */
+  var DRAFTREALME_SPONSOR_DEFAULTS = {
+    '#rsponsor-loop': { left: 772, top: 766, width: 370, height: 55 },
+  };
+  var DRAFTREALME_SPONSOR_ELEMENTS = [
+    { group: 'Sponsor', id: '#rsponsor-loop', name: 'Sponsor Box' },
+  ];
+
   var DRAFT_RECAP_ELEMENTS = [
     { group: 'Blue Card',       id: '#dr-blue-bg',        name: 'Blue Background' },
     { group: 'Blue Card',       id: '#dr-blue-title',     name: 'Blue Title Box' },
@@ -5070,6 +5083,15 @@
       elements:    DRAFT_RECAP_ELEMENTS,
       defaults:    DRAFT_RECAP_DEFAULTS,
       showFn:      'showDraftRecapForEdit',
+    },
+    draftrealme_sponsor: {
+      label:       'Sponsor Loop · Draft (realme)',
+      file:        'Draft-realme.html',
+      styleFile:   'Draft',
+      defaultsKey: 'sb_edit_defaults_draftrealme_sponsor',
+      elements:    DRAFTREALME_SPONSOR_ELEMENTS,
+      defaults:    DRAFTREALME_SPONSOR_DEFAULTS,
+      showFn:      'showDraftRealmeForEdit',
     },
     fullscreen_standings: {
       label:       'Standings · Fullscreen',

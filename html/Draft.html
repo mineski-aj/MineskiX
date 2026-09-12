@@ -780,7 +780,7 @@
       object-fit: contain;
     }
 
-    /* ── Sponsor loop ───────────────────────────────────────────── */
+    /* ── Sponsor loop — slides in from the right, out to the left. ── */
     #sponsor-loop {
       position: absolute;
       left: 890px;
@@ -795,14 +795,14 @@
       width: 140px;
       height: 50px;
       object-fit: contain;
-      transform: translateX(-110%);
+      transform: translateX(110%);
     }
     #sponsor-img.spon-in {
       transform: translateX(0);
       transition: transform 0.4s cubic-bezier(0.0, 0.0, 0.2, 1.0);
     }
     #sponsor-img.spon-out {
-      transform: translateX(110%);
+      transform: translateX(-110%);
       transition: transform 0.35s cubic-bezier(0.4, 0.0, 1.0, 1.0);
     }
 

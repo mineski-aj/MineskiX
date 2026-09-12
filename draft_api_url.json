@@ -1,1 +1,1 @@
-{"live":"http://10.88.120.60:5001/sql/draft-info-only/","debug":"http://10.88.120.98:5001/api/draft-info","web":"https://theapi.dpdns.org/sql/draft-info-only/"}
+{"live":"http://10.88.120.60:5001/sql/draft-info-only/","debug":"http://localhost:5001/api/draft-info","web":"https://theapi.dpdns.org/sql/draft-info-only/"}
