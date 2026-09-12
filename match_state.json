@@ -34,42 +34,42 @@
     "coach": ""
   },
   "away": {
-    "teamId": "20003",
+    "teamId": "20004",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "siwa123",
-        "id": "990000017"
+        "ign": "Toshiro",
+        "id": "990000022"
       },
       {
         "role": "JUNGLER",
-        "ign": "cold",
-        "id": "990000014"
+        "ign": "Hysterax",
+        "id": "990000020"
       },
       {
         "role": "MID LANER",
-        "ign": "heyhaye",
-        "id": "990000015"
+        "ign": "Nyxsie",
+        "id": "990000019"
       },
       {
         "role": "ROAMER",
-        "ign": "natz",
-        "id": "990000016"
+        "ign": "DEKS",
+        "id": "990000018"
       },
       {
         "role": "GOLD LANER",
-        "ign": "YU NO",
-        "id": "990000013"
+        "ign": "KIRR",
+        "id": "990000021"
       }
     ],
-    "name": "LOVE - READING BOOKS",
-    "short": "LRB",
+    "name": "MDM",
+    "short": "MDM",
     "score": 0,
     "coach": ""
   },
   "series": "BO3",
   "game": 1,
-  "swapped": true,
+  "swapped": false,
   "official": true,
   "week": 2,
   "day": 2,

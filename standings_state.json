@@ -1,76 +1,76 @@
 {
   "teams": [
     {
-      "tri": "ONIC",
-      "move": "neutral",
-      "status": null,
-      "mp": 2,
-      "mwl": "2-0",
-      "gwl": "4-0",
-      "ngw": 4
-    },
-    {
-      "tri": "FLCN",
-      "move": "neutral",
-      "status": null,
-      "mp": 2,
-      "mwl": "2-0",
-      "gwl": "4-1",
-      "ngw": 3
-    },
-    {
       "tri": "TLPH",
       "move": "neutral",
       "status": null,
-      "mp": 1,
-      "mwl": "1-1",
-      "gwl": "3-2",
+      "mp": 6,
+      "mwl": "6-1",
+      "gwl": "13-2",
+      "ngw": 11
+    },
+    {
+      "tri": "FLCN",
+      "move": "up",
+      "status": null,
+      "mp": 5,
+      "mwl": "5-1",
+      "gwl": "11-4",
+      "ngw": 7
+    },
+    {
+      "tri": "ONIC",
+      "move": "down",
+      "status": null,
+      "mp": 5,
+      "mwl": "5-2",
+      "gwl": "11-6",
+      "ngw": 5
+    },
+    {
+      "tri": "RORA",
+      "move": "neutral",
+      "status": null,
+      "mp": 3,
+      "mwl": "3-3",
+      "gwl": "7-6",
       "ngw": 1
+    },
+    {
+      "tri": "TNC",
+      "move": "up",
+      "status": null,
+      "mp": 3,
+      "mwl": "3-3",
+      "gwl": "7-8",
+      "ngw": -1
+    },
+    {
+      "tri": "OMG",
+      "move": "down",
+      "status": null,
+      "mp": 3,
+      "mwl": "3-3",
+      "gwl": "7-9",
+      "ngw": -2
     },
     {
       "tri": "APBR",
       "move": "neutral",
       "status": null,
       "mp": 1,
-      "mwl": "1-1",
-      "gwl": "2-3",
-      "ngw": -1
-    },
-    {
-      "tri": "TNC",
-      "move": "neutral",
-      "status": null,
-      "mp": 1,
-      "mwl": "1-1",
-      "gwl": "2-3",
-      "ngw": -1
+      "mwl": "1-6",
+      "gwl": "4-13",
+      "ngw": -9
     },
     {
       "tri": "TWIS",
       "move": "neutral",
       "status": null,
       "mp": 0,
-      "mwl": "0-1",
-      "gwl": "1-2",
-      "ngw": -1
-    },
-    {
-      "tri": "OMG",
-      "move": "neutral",
-      "status": null,
-      "mp": 0,
-      "mwl": "0-1",
-      "gwl": "0-2",
-      "ngw": -2
-    },
-    {
-      "tri": "RORA",
-      "move": "neutral",
-      "status": null,
-      "mp": 0,
-      "mwl": "0-2",
-      "gwl": "1-4",
-      "ngw": -3
+      "mwl": "0-7",
+      "gwl": "2-14",
+      "ngw": -12
     }
   ]
 }

@@ -1281,7 +1281,7 @@
         linear-gradient(to bottom, transparent 0%, #000 10%, #000 calc(100% - 50px), transparent 100%);
       mask-composite: intersect;
     }
-    /* Player photo — hires/LEFT/<name>_LEFT.png (see mvPhotoUrl). */
+    /* Player photo — hires/PHONE/<name>_PHONE.png (see mvPhotoUrl). */
     #mv-photo {
       position: absolute; left: 979px; top: 16px; width: 734px; height: 1062px;
       z-index: 2; object-fit: contain; object-position: 50% 100%; display: block;
@@ -6280,11 +6280,11 @@
       return '/heromvp/MVP_' + heroid + '.png';
     }
 
-    /* /hires/LEFT/<name>_LEFT.png — same folder/convention as Waiting
-       Lobby's wlPhotoUrl('blue' side), NOT hlPhotoUrl's SIGNATURE folder
+    /* /hires/PHONE/<name>_PHONE.png — NOT Waiting Lobby's wlPhotoUrl
+       folder/convention, and NOT hlPhotoUrl's SIGNATURE folder either
        (that one stays MVP Highlights' own, untouched). */
     function mvPhotoUrl(name) {
-      return name ? '/hires/LEFT/' + encodeURIComponent(name + '_LEFT.png') : '';
+      return name ? '/hires/PHONE/' + encodeURIComponent(name + '_PHONE.png') : '';
     }
 
     /* Centered, starts near the box height, shrinks to fit the box width
