@@ -927,6 +927,20 @@ router.get('/overlay/killevent', (req, res) => {
   res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, video, playerName, role, camp });
 });
 
+// GET /overlay/objectivespawn — dashboard Control tab's remote trigger for
+// Lord/Turtle spawn (see html/js/overlay-debug.js's 'objectivespawn' SSE
+// listener, which routes straight into objSpawnEnqueue() — the same queue
+// the live game_time/tortoise_left_time/lord_left_time countdown uses).
+router.get('/overlay/objectivespawn', (req, res) => {
+  const kind = req.query.kind;
+  if (kind !== 'lord' && kind !== 'turtle') {
+    return res.status(400).json({ ok: false, error: 'unknown kind' });
+  }
+  const payload = JSON.stringify({ kind });
+  state.overlayClients.forEach(c => { try { c.write(`event: objectivespawn\ndata: ${payload}\n\n`); } catch {} });
+  res.set({ 'Cache-Control': 'no-store' }).json({ ok: true, kind });
+});
+
 // Map Selection tag (html/LowerThirds.html) — sequential per-game reveal.
 // Each "show" call does ONE of, in priority order:
 //   1. If an already-revealed game is still waiting on its winner, and

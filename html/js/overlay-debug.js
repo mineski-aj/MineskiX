@@ -384,6 +384,17 @@ masterPoll();
       if (d.video) enqueueKillEvent(d.video, d.priority, d.playerIdx, d.playerName, d.role, d.camp);
     } catch {}
   });
+  /* Dashboard Control tab's Objective Spawn Trigger (routes/overlay.js'
+     /overlay/objectivespawn) — routes straight into the same
+     objSpawnEnqueue() the OBJECTIVE SPAWN debug tab's own buttons call
+     locally, so this fires on every open ingame.html instance including
+     the real broadcast one, not just whichever tab you're looking at. */
+  sse.addEventListener('objectivespawn', function(e) {
+    try {
+      var d = JSON.parse(e.data);
+      if (d.kind) objSpawnEnqueue(d.kind);
+    } catch {}
+  });
   sse.addEventListener('featuretoggle', function(e) {
     try {
       var d = JSON.parse(e.data);

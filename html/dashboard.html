@@ -478,6 +478,42 @@
     }
     .killevent-trigger:hover { filter: brightness(1.2); }
 
+    /* ── Objective spawn inline row — same layout as the kill event row
+       above, just its own class names since it isn't a kill event. ── */
+    .objspawn-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #0f0f18;
+    }
+    .objspawn-row label { font-size: 11px; color: #666; white-space: nowrap; }
+    .objspawn-select {
+      flex: 1;
+      height: 26px;
+      padding: 0 8px;
+      background: #1a1a2a;
+      border: 1px solid #333355;
+      border-radius: 5px;
+      color: #aaaadd;
+      font-size: 11px;
+      cursor: pointer;
+      outline: none;
+    }
+    .objspawn-trigger {
+      height: 26px;
+      padding: 0 12px;
+      background: #1a2a1a;
+      border: 1px solid #2a5a2a;
+      border-radius: 5px;
+      color: #66cc88;
+      cursor: pointer;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .objspawn-trigger:hover { filter: brightness(1.2); }
+
     /* ── Preview debug tester ───────────────────────────────────── */
     .pdebug-row {
       display: flex;
@@ -2337,6 +2373,7 @@
       file: 'ingame.html',
       previewDebugTester: true,
       killEventTrigger: true,
+      objectiveSpawnTrigger: true,
       extraActions: [
         { label: 'Recap Show', action: '/overlay/fights/show' },
         { label: 'Recap Hide', action: '/overlay/fights/hide' },
@@ -3244,6 +3281,38 @@
       kePhotoRow.appendChild(keBtnLive);
       kePhotoRow.appendChild(keBtnRandom);
       body.appendChild(kePhotoRow);
+    }
+
+    /* Objective spawn trigger — remote equivalent of ingame.html's own
+       OBJECTIVE SPAWN debug tab (▶ LORD SPAWN / ▶ TURTLE SPAWN buttons,
+       which only work if you're looking at that exact page/tab; this
+       fires the real broadcast instance too). Hits /overlay/objectivespawn
+       (routes/overlay.js), which broadcasts an 'objectivespawn' SSE event
+       every ingame.html listens for (see overlay-debug.js's SSE block) and
+       routes straight into the same objSpawnEnqueue() the live
+       game_time/tortoise_left_time/lord_left_time countdown uses. */
+    if (ov.objectiveSpawnTrigger) {
+      if (body.children.length) body.appendChild(el('div', 'divider'));
+      body.appendChild(el('div', 'features-label', 'Objective Spawn Trigger'));
+      var osRow = el('div', 'objspawn-row');
+      var osLabel = el('label', '', 'Objective');
+      var osSelect = el('select', 'objspawn-select');
+      [['lord', 'Lord Spawn'], ['turtle', 'Turtle Spawn']].forEach(function (opt) {
+        var o = document.createElement('option');
+        o.value = opt[0]; o.textContent = opt[1];
+        osSelect.appendChild(o);
+      });
+      var osTrigger = el('button', 'objspawn-trigger', '▶ Trigger');
+      osTrigger.addEventListener('click', function () {
+        fetch('/overlay/objectivespawn?kind=' + encodeURIComponent(osSelect.value)).catch(function () {});
+        body.classList.remove('flash-ok');
+        void body.offsetWidth;
+        body.classList.add('flash-ok');
+      });
+      osRow.appendChild(osLabel);
+      osRow.appendChild(osSelect);
+      osRow.appendChild(osTrigger);
+      body.appendChild(osRow);
     }
 
     /* MVP Scene's player picker — the caster chooses who's MVP from the

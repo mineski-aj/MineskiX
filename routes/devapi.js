@@ -421,7 +421,13 @@ router.get('/api/gamedata-proxy', async (req, res) => {
   try {
     const gameUrl = readUrlForMode(GAME_URL_FILE, '').trim();
     if (!gameUrl) return res.status(404).json({ error: 'no game URL configured' });
-    const r = await fetch(gameUrl);
+    // Same reasoning as /api/postinfo-proxy / /api/lineuprate-data below —
+    // an unreachable upstream would otherwise hang this request (and every
+    // caller waiting on it — including the dashboard's own MVP player
+    // picker) indefinitely, piling up hung browser connections to this
+    // server's own host until the ~6-per-host cap is exhausted and
+    // everything else on the dashboard queues forever. Fail fast instead.
+    const r = await fetch(gameUrl, { signal: AbortSignal.timeout(5000) });
     if (!r.ok) return res.status(502).json({ error: `upstream ${r.status}` });
     const data = await r.json();
     res.set('Cache-Control', 'no-store').json(raw ? data : seatArrangement.applyArrangement(data, seatArrangement.readArrangement()));

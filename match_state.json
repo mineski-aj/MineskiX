@@ -1,35 +1,35 @@
 {
   "home": {
-    "teamId": "20002",
+    "teamId": "20003",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "BANGSAL",
-        "id": "990000007"
+        "ign": "siwa123",
+        "id": "990000017"
       },
       {
         "role": "JUNGLER",
-        "ign": "ESTACIO",
-        "id": "990000011"
+        "ign": "cold",
+        "id": "990000014"
       },
       {
         "role": "MID LANER",
-        "ign": "BLAS",
-        "id": "990000009"
+        "ign": "heyhaye",
+        "id": "990000015"
       },
       {
         "role": "ROAMER",
-        "ign": "PACULAN",
-        "id": "990000008"
+        "ign": "natz",
+        "id": "990000016"
       },
       {
         "role": "GOLD LANER",
-        "ign": "HERRERO",
-        "id": "990000010"
+        "ign": "YU NO",
+        "id": "990000013"
       }
     ],
-    "name": "NU Bulldogs Esports",
-    "short": "NU-B",
+    "name": "LOVE - READING BOOKS",
+    "short": "LRB",
     "score": 0,
     "coach": ""
   },
@@ -82,7 +82,7 @@
   "casters": [
     "Rockhart",
     "Brigida",
-    "None"
+    "Santie"
   ],
   "todayMatches": [
     {

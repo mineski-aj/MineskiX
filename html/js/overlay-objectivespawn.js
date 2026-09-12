@@ -21,9 +21,9 @@ var objSpawnQueue = []; /* { kind: 'lord'|'turtle', video } */
 var objSpawnOverlayEl = document.getElementById('objective-spawn-overlay');
 var objSpawnVideoEl   = document.getElementById('objective-spawn-video');
 
-var OBJ_SPAWN_VIDEO = { lord: 'rmc_lord.webm', turtle: 'rmc_turtle.webm' };
+var OBJ_SPAWN_VIDEO = { lord: 'rmc_lord2.webm', turtle: 'rmc_turtle2.webm' };
 
-/* rmc_lord.webm/rmc_turtle.webm live in the active project's own assets
+/* rmc_lord2.webm/rmc_turtle2.webm live in the active project's own assets
    folder (projects/<id>/assets/Ingame/), not the old plain global
    assets/ingame/ path — resolved once at load from the active project,
    same convention as overlay-emblemcheck.js's eccBgUrl()/ingame_blue.html's

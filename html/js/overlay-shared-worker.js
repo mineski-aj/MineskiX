@@ -36,7 +36,7 @@ const KNOWN_EVENTS = [
   'draftpredict', 'draftrealme', 'draftrecap', 'draftstats', 'emblemcheck', 'featuretoggle', 'fights', 'final_team', 'fs_debugoff', 'fs_hide',
   'golddiffcheck', 'herolineup', 'highlights', 'hrm', 'itemcheck', 'killevent', 'led_draftpred',
   'led_fight', 'led_health', 'led_side', 'led_win', 'mapselection', 'mapselecttag',
-  'match', 'matchboard', 'meter', 'middleboard', 'mvp', 'playerui',
+  'match', 'matchboard', 'meter', 'middleboard', 'mvp', 'objectivespawn', 'playerui',
   'post_emblems', 'post_hearts', 'post_itemline', 'post_itemline_itemin',
   'post4key', 'post_itemline_itemout', 'post_items', 'post_richguy', 'post_stats', 'reload',
   'scoreboard', 'seat_arrangement', 'sidecheck', 'standings', 'stylepatch', 'team_hexagon', 'team_lineup_blue',

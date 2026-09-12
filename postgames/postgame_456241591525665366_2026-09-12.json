@@ -1,0 +1,166 @@
+{
+  "battleid": "456241591525665366",
+  "date": "2026-09-12",
+  "game_start_time": "2026-09-12T15:06:05.840Z",
+  "game_end_time": "2026-09-12T15:10:03.087Z",
+  "game_duration": "00:47",
+  "home": {
+    "tricode": "NU-B",
+    "camp_code": "20002",
+    "camp_name": "NU Bulldogs Esports",
+    "players": [
+      {
+        "player1": {
+          "player_name": "BANGSAL",
+          "role": "EXP LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player2": {
+          "player_name": "ESTACIO",
+          "role": "JUNGLER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player3": {
+          "player_name": "BLAS",
+          "role": "MID LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player4": {
+          "player_name": "PACULAN",
+          "role": "ROAMER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player5": {
+          "player_name": "HERRERO",
+          "role": "GOLD LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      }
+    ]
+  },
+  "away": {
+    "tricode": "MDM",
+    "camp_code": "20004",
+    "camp_name": "MDM",
+    "players": [
+      {
+        "player1": {
+          "player_name": "Toshiro",
+          "role": "EXP LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player2": {
+          "player_name": "Hysterax",
+          "role": "JUNGLER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player3": {
+          "player_name": "Nyxsie",
+          "role": "MID LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player4": {
+          "player_name": "DEKS",
+          "role": "ROAMER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      },
+      {
+        "player5": {
+          "player_name": "KIRR",
+          "role": "GOLD LANER",
+          "avg_bpm": null,
+          "peak_bpm": null,
+          "pct_above_120": null,
+          "avg_bpm_at_objectives": null,
+          "peak_bpm_at_objectives": null,
+          "avg_clash_bpm": null,
+          "bpm_on_end": null
+        }
+      }
+    ]
+  },
+  "highlights": {
+    "lowest_avg_bpm": null,
+    "highest_avg_bpm": null,
+    "highest_peak_bpm": null,
+    "lowest_avg_at_objectives": null,
+    "highest_peak_at_objectives": null,
+    "lowest_avg_clash_bpm": null,
+    "highest_avg_clash_bpm": null
+  },
+  "clashes": {
+    "clash_count": null,
+    "camp1_avg_bpm_in_clashes": null,
+    "camp2_avg_bpm_in_clashes": null,
+    "clashes": []
+  }
+}
