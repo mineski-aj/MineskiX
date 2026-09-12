@@ -33,7 +33,7 @@
     },
     "20002": {
       "name": "NU Bulldogs Esports",
-      "tag": "NU",
+      "tag": "NU-B",
       "region": "LUZON"
     },
     "20003": {
@@ -93,42 +93,42 @@
     "990000007": {
       "ign": "BANGSAL",
       "name": "Rendell G. Bangsal",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "EXP LANER"
     },
     "990000008": {
       "ign": "PACULAN",
       "name": "Josh Prince T. Paculan",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "ROAMER"
     },
     "990000009": {
       "ign": "BLAS",
       "name": "Harold James R. Blas",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "MID LANER"
     },
     "990000010": {
       "ign": "HERRERO",
       "name": "Kirk Clement Dave L. Herrero",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "GOLD LANER"
     },
     "990000011": {
       "ign": "ESTACIO",
       "name": "Johann Deondrei H. Estacio",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "JUNGLER"
     },
     "990000012": {
       "ign": "ALVARADO",
       "name": "Angelo M. Alvarado",
-      "tag": "NU",
+      "tag": "NU-B",
       "teamId": 20002,
       "role": "ROAMER"
     },
