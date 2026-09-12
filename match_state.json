@@ -1,36 +1,36 @@
 {
   "home": {
-    "teamId": "20004",
+    "teamId": "20002",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "Toshiro",
-        "id": "990000022"
+        "ign": "BANGSAL",
+        "id": "990000007"
       },
       {
         "role": "JUNGLER",
-        "ign": "Hysterax",
-        "id": "990000020"
+        "ign": "ESTACIO",
+        "id": "990000011"
       },
       {
         "role": "MID LANER",
-        "ign": "Nyxsie",
-        "id": "990000019"
+        "ign": "BLAS",
+        "id": "990000009"
       },
       {
         "role": "ROAMER",
-        "ign": "DEKS",
-        "id": "990000018"
+        "ign": "PACULAN",
+        "id": "990000008"
       },
       {
         "role": "GOLD LANER",
-        "ign": "KIRR",
-        "id": "990000021"
+        "ign": "HERRERO",
+        "id": "990000010"
       }
     ],
-    "name": "MDM",
-    "short": "MDM",
-    "score": 2,
+    "name": "NU Bulldogs Esports",
+    "short": "NU-B",
+    "score": 0,
     "coach": ""
   },
   "away": {
@@ -68,8 +68,8 @@
     "coach": ""
   },
   "series": "BO3",
-  "game": 3,
-  "swapped": false,
+  "game": 1,
+  "swapped": true,
   "official": true,
   "week": 2,
   "day": 2,
@@ -80,9 +80,9 @@
     "None"
   ],
   "casters": [
-    "Hans",
-    "Midnight",
-    "Joshycakes"
+    "Rockhart",
+    "Brigida",
+    "None"
   ],
   "todayMatches": [
     {

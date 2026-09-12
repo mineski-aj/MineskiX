@@ -135,12 +135,15 @@
       "fontSize": "42px"
     },
     "#mdb-game-time-label": {
+      "top": "257px",
       "fontSize": "24px"
     },
     "#mdb-game-time-value": {
+      "top": "248px",
       "fontSize": "105px"
     },
     "#mdb-game-label-text": {
+      "top": "0px",
       "fontSize": "31px"
     },
     "#mv-hero-img": {

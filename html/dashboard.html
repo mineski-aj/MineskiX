@@ -4717,10 +4717,10 @@
   MDB_DEFAULTS['#mdb-sponsor'] = { left: 805, top: 860, width: 310, height: 70 };
   MDB_ELEMENTS.push({ group: 'Sponsor Loop', id: '#mdb-sponsor', name: 'Sponsor Loop' });
 
-  /* Font-size-only controls — no left/top/width/height (PROPS.forEach in
-     showEditControls only renders the rows whose key is actually present
-     in defaults, so leaving position out here just hides those steppers
-     for these entries instead of showing dead ones).
+  /* Font-size (+ Y position for the three below) — no left/width/height
+     (PROPS.forEach in showEditControls only renders the rows whose key
+     is actually present in defaults, so leaving a key out here just
+     hides that stepper for these entries instead of showing a dead one).
      '.mdb-num' is a CLASS selector matching all 12 Gold/Tower/Lord/Turtle/
      Red Buff/Purple Buff number spans at once — applyToEditIframe's
      generic CSS injection (`sel + '{' + d.join(';') + '}'`) already
@@ -4729,11 +4729,18 @@
      dedicated per-pair entry in SB_FONT_LINK for every one of the 6 rows.
      The Game Time label/value and the Game # label are each a single
      unique element, so they just get their own independent Font Size
-     control, same as everywhere else in this app. */
+     control, same as everywhere else in this app — plus a Y (top)
+     control each, since all three needed to be vertically nudgeable
+     independent of each other. #mdb-game-label-text has no X/width/height
+     row on purpose: it's flex-centered inside #mdb-game-label-bar in
+     Fullscreen.html (which is what needed `position:relative` added so
+     a `top` !important offset actually has somewhere to apply from —
+     a flex item with position:static ignores `top` entirely), and only
+     ever needs to move vertically. */
   MDB_DEFAULTS['.mdb-num']              = { fontSize: 28 };
-  MDB_DEFAULTS['#mdb-game-time-label']  = { fontSize: 23 };
-  MDB_DEFAULTS['#mdb-game-time-value']  = { fontSize: 74 };
-  MDB_DEFAULTS['#mdb-game-label-text']  = { fontSize: 18 };
+  MDB_DEFAULTS['#mdb-game-time-label']  = { top: 257, fontSize: 23 };
+  MDB_DEFAULTS['#mdb-game-time-value']  = { top: 264, fontSize: 74 };
+  MDB_DEFAULTS['#mdb-game-label-text']  = { top: 0,   fontSize: 18 };
   MDB_ELEMENTS.push({ group: 'Stats', id: '.mdb-num', name: 'Stat Numbers (Gold/Tower/Lord/Turtle/Buffs)' });
   MDB_ELEMENTS.push({ group: 'Game Time', id: '#mdb-game-time-label', name: 'Game Time Label' });
   MDB_ELEMENTS.push({ group: 'Game Time', id: '#mdb-game-time-value', name: 'Game Time Value' });
