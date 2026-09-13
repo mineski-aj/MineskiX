@@ -25,5 +25,32 @@
       "ign": "Teddy",
       "id": "1810330654"
     }
+  ],
+  "20001": [
+    {
+      "role": "EXP LANER",
+      "ign": "Chureezo",
+      "id": "990000005"
+    },
+    {
+      "role": "JUNGLER",
+      "ign": "SOREN GOD",
+      "id": "990000003"
+    },
+    {
+      "role": "MID LANER",
+      "ign": "Gasai",
+      "id": "990000002"
+    },
+    {
+      "role": "ROAMER",
+      "ign": "Digger",
+      "id": "990000001"
+    },
+    {
+      "role": "GOLD LANER",
+      "ign": "Fritzz",
+      "id": "990000004"
+    }
   ]
 }

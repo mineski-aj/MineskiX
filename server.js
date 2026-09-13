@@ -58,6 +58,57 @@ app.post('/match/state', function (req, res) {
   res.json({ ok: true, state: matchState.get() });
 });
 
+// Flat, single-row view of match state for vMix's JSON Data Source.
+// vMix expects an array of flat objects (no nested objects/arrays) —
+// handed /match/state's real nested shape as-is, vMix latches onto the
+// first array it finds (home.lineup) and treats THAT as the whole data
+// source, silently dropping every other field. This flattens team info,
+// lineups, and casters/hosts into one row instead.
+app.get('/match-vmix', function (req, res) {
+  var s    = matchState.get();
+  var home = s.home || {};
+  var away = s.away || {};
+
+  function lineupFields(prefix, side) {
+    var out = {};
+    var lineup = side.lineup || [];
+    for (var i = 0; i < 5; i++) {
+      var p = lineup[i] || {};
+      out[prefix + (i + 1) + '_role'] = p.role || '';
+      out[prefix + (i + 1) + '_ign']  = p.ign  || '';
+    }
+    return out;
+  }
+
+  var row = Object.assign({
+    home_name:  home.name  || '',
+    home_short: home.short || '',
+    home_score: home.score || 0,
+    home_coach: home.coach || '',
+    away_name:  away.name  || '',
+    away_short: away.short || '',
+    away_score: away.score || 0,
+    away_coach: away.coach || '',
+
+    series: s.series, stage: s.stage, game: s.game, match: s.match,
+    week: s.week, day: s.day, patch: s.patch, map: s.map,
+    swapped: s.swapped, official: s.official,
+
+    caster1: (s.casters || [])[0] || '',
+    caster2: (s.casters || [])[1] || '',
+    caster3: (s.casters || [])[2] || '',
+    en_caster1: (s.enCasters || [])[0] || '',
+    en_caster2: (s.enCasters || [])[1] || '',
+    en_caster3: (s.enCasters || [])[2] || '',
+    host1: (s.hosts || [])[0] || '',
+    host2: (s.hosts || [])[1] || '',
+    host3: (s.hosts || [])[2] || '',
+  }, lineupFields('home_p', home), lineupFields('away_p', away));
+
+  res.set('Cache-Control', 'no-store');
+  res.json([row]);
+});
+
 // Waiting Screen TVC / Waiting Lobby countdown — server-authoritative so it
 // keeps running (or stays paused) across overlay refreshes and reconnects.
 app.post('/match/timer', function (req, res) {
@@ -255,6 +306,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`  Match      → GET  http://localhost:${PORT}/match/state`);
   console.log(`             → POST http://localhost:${PORT}/match/state  (auth)`);
   console.log(`             → GET  http://localhost:${PORT}/match/events  (SSE)`);
+  console.log(`  vMix       → GET  http://localhost:${PORT}/match-vmix  (flat, single-row JSON)`);
   console.log(`  Timer      → POST http://localhost:${PORT}/match/timer  { action: start|pause|set, seconds }`);
   console.log(`  Lineups    → GET  http://localhost:${PORT}/match/team-lineups`);
   console.log(`             → POST http://localhost:${PORT}/match/team-lineups  (auth)`);

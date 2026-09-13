@@ -29,22 +29,36 @@
     "20001": {
       "name": "WEBMASTERS ESPORTS",
       "tag": "WE",
-      "region": "VISAYAS"
+      "region": "VISAYAS",
+      "coach": ""
     },
     "20002": {
       "name": "NU Bulldogs Esports",
-      "tag": "NU-B",
-      "region": "LUZON"
+      "tag": "NU",
+      "region": "LUZON",
+      "coach": ""
     },
     "20003": {
       "name": "LOVE - READING BOOKS",
       "tag": "LRB",
-      "region": "LUZON"
+      "region": "LUZON",
+      "coach": ""
     },
     "20004": {
       "name": "MDM",
       "tag": "MDM",
-      "region": "MINDANAO"
+      "region": "MINDANAO",
+      "coach": ""
+    },
+    "realme Squad": {
+      "name": "realme Squad",
+      "tag": "RMC",
+      "coach": ""
+    },
+    "local1789282277751222": {
+      "name": "MPL PROS",
+      "tag": "PRO",
+      "coach": ""
     }
   },
   "players": {

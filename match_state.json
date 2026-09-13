@@ -1,88 +1,88 @@
 {
   "home": {
-    "teamId": "20003",
+    "teamId": "20002",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "siwa123",
-        "id": "990000017"
+        "ign": "BANGSAL",
+        "id": "990000007"
       },
       {
         "role": "JUNGLER",
-        "ign": "cold",
-        "id": "990000014"
+        "ign": "ESTACIO",
+        "id": "990000011"
       },
       {
         "role": "MID LANER",
-        "ign": "heyhaye",
-        "id": "990000015"
+        "ign": "BLAS",
+        "id": "990000009"
       },
       {
         "role": "ROAMER",
-        "ign": "natz",
-        "id": "990000016"
+        "ign": "PACULAN",
+        "id": "990000008"
       },
       {
         "role": "GOLD LANER",
-        "ign": "YU NO",
-        "id": "990000013"
+        "ign": "HERRERO",
+        "id": "990000010"
       }
     ],
-    "name": "LOVE - READING BOOKS",
-    "short": "LRB",
-    "score": 0,
+    "name": "NU Bulldogs Esports",
+    "short": "NU",
+    "score": 3,
     "coach": ""
   },
   "away": {
-    "teamId": "20004",
+    "teamId": "20001",
     "lineup": [
       {
         "role": "EXP LANER",
-        "ign": "Toshiro",
-        "id": "990000022"
+        "ign": "Chureezo",
+        "id": "990000005"
       },
       {
         "role": "JUNGLER",
-        "ign": "Hysterax",
-        "id": "990000020"
+        "ign": "SOREN GOD",
+        "id": "990000003"
       },
       {
         "role": "MID LANER",
-        "ign": "Nyxsie",
-        "id": "990000019"
+        "ign": "Gasai",
+        "id": "990000002"
       },
       {
         "role": "ROAMER",
-        "ign": "DEKS",
-        "id": "990000018"
+        "ign": "Digger",
+        "id": "990000001"
       },
       {
         "role": "GOLD LANER",
-        "ign": "KIRR",
-        "id": "990000021"
+        "ign": "Fritzz",
+        "id": "990000004"
       }
     ],
-    "name": "MDM",
-    "short": "MDM",
-    "score": 0,
+    "name": "WEBMASTERS ESPORTS",
+    "short": "WE",
+    "score": 1,
     "coach": ""
   },
-  "series": "BO3",
-  "game": 1,
-  "swapped": false,
+  "series": "BO5",
+  "game": 5,
+  "swapped": true,
   "official": true,
-  "week": 2,
-  "day": 2,
+  "week": 1,
+  "day": 1,
   "patch": "Scarlet Embers 0826",
   "hosts": [
     "Denisse",
-    "Thea",
+    "Santie",
     "None"
   ],
   "casters": [
-    "Rockhart",
     "Brigida",
-    "Santie"
+    "Santie",
+    "None"
   ],
   "todayMatches": [
     {
@@ -175,7 +175,7 @@
     "endAt": null,
     "remaining": 900
   },
-  "map": "Broken Walls",
+  "map": "Expanding Rivers",
   "enCasters": [
     "Leo",
     "Naisou",

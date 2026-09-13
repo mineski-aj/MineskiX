@@ -1225,19 +1225,15 @@
     justify-content: center;
     pointer-events: none;
   }
-  #sb-logo-c1 .sb-logo-fallback {
+  /* No-logo fallback — the RMC badge (projects/<active>/assets/rmc_logo.png),
+     not a solid-color circle, so a missing team crest doesn't look like an
+     error state on broadcast. Same asset/convention as Draft-realme.html's
+     #draft-logo-c1/c2 fallback. */
+  .sb-logo-fallback {
     position: absolute;
     width: 52px;
     height: 52px;
-    border-radius: 50%;
-    background: rgb(42, 0, 255);
-  }
-  #sb-logo-c2 .sb-logo-fallback {
-    position: absolute;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: rgb(210, 30, 30);
+    object-fit: contain;
   }
   .sb-logo-img {
     position: absolute;

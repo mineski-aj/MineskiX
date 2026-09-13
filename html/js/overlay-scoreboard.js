@@ -157,10 +157,11 @@
   sbSponBox.appendChild(sbSponImg);
   overlay.appendChild(sbSponBox);
 
-  /* Team logo containers — fallback circle shown until img loads */
+  /* Team logo containers — no-logo fallback (RMC badge, see sbLogoFallbackUrl
+     below) shown until the real crest loads. */
   var logo1 = document.createElement('div');
   logo1.id = 'sb-logo-c1';
-  var logo1fb = document.createElement('div'); logo1fb.className = 'sb-logo-fallback';
+  var logo1fb = document.createElement('img'); logo1fb.className = 'sb-logo-fallback'; logo1fb.alt = '';
   var logo1img = document.createElement('img'); logo1img.className = 'sb-logo-img'; logo1img.alt = '';
   logo1img.style.display = 'none';
   logo1img.onload  = function() { this.style.display = 'block'; logo1fb.style.display = 'none'; };
@@ -170,13 +171,25 @@
 
   var logo2 = document.createElement('div');
   logo2.id = 'sb-logo-c2';
-  var logo2fb = document.createElement('div'); logo2fb.className = 'sb-logo-fallback';
+  var logo2fb = document.createElement('img'); logo2fb.className = 'sb-logo-fallback'; logo2fb.alt = '';
   var logo2img = document.createElement('img'); logo2img.className = 'sb-logo-img'; logo2img.alt = '';
   logo2img.style.display = 'none';
   logo2img.onload  = function() { this.style.display = 'block'; logo2fb.style.display = 'none'; };
   logo2img.onerror = function() { this.style.display = 'none';  logo2fb.style.display = ''; };
   logo2.appendChild(logo2fb); logo2.appendChild(logo2img);
   overlay.appendChild(logo2);
+
+  /* projects/<active>/assets/rmc_logo.png — same asset + resolution
+     convention as Draft-realme.html's #draft-logo-c1/c2 fallback (falls
+     back to the rmc10 copy directly if no project is active or the
+     lookup fails, since this overlay is RMC10-specific right now). */
+  sbLogoFallbackUrl().then(function(url) { logo1fb.src = url; logo2fb.src = url; });
+  function sbLogoFallbackUrl() {
+    return fetch('/api/projects', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) { return '/projects/' + encodeURIComponent((d && d.active) || 'rmc10') + '/assets/rmc_logo.png'; })
+      .catch(function() { return '/projects/rmc10/assets/rmc_logo.png'; });
+  }
 
   /* Insert as first child of scene — always behind every other feature */
   var scene = document.getElementById('scene');
@@ -535,7 +548,11 @@ function sbPollMatchState() {
          an Edit-tab resize actually changes what fits. */
       var miCastersTxt = document.querySelector('#sb-mi-casters .sb-mi-casters-text');
       if (miCastersTxt) {
-        miCastersTxt.textContent = (s.casters || []).filter(Boolean).join(' | ').toUpperCase();
+        /* Ingame's caster box only ever shows 2 casters — the shared
+           `casters` match-state array still holds 3 (Fullscreen.html's
+           Casters panel uses all 3), so slice here rather than trimming
+           the state itself. */
+        miCastersTxt.textContent = (s.casters || []).slice(0, 2).filter(Boolean).join(' | ').toUpperCase();
         sbFitText(miCastersTxt, SB_MI_FIT_CONFIG.casters.maxWidth, SB_MI_FIT_CONFIG.casters.maxPx);
       }
 

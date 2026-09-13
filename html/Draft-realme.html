@@ -413,18 +413,10 @@
     }
     #draft-logo-c1 { left: 775px; }
     #draft-logo-c2 { left: 1088px; }
-    #draft-logo-c1 .draft-logo-fallback {
-      position: absolute;
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: rgb(42, 0, 255);
-    }
-    #draft-logo-c2 .draft-logo-fallback {
-      position: absolute;
-      width: 56px; height: 56px;
-      border-radius: 50%;
-      background: rgb(210, 30, 30);
-    }
+    /* No-logo fallback — the RMC badge (same asset as #draft-center-logo),
+       not a solid-color circle, so a missing team crest doesn't look like
+       an error state on broadcast. */
+    .draft-logo-fallback,
     .draft-logo-img {
       position: absolute;
       width: 56px; height: 56px;
@@ -1031,8 +1023,10 @@
       wrap.id = 'draft-logo-c' + c;
       wrap.className = 'draft-team-logo';
 
-      var fb = document.createElement('div');
+      var fb = document.createElement('img');
       fb.className = 'draft-logo-fallback';
+      fb.alt = '';
+      fb.src = DRAFT_LOGO_URL;
 
       var img = document.createElement('img');
       img.className = 'draft-logo-img';
