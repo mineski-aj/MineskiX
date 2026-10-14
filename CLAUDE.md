@@ -218,6 +218,37 @@ behind), click the real Control-tab toggle button, and confirm a
 looked fine under `curl` and only showed up when someone actually
 pressed the button in a real, already-open browser tab.
 
+## Red Bull Wings Cup project (`projects/redbull/`) — separate overlay set, no API
+
+A self-contained project built from `projects/redbull/assets/Wings-Cup-Broadcast-Design-System.pdf`
+(21 graphics, 1920x1080). **Nothing in it touches other projects** — the dashboard only switches into
+"Red Bull mode" when the server's active project is `redbull`.
+
+- **No API, no MLBB data.** Every value comes from the Red Bull Match Board tab
+  (`html/redbull-match-dashboard.html`, same dashboard password as the normal Match Board) →
+  `POST /rb/state` → `lib/redbull.js` → `projects/redbull/redbull_state.json` → SSE event `rbdata`.
+  Data model: a 32-slot roster (name, country, photo upload) that every graphic picks players from by index.
+- **Pages:** `html/redbull-fullscreen.html` (15 scenes + wipe; one shared `RBWC - BG LOOP.webm`, scenes
+  are mutually exclusive) and `html/redbull-supers.html` (transparent: 201a/b/c, 202, 203 VS Super, Player
+  In-Game frame; one at a time). Shared bits: `html/redbull/rb.css`, `rb-core.js`. Layout scenes (107a/b,
+  PiP, 109) cut real transparent holes in the background (`.rb-feed` boxes → `clip-path: evenodd`) so the
+  game source underneath shows through; in `?preview=1` the holes show a "GAME FEED" placeholder.
+- **Control:** routes `/overlay/rb_<name>/show|hide` (+ `/overlay/rb/hide` for hide-all) in `routes/redbull.js`
+  broadcast one SSE event, `redbull`, `{action,key,kind,live}`. Both pages ignore it under `?preview=1`
+  and expose `previewTrigger(key, action)` + `rbEdit_<name>()` for the Edit tab. `window.RB_MODE` /
+  `RB_DASH` (overlay list + Edit registry) come from `html/redbull/rb-dashboard-config.js`.
+- **That config file is GENERATED** — `node projects/redbull/tools/gen-dashboard-config.js` reads the real
+  CSS/markup of both pages so Edit defaults can't drift. Add/rename an editable element in the tables at
+  the top of the generator, then re-run it. Edit style buckets: `redbull_fullscreen`, `redbull_supers`.
+- **Adding a graphic:** key in `lib/redbull.js` `GRAPHICS` → scene markup/CSS/`apply` + `SCENES` entry in the
+  page → row in the generator → re-run it → restart server. (`rbdata`/`redbull` are already in
+  `KNOWN_EVENTS`; worker version already bumped.)
+- **Placeholders to replace:** `RB.FC27` / `RB.PS` in `rb-core.js` are stand-in wordmarks (no official
+  EA FC / PlayStation art was supplied) — upload real PNGs per scene via the Edit tab's asset override, or
+  swap the constants. Players without an uploaded photo show a silhouette. Only `FuturaforRedBull-CondBold`
+  exists in the font folder, so "Bull Condensed Regular" (first names) renders in CondBold.
+- `routes/*.js` / `lib/*.js` changes here need a server restart like everything else.
+
 ## ENTVC.html — the EN broadcast mirror of Waiting TVC/Lobby
 
 `html/ENTVC.html` is a separate, mostly-duplicate copy of `Fullscreen.html`'s

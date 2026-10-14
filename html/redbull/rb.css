@@ -1,0 +1,84 @@
+/* rb.css — Red Bull Wings Cup broadcast design system, shared by the Red Bull project's
+   overlay pages (redbull-fullscreen.html, redbull-supers.html).
+   Palette / typography per Wings-Cup-Broadcast-Design-System.pdf. */
+
+@font-face { font-family: 'RB Cond'; font-weight: 700; src: url('/projects/redbull/fonts/RedBull_FuturaforRedBull_MID-020261_D-016258/Font_Files/Web_Fonts/WOFF2/FuturaforRedBull-CondBold.woff2') format('woff2'); font-display: block; }
+@font-face { font-family: 'RB Apotek'; font-weight: 900; src: url('/projects/redbull/fonts/APOTEK%20font/ApotekBlack.otf') format('opentype'); font-display: block; }
+@font-face { font-family: 'RB Apotek'; font-weight: 600; src: url('/projects/redbull/fonts/APOTEK%20font/ApotekSemiBold.otf') format('opentype'); font-display: block; }
+@font-face { font-family: 'RB Mono'; font-weight: 400; src: url('/projects/redbull/fonts/azeret-mono/static/AzeretMono-Regular.ttf') format('truetype'); font-display: block; }
+@font-face { font-family: 'RB Mono'; font-weight: 700; src: url('/projects/redbull/fonts/azeret-mono/static/AzeretMono-Bold.ttf') format('truetype'); font-display: block; }
+@font-face { font-family: 'RB Mono'; font-weight: 800; src: url('/projects/redbull/fonts/azeret-mono/static/AzeretMono-ExtraBold.ttf') format('truetype'); font-display: block; }
+
+:root {
+  --rb-yellow: #FFCC00; --rb-blue: #3973B8; --rb-navy: #0F0069; --rb-red: #D2003C;
+  --rb-silver-grey: #DADADA; --rb-white: #FFFFFF; --rb-cyan: #00CEF7; --rb-orange: #F47F00;
+  --rb-silver: linear-gradient(100deg, #f8f8f8 0%, #dedede 28%, #efefef 50%, #c4c4c8 76%, #b0b0b5 100%);
+  --rb-navy-plate: linear-gradient(90deg, #0a0056 0%, #12127e 55%, #1a1a9c 100%);
+  --rb-navy-deep: linear-gradient(90deg, #080046 0%, #0d0d6e 100%);
+  --rb-metal-blue: linear-gradient(110deg, #0a3bc4 0%, #2c7bff 45%, #0a3bc4 100%);
+}
+
+html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; width: 1920px; height: 1080px; }
+body { font-family: 'RB Cond', 'Arial Narrow', sans-serif; font-weight: 700; color: #fff; }
+#rb-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+* { box-sizing: border-box; }
+.rb-abs { position: absolute; }
+.rb-page { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; display: none; overflow: hidden;
+           background: transparent; opacity: 0; transition: opacity 400ms ease; }
+.rb-page.rb-on { display: block; }
+.rb-page.rb-visible { opacity: 1; }
+
+/* ── Plate shapes (slant is the horizontal run of the angled edge) ── */
+.rb-plate { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+            white-space: nowrap; overflow: hidden; --sl: 30px; }
+.sl-r    { clip-path: polygon(0 0, 100% 0, calc(100% - var(--sl)) 100%, 0 100%); }
+.sl-l    { clip-path: polygon(var(--sl) 0, 100% 0, 100% 100%, 0 100%); }
+.sl-both { clip-path: polygon(var(--sl) 0, 100% 0, calc(100% - var(--sl)) 100%, 0 100%); }
+.sl-both-r { clip-path: polygon(0 0, calc(100% - var(--sl)) 0, 100% 100%, var(--sl) 100%); }
+.rb-silver { background: var(--rb-silver); color: var(--rb-navy); }
+.rb-navy   { background: var(--rb-navy-plate); color: #fff; }
+.rb-deep   { background: var(--rb-navy-deep); color: #fff; }
+
+/* The "beam": a soft diagonal highlight that sweeps across a plate once when its scene enters. */
+.rb-silver::after, .rb-navy::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; transform: translateX(-130%);
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.75) 50%, transparent 62%);
+}
+.rb-navy::after { background: linear-gradient(105deg, transparent 38%, rgba(120,170,255,.55) 50%, transparent 62%); }
+.rb-active .rb-silver::after, .rb-active .rb-navy::after { animation: rbBeam 1.1s .45s ease-out 1 both; }
+@keyframes rbBeam { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+
+/* Entrance for anything marked .rb-pop (delay set via --d) */
+.rb-active .rb-pop { animation: rbRise .6s var(--d, 0s) cubic-bezier(.2,.8,.2,1) both; }
+.rb-active .rb-slide-l { animation: rbSlideL .6s var(--d, 0s) cubic-bezier(.2,.8,.2,1) both; }
+.rb-active .rb-slide-r { animation: rbSlideR .6s var(--d, 0s) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes rbRise   { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+@keyframes rbSlideL { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
+@keyframes rbSlideR { from { opacity: 0; transform: translateX(70px); } to { opacity: 1; transform: none; } }
+
+/* ── Text ── */
+.rb-name .fn { font-weight: 700; opacity: .88; }
+.rb-name .ln { font-weight: 700; }
+.rb-mono { font-family: 'RB Mono', monospace; font-weight: 800; }
+.rb-apotek { font-family: 'RB Apotek', 'RB Cond', sans-serif; font-weight: 900; }
+.rb-fit { white-space: nowrap; overflow: hidden; }
+
+/* ── Brand ── */
+.rb-logo { position: absolute; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0,10,80,.35)); }
+.rb-fc27, .rb-ps { position: absolute; object-fit: contain; }
+
+/* ── Player cell (Top 16/8/4, Match ID etc.) ── */
+.rb-photo { position: absolute; object-fit: contain; object-position: center bottom; }
+.rb-flag { display: block; object-fit: cover; flex: 0 0 auto; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.rb-chip { position: absolute; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--rb-silver);
+           color: var(--rb-navy); white-space: nowrap; overflow: hidden; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+
+/* Feed windows (layouts): transparent in the real broadcast so the game source underneath shows
+   through; in Control/Edit preview they get a placeholder so the box is visible. */
+.rb-feed { position: absolute; background: transparent; }
+body.rb-preview .rb-feed { background: repeating-linear-gradient(135deg, #123 0 18px, #1b3550 18px 36px); outline: 3px dashed rgba(255,255,255,.55); outline-offset: -3px; }
+body.rb-preview .rb-feed::before { content: 'GAME FEED'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font: 700 42px 'RB Cond', sans-serif; letter-spacing: 6px; color: rgba(255,255,255,.7); }
+
+/* Edit-tab interaction hooks (dashboard injects its own too) */
+.rb-hidden { display: none !important; }

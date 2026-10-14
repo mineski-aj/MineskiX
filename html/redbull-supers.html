@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Red Bull Wings Cup — Supers</title>
+<link rel="stylesheet" href="/html/redbull/rb.css">
+<style>
+.nm { font-size: 44px; text-transform: uppercase; letter-spacing: .5px; padding: 0 40px 0 24px; }
+.rb-flag { width: 56px; height: 38px; }
+.ctry { gap: 14px; font-size: 40px; text-transform: uppercase; }
+.rb-chip .rb-flag { width: 34px; height: 24px; }
+.rb-chip { font-size: 26px; }
+
+/* 201a SINGLE */
+#ss-logo { left: 76px; top: 756px; width: 220px; height: 196px; }
+#ss-name { left: 256px; top: 820px; width: 486px; height: 76px; --sl: 30px; }
+#ss-ctry { left: 718px; top: 820px; width: 246px; height: 76px; --sl: 30px; justify-content: center; padding-left: 28px; }
+#ss-role { left: 256px; top: 898px; width: 218px; height: 46px; --sl: 18px; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; }
+/* 201b DOUBLE */
+#sd-c1 { left: 36px; top: 894px; width: 268px; height: 76px; --sl: 30px; }
+#sd-n1 { left: 298px; top: 894px; width: 542px; height: 76px; --sl: 30px; }
+#sd-logo { left: 860px; top: 826px; width: 200px; height: 178px; }
+#sd-n2 { left: 1080px; top: 894px; width: 542px; height: 76px; --sl: 30px; }
+#sd-c2 { left: 1616px; top: 894px; width: 268px; height: 76px; --sl: 30px; }
+/* 201c TRIPLE */
+#st-logo { left: 112px; top: 806px; width: 210px; height: 187px; }
+#st-n1 { left: 296px; top: 874px; width: 480px; height: 70px; --sl: 24px; }
+#st-n2 { left: 816px; top: 874px; width: 480px; height: 70px; --sl: 24px; }
+#st-n3 { left: 1336px; top: 874px; width: 480px; height: 70px; --sl: 24px; }
+#st-c1 { left: 304px; top: 946px; width: 164px; height: 34px; }
+#st-c2 { left: 824px; top: 946px; width: 164px; height: 34px; }
+#st-c3 { left: 1344px; top: 946px; width: 164px; height: 34px; }
+/* 202 FREE TEXT */
+#sf-logo { left: 76px; top: 756px; width: 220px; height: 196px; }
+#sf-head { left: 256px; top: 820px; width: 844px; height: 76px; --sl: 30px; font-size: 44px; text-transform: uppercase; justify-content: flex-start; padding-left: 36px; }
+#sf-sub  { left: 240px; top: 896px; width: 1010px; height: 56px; --sl: 24px; font-size: 28px; justify-content: flex-start; padding-left: 36px; font-weight: 700; }
+/* 203 VS SUPER */
+#sv-photo-l { left: 490px; top: 520px; width: 336px; height: 336px; }
+#sv-photo-r { left: 1080px; top: 520px; width: 336px; height: 336px; }
+#sv-c1 { left: 260px; top: 856px; width: 200px; height: 76px; --sl: 26px; }
+#sv-n1 { left: 454px; top: 856px; width: 300px; height: 76px; --sl: 26px; font-size: 34px; padding: 0 30px 0 20px; }
+#sv-s1 { left: 754px; top: 856px; width: 110px; height: 76px; --sl: 0px; font-size: 54px; }
+#sv-s2 { left: 1056px; top: 856px; width: 110px; height: 76px; --sl: 0px; font-size: 54px; }
+#sv-n2 { left: 1166px; top: 856px; width: 300px; height: 76px; --sl: 26px; font-size: 34px; padding: 0 20px 0 30px; }
+#sv-c2 { left: 1460px; top: 856px; width: 200px; height: 76px; --sl: 26px; }
+#sv-logo { left: 862px; top: 792px; width: 196px; height: 174px; }
+#sv-brand { left: 766px; top: 932px; width: 400px; height: 48px; --sl: 18px; }
+#sv-fc27 { left: 800px; top: 938px; width: 150px; height: 33px; filter: brightness(.18); }
+#sv-ps { left: 980px; top: 936px; width: 130px; height: 39px; filter: brightness(.18); }
+/* IN-GAME FRAME */
+.igbox { position: absolute; border: 5px solid #1a2bd9; background: transparent; width: 326px; height: 170px; box-shadow: 0 0 0 1px rgba(0,0,40,.35); }
+#ig-box-l { left: 100px; top: 792px; } #ig-box-r { left: 1496px; top: 792px; }
+.igtab { position: absolute; height: 28px; background: #1a2bd9; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 18px; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-transform: uppercase; }
+.igtab .rb-flag { width: 22px; height: 15px; }
+#ig-name-l { left: 100px; top: 764px; width: 182px; } #ig-ctry-l { left: 282px; top: 764px; width: 66px; background: #0f0069; }
+#ig-ctry-r { left: 1574px; top: 764px; width: 66px; background: #0f0069; } #ig-name-r { left: 1640px; top: 764px; width: 182px; }
+</style>
+</head>
+<body>
+<div id="rb-stage">
+
+  <div id="ss-page" class="rb-page">
+    <img id="ss-logo" class="rb-logo rb-pop">
+    <div id="ss-name" class="rb-plate rb-silver sl-r rb-name nm rb-slide-l" style="--d:.1s" data-fit="44,22"></div>
+    <div id="ss-ctry" class="rb-plate rb-silver sl-l ctry rb-slide-l" style="--d:.2s"></div>
+    <div id="ss-role" class="rb-plate rb-navy sl-r rb-slide-l" style="--d:.3s" data-fit="24,14"></div>
+  </div>
+
+  <div id="sd-page" class="rb-page">
+    <div id="sd-c1" class="rb-plate rb-silver sl-r ctry rb-slide-l"></div>
+    <div id="sd-n1" class="rb-plate rb-silver sl-r rb-name nm rb-slide-l" style="--d:.1s" data-fit="44,22"></div>
+    <img id="sd-logo" class="rb-logo rb-pop" style="--d:.15s">
+    <div id="sd-n2" class="rb-plate rb-silver sl-l rb-name nm rb-slide-r" style="--d:.1s" data-fit="44,22"></div>
+    <div id="sd-c2" class="rb-plate rb-silver sl-l ctry rb-slide-r"></div>
+  </div>
+
+  <div id="st-page" class="rb-page">
+    <img id="st-logo" class="rb-logo rb-pop">
+    <div id="st-n1" class="rb-plate rb-navy sl-both rb-name nm rb-slide-l" style="--d:.1s" data-fit="40,20"></div>
+    <div id="st-n2" class="rb-plate rb-navy sl-both rb-name nm rb-slide-l" style="--d:.2s" data-fit="40,20"></div>
+    <div id="st-n3" class="rb-plate rb-navy sl-both rb-name nm rb-slide-l" style="--d:.3s" data-fit="40,20"></div>
+    <div id="st-c1" class="rb-chip rb-pop" style="--d:.35s"></div><div id="st-c2" class="rb-chip rb-pop" style="--d:.45s"></div><div id="st-c3" class="rb-chip rb-pop" style="--d:.55s"></div>
+  </div>
+
+  <div id="sf-page" class="rb-page">
+    <img id="sf-logo" class="rb-logo rb-pop">
+    <div id="sf-head" class="rb-plate rb-silver sl-r rb-slide-l" style="--d:.1s" data-fit="44,22"></div>
+    <div id="sf-sub" class="rb-plate rb-navy sl-r rb-slide-l" style="--d:.25s" data-fit="28,14"></div>
+  </div>
+
+  <div id="sv-page" class="rb-page">
+    <img id="sv-photo-l" class="rb-photo rb-pop"><img id="sv-photo-r" class="rb-photo rb-pop">
+    <div id="sv-c1" class="rb-plate rb-deep sl-r ctry rb-slide-l"></div>
+    <div id="sv-n1" class="rb-plate rb-navy sl-r rb-name rb-slide-l" style="--d:.08s" data-fit="34,18"></div>
+    <div id="sv-s1" class="rb-plate rb-navy rb-mono rb-pop" style="--d:.2s"></div>
+    <div id="sv-s2" class="rb-plate rb-navy rb-mono rb-pop" style="--d:.2s"></div>
+    <div id="sv-n2" class="rb-plate rb-navy sl-l rb-name rb-slide-r" style="--d:.08s" data-fit="34,18"></div>
+    <div id="sv-c2" class="rb-plate rb-deep sl-l ctry rb-slide-r"></div>
+    <div id="sv-brand" class="rb-plate rb-silver sl-both rb-pop" style="--d:.3s"></div>
+    <img id="sv-fc27" class="rb-fc27"><img id="sv-ps" class="rb-ps">
+    <img id="sv-logo" class="rb-logo rb-pop" style="--d:.15s">
+  </div>
+
+  <div id="ig-page" class="rb-page">
+    <div id="ig-box-l" class="igbox"></div><div id="ig-box-r" class="igbox"></div>
+    <div id="ig-name-l" class="igtab rb-name" data-fit="18,10"></div><div id="ig-ctry-l" class="igtab"></div>
+    <div id="ig-ctry-r" class="igtab"></div><div id="ig-name-r" class="igtab rb-name" data-fit="18,10"></div>
+  </div>
+</div>
+
+<script src="/html/js/overlay-sse-shim.js"></script>
+<script src="/html/redbull/rb-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var active = null, HIDE_MS = 420;
+  function flagImg(pl) { return pl.flag ? '<img class="rb-flag" src="' + pl.flag + '">' : ''; }
+  function ctry(pl) { return flagImg(pl) + '<span>' + RB.esc(pl.code) + '</span>'; }
+  function z(n) { n = Number(n) || 0; return (n < 10 ? '0' : '') + n; }
+
+  function applySingle(s) {
+    var p = RB.player(s.supers.single.p);
+    $('ss-name').innerHTML = RB.nameHTML(p); $('ss-ctry').innerHTML = ctry(p); $('ss-role').textContent = s.supers.single.role || '';
+  }
+  function applyDouble(s) {
+    var a = RB.player(s.supers.double.a), b = RB.player(s.supers.double.b);
+    $('sd-c1').innerHTML = ctry(a); $('sd-n1').innerHTML = RB.nameHTML(a);
+    $('sd-n2').innerHTML = RB.nameHTML(b); $('sd-c2').innerHTML = ctry(b);
+  }
+  function applyTriple(s) {
+    ['a', 'b', 'c'].forEach(function (k, i) {
+      var p = RB.player(s.supers.triple[k]);
+      $('st-n' + (i + 1)).innerHTML = RB.nameHTML(p); $('st-c' + (i + 1)).innerHTML = ctry(p);
+    });
+  }
+  function applyFree(s) { $('sf-head').textContent = s.supers.free.headline || ''; $('sf-sub').textContent = s.supers.free.sub || ''; }
+  function applyVs(s) {
+    var a = RB.player(s.match.p1), b = RB.player(s.match.p2);
+    $('sv-photo-l').src = a.photo; $('sv-photo-r').src = b.photo;
+    $('sv-c1').innerHTML = ctry(a); $('sv-n1').innerHTML = RB.nameHTML(a);
+    $('sv-s1').textContent = z(s.match.score1); $('sv-s2').textContent = z(s.match.score2);
+    $('sv-n2').innerHTML = RB.nameHTML(b); $('sv-c2').innerHTML = ctry(b);
+    $('sv-brand').innerHTML = '';
+  }
+  function applyInGame(s) {
+    var a = RB.player(s.match.p1), b = RB.player(s.match.p2);
+    $('ig-name-l').innerHTML = RB.nameHTML(a); $('ig-ctry-l').innerHTML = ctry(a);
+    $('ig-ctry-r').innerHTML = ctry(b); $('ig-name-r').innerHTML = RB.nameHTML(b);
+  }
+
+  var SUPERS = {
+    rb_super_single: { page: 'ss-page', apply: applySingle },
+    rb_super_double: { page: 'sd-page', apply: applyDouble },
+    rb_super_triple: { page: 'st-page', apply: applyTriple },
+    rb_super_free:   { page: 'sf-page', apply: applyFree },
+    rb_vs_super:     { page: 'sv-page', apply: applyVs },
+    rb_ingame:       { page: 'ig-page', apply: applyInGame },
+  };
+
+  function preload(root, ms) {
+    var imgs = [].slice.call(root.querySelectorAll('img')).filter(function (i) { return !i.complete; });
+    if (!imgs.length) return Promise.resolve();
+    return Promise.race([
+      Promise.all(imgs.map(function (i) { return new Promise(function (r) { i.addEventListener('load', r, { once: true }); i.addEventListener('error', r, { once: true }); }); })),
+      new Promise(function (r) { setTimeout(r, ms); }),
+    ]);
+  }
+
+  async function showSuper(key) {
+    var sc = SUPERS[key]; if (!sc) return;
+    if (!RB.state) await RB.refresh();
+    var pageEl = $(sc.page);
+    if (active === key) { sc.apply(RB.state); RB.fitAll(pageEl); return; }
+    var prev = active; active = key;
+    if (prev && SUPERS[prev]) {
+      var po = $(SUPERS[prev].page);
+      po.classList.remove('rb-visible', 'rb-active');
+      setTimeout(function () { if (active !== prev) po.classList.remove('rb-on'); }, HIDE_MS);
+    }
+    sc.apply(RB.state);
+    await preload(pageEl, 1500);
+    if (active !== key) return;
+    pageEl.classList.add('rb-on');
+    void pageEl.offsetWidth;
+    RB.fitAll(pageEl);
+    pageEl.classList.add('rb-visible', 'rb-active');
+    setTimeout(function () { pageEl.classList.remove('rb-active'); }, 2000);
+  }
+  function hideSuper(key) {
+    if (!active || (key && key !== active)) return;
+    var pageEl = $(SUPERS[active].page);
+    active = null;
+    pageEl.classList.remove('rb-visible', 'rb-active');
+    setTimeout(function () { if (active === null) pageEl.classList.remove('rb-on'); }, HIDE_MS);
+  }
+
+  window.previewTrigger = function (event, action) {
+    if (!SUPERS[event]) return;
+    if (action === 'show') showSuper(event); else hideSuper(event);
+  };
+  Object.keys(SUPERS).forEach(function (k) { window['rbEdit_' + k.slice(3)] = function () { showSuper(k); }; });
+
+  RB.onData(function (s) {
+    if (!active) return;
+    SUPERS[active].apply(s); RB.fitAll($(SUPERS[active].page));
+  });
+
+  RB.start('redbull_supers').then(function () {
+    if (RB.preview) return;
+    RB.sse.addEventListener('redbull', function (e) {
+      var m; try { m = JSON.parse(e.data); } catch (err) { return; }
+      if (m.action === 'show' && m.kind === 'super') showSuper(m.key);
+      else if (m.action === 'hide' && m.kind === 'super') hideSuper(m.key);
+      else if (m.action === 'hideall') hideSuper();
+    });
+    fetch('/overlay/rb/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (st) { if (st.super) showSuper(st.super); }).catch(function () {});
+  });
+})();
+</script>
+</body>
+</html>

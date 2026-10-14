@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Red Bull Wings Cup — Match Board</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d12; color: #d0d0d8; height: 100vh; overflow: hidden; display: flex; padding: 14px; }
+#login-wrap { width: 320px; margin: 80px auto 0; background: #16161f; border: 1px solid #222232; border-radius: 12px; padding: 32px; text-align: center; }
+#login-wrap h2 { color: #fff; font-size: 18px; margin-bottom: 8px; } #login-wrap p { font-size: 13px; color: #555; margin-bottom: 20px; }
+#app { display: none; width: 100%; flex-direction: column; gap: 10px; height: 100%; } #app.visible { display: flex; }
+header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid #1e1e2e; flex-shrink: 0; }
+header h1 { font-size: 17px; font-weight: 600; color: #fff; } header h1 span { color: #d2003c; }
+#sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; display: inline-block; margin-right: 6px; }
+#sync-dot.ok { background: #00cc88; box-shadow: 0 0 5px #00cc88aa; } #sync-dot.err { background: #ff4455; box-shadow: 0 0 5px #ff4455aa; }
+#sync-label { font-size: 12px; color: #555; }
+#body { display: flex; gap: 12px; flex: 1; min-height: 0; }
+#nav { width: 170px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+#nav button { text-align: left; background: #16161f; border: 1px solid #1e1e2e; color: #888; padding: 9px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+#nav button:hover { color: #ccc; } #nav button.active { background: #1e2a4a; border-color: #2a3a6a; color: #9bbcff; }
+#nav .grp { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #444; margin: 10px 0 2px 4px; }
+#main { flex: 1; overflow-y: auto; padding-right: 6px; }
+.sec { display: none; } .sec.active { display: block; }
+.panel { background: #16161f; border: 1px solid #1e1e2e; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+.panel-title { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: #555; margin-bottom: 12px; }
+.hint { font-size: 12px; color: #555; margin-bottom: 10px; line-height: 1.5; }
+input[type=text], input[type=number], input[type=password], select { background: #0f0f18; border: 1px solid #2a2a3a; border-radius: 6px; color: #e0e0f0; font-size: 13px; padding: 6px 9px; outline: none; width: 100%; }
+input:focus, select:focus { border-color: #5566cc; }
+.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #33334a; background: #222230; color: #9090c0; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.btn:hover { filter: brightness(1.2); } .btn.go { background: #1a3a2a; border-color: #2a5a3a; color: #44cc88; } .btn.stop { background: #3a1a1a; border-color: #5a2a2a; color: #ff6677; } .btn.blue { background: #1a2030; border-color: #2a3050; color: #88aaff; }
+.row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; } .row > label { width: 110px; font-size: 12px; color: #777; flex-shrink: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+table { width: 100%; border-collapse: collapse; } th { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #555; text-align: left; padding: 4px 6px; font-weight: 500; }
+td { padding: 3px 4px; vertical-align: middle; } td.n { width: 28px; color: #555; font-size: 12px; text-align: right; padding-right: 8px; }
+.thumb { width: 38px; height: 38px; border-radius: 6px; object-fit: cover; background: #0f0f18; border: 1px solid #2a2a3a; display: block; }
+.stat { width: 62px !important; text-align: center; }
+.score { font: 700 34px 'Segoe UI'; color: #fff; width: 54px; text-align: center; }
+.timer { font: 700 40px 'Consolas', monospace; color: #fff; letter-spacing: 2px; }
+.err { color: #ff6677; font-size: 12px; margin-top: 8px; min-height: 16px; }
+.brk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .brk h4 { font-size: 11px; color: #777; margin: 0 0 6px; text-transform: uppercase; letter-spacing: .1em; font-weight: 500; }
+.slot { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; } .slot .up { padding: 4px 8px; }
+</style>
+</head>
+<body>
+<div id="login-wrap">
+  <h2>Red Bull Wings Cup</h2><p>Enter your dashboard password to continue.</p>
+  <input type="password" id="pw" placeholder="Password" autocomplete="current-password">
+  <button class="btn blue" id="login-btn" style="width:100%;margin-top:10px;padding:10px">Unlock</button>
+  <div class="err" id="login-err"></div>
+</div>
+
+<div id="app">
+  <header><h1>RED BULL <span>WINGS CUP</span> · Match Board</h1>
+    <div><span id="sync-dot"></span><span id="sync-label">connecting…</span></div></header>
+  <div id="body">
+    <div id="nav"></div>
+    <div id="main"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var token = sessionStorage.getItem('match_token') || '';
+  var S = null, countries = [], timerPoll = null, saveTimer = null, pending = {};
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ── auth (same dashboard password / session token as the standard Match Board) ── */
+  function tryAuth(pw) {
+    return fetch('/match/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: pw }) })
+      .then(function (r) { if (!r.ok) throw 0; token = pw; sessionStorage.setItem('match_token', pw); start(); })
+      .catch(function () { $('login-err').textContent = 'Incorrect password.'; });
+  }
+  $('login-btn').onclick = function () { tryAuth($('pw').value); };
+  $('pw').onkeydown = function (e) { if (e.key === 'Enter') tryAuth($('pw').value); };
+  if (token) tryAuth(token);
+
+  /* ── persistence: patches are merged client-side and flushed ~250 ms after the last edit ── */
+  function sync(ok) { $('sync-dot').className = ok ? 'ok' : 'err'; $('sync-label').textContent = ok ? 'saved' : 'save failed'; }
+  function deepSet(obj, patch) {
+    Object.keys(patch).forEach(function (k) {
+      var v = patch[k];
+      if (v && typeof v === 'object' && !Array.isArray(v) && obj[k] && typeof obj[k] === 'object') deepSet(obj[k], v); else obj[k] = v;
+    });
+  }
+  function save(patch, rerender) {
+    deepSet(S, patch); deepSet(pending, patch);
+    if (rerender) render();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      var body = JSON.parse(JSON.stringify(pending)); pending = {}; body.token = token;
+      fetch('/rb/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { sync(r.ok); }).catch(function () { sync(false); });
+    }, 250);
+  }
+  function timerCmd(body) {
+    body.token = token;
+    return fetch('/rb/timer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); }).then(function (d) { if (d.state) { S.countdown = d.state.countdown; S.serverNow = d.state.serverNow; clientAtLoad = Date.now(); paintTimer(); } });
+  }
+
+  /* ── small form helpers ── */
+  function playerOpts(sel, allowNone) {
+    var h = allowNone ? '<option value="-1">— none —</option>' : '';
+    S.players.forEach(function (p, i) { h += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + (i + 1) + ' · ' + esc((p.first + ' ' + p.last).trim() || '(empty)') + '</option>'; });
+    return h;
+  }
+  function pSelect(val, onchange, allowNone) { var s = el('select', '', playerOpts(val, allowNone)); s.onchange = function () { onchange(parseInt(s.value, 10)); }; return s; }
+  function tInput(val, onchange, ph) { var i = el('input'); i.type = 'text'; i.value = val == null ? '' : val; if (ph) i.placeholder = ph; i.oninput = function () { onchange(i.value); }; return i; }
+  function nInput(val, onchange, cls) { var i = el('input', cls || ''); i.type = 'number'; i.value = val; i.oninput = function () { onchange(Number(i.value) || 0); }; return i; }
+  function row(label, ctl) { var r = el('div', 'row'); r.appendChild(el('label', '', label)); r.appendChild(ctl); return r; }
+  function panel(title, hint) { var p = el('div', 'panel'); if (title) p.appendChild(el('div', 'panel-title', title)); if (hint) p.appendChild(el('div', 'hint', hint)); return p; }
+  function btn(txt, cls, fn) { var b = el('button', 'btn ' + (cls || ''), txt); b.onclick = fn; return b; }
+
+  /* ── sections ── */
+  var SECTIONS = [
+    { g: 'Setup' }, { id: 'roster', name: 'Roster & Photos', fn: secRoster },
+    { g: 'Opening / Holding' }, { id: 'countdown', name: 'Countdown · Holding', fn: secCountdown }, { id: 'schedule', name: 'Days Schedule', fn: secSchedule },
+    { g: 'Match' }, { id: 'match', name: 'Current Match', fn: secMatch },
+    { g: 'Tournament' }, { id: 'lineups', name: 'Top 16 / 8 / 4', fn: secLineups }, { id: 'bracket', name: 'Bracket', fn: secBracket },
+    { id: 'leaderboard', name: 'Leaderboard', fn: secLeaderboard }, { id: 'winner', name: 'Winner', fn: secWinner },
+    { g: 'Layouts & Supers' }, { id: 'layouts', name: 'Layout Titles', fn: secLayouts }, { id: 'supers', name: 'Supers', fn: secSupers },
+  ];
+  var current = 'roster';
+
+  function secRoster(host) {
+    var p = panel('Roster — 32 slots', 'Every graphic picks its players from this list. Photos should be transparent-background cut-outs (PNG/WebP), head and shoulders. Slots without a photo show a placeholder silhouette.');
+    var t = el('table'); t.innerHTML = '<tr><th></th><th>First name</th><th>Surname</th><th>Country</th><th>Photo</th></tr>';
+    S.players.forEach(function (pl, i) {
+      var tr = el('tr'); tr.appendChild(el('td', 'n', i + 1));
+      var td1 = el('td'); td1.appendChild(tInput(pl.first, function (v) { S.players[i].first = v; save({ players: S.players }); })); tr.appendChild(td1);
+      var td2 = el('td'); td2.appendChild(tInput(pl.last, function (v) { S.players[i].last = v; save({ players: S.players }); })); tr.appendChild(td2);
+      var td3 = el('td'); var sel = el('select', '', countries.map(function (c) { return '<option value="' + c.iso2 + '"' + (c.iso2 === pl.country ? ' selected' : '') + '>' + esc(c.code + ' — ' + c.name) + '</option>'; }).join(''));
+      sel.onchange = function () { S.players[i].country = sel.value; save({ players: S.players }); }; td3.appendChild(sel); tr.appendChild(td3);
+      var td4 = el('td'); var wrap = el('div', 'row'); wrap.style.margin = 0;
+      var im = el('img', 'thumb'); if (pl.photo) im.src = pl.photo; wrap.appendChild(im);
+      var up = el('input'); up.type = 'file'; up.accept = 'image/png,image/webp,image/jpeg'; up.style.display = 'none';
+      up.onchange = function () {
+        if (!up.files[0]) return; var fd = new FormData(); fd.append('file', up.files[0]);
+        fetch('/api/projects/redbull/assets/players', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
+          if (d.url) { S.players[i].photo = d.url; save({ players: S.players }, true); } else alert(d.error || 'Upload failed');
+        });
+      };
+      wrap.appendChild(up); wrap.appendChild(btn('Upload', 'blue', function () { up.click(); }));
+      if (pl.photo) wrap.appendChild(btn('✕', 'stop', function () { S.players[i].photo = ''; save({ players: S.players }, true); }));
+      td4.appendChild(wrap); tr.appendChild(td4); t.appendChild(tr);
+    });
+    p.appendChild(t); host.appendChild(p);
+  }
+
+  function paintTimer() {
+    var t = S.countdown.timer, rem;
+    if (t.running && t.endAt) rem = Math.max(0, Math.round((t.endAt - (Date.now() + (S.serverNow - clientAtLoad))) / 1000)); else rem = t.remaining || 0;
+    var m = Math.floor(rem / 60), s = rem % 60, d = $('timer-disp');
+    if (d) d.textContent = (m < 10 ? '0' : '') + m + ' : ' + (s < 10 ? '0' : '') + s;
+    var b = $('timer-state'); if (b) b.textContent = t.running ? '● running' : '○ paused';
+  }
+  var clientAtLoad = Date.now();
+  function secCountdown(host) {
+    var p = panel('101 · Countdown', 'Label and clock shown on the Countdown graphic. The clock is server-side, so it survives refreshes and restarts.');
+    p.appendChild(row('Label', tInput(S.countdown.label, function (v) { save({ countdown: { label: v } }); })));
+    var d = el('div', 'timer', '00 : 00'); d.id = 'timer-disp'; var st = el('span', 'hint', ''); st.id = 'timer-state'; st.style.marginLeft = '14px';
+    var tr = el('div', 'row'); tr.appendChild(d); tr.appendChild(st); p.appendChild(tr);
+    var cr = el('div', 'row'); var mm = nInput(2, function () {}), ss = nInput(0, function () {}); mm.style.width = ss.style.width = '70px';
+    cr.appendChild(el('span', 'hint', 'Set')); cr.appendChild(mm); cr.appendChild(el('span', 'hint', 'min')); cr.appendChild(ss); cr.appendChild(el('span', 'hint', 'sec'));
+    cr.appendChild(btn('Set', 'blue', function () { timerCmd({ action: 'set', seconds: (Number(mm.value) || 0) * 60 + (Number(ss.value) || 0) }); }));
+    cr.appendChild(btn('▶ Start', 'go', function () { timerCmd({ action: 'start' }); })); cr.appendChild(btn('❚❚ Pause', 'stop', function () { timerCmd({ action: 'pause' }); }));
+    p.appendChild(cr); host.appendChild(p); paintTimer();
+    var h = panel('102 · Holding Page');
+    h.appendChild(row('Headline', tInput(S.holding.title, function (v) { save({ holding: { title: v } }); })));
+    h.appendChild(row('Sub-line', tInput(S.holding.sub, function (v) { save({ holding: { sub: v } }); })));
+    host.appendChild(h);
+  }
+
+  function secSchedule(host) {
+    var p = panel('106 · Days Schedule', 'Eight matches. Players come from the roster; times are free text (e.g. 18:45).');
+    p.appendChild(row('Title', tInput(S.schedule.title, function (v) { save({ schedule: { title: v } }); })));
+    p.appendChild(row('Sub-line', tInput(S.schedule.sub, function (v) { save({ schedule: { sub: v } }); })));
+    var t = el('table'); t.innerHTML = '<tr><th></th><th>Left player</th><th>Right player</th><th style="width:110px">Time</th></tr>';
+    S.schedule.rows.forEach(function (r, i) {
+      var tr = el('tr'); tr.appendChild(el('td', 'n', i + 1));
+      var a = el('td'); a.appendChild(pSelect(r.a, function (v) { S.schedule.rows[i].a = v; save({ schedule: { rows: S.schedule.rows } }); })); tr.appendChild(a);
+      var b = el('td'); b.appendChild(pSelect(r.b, function (v) { S.schedule.rows[i].b = v; save({ schedule: { rows: S.schedule.rows } }); })); tr.appendChild(b);
+      var c = el('td'); c.appendChild(tInput(r.time, function (v) { S.schedule.rows[i].time = v; save({ schedule: { rows: S.schedule.rows } }); })); tr.appendChild(c);
+      t.appendChild(tr);
+    });
+    p.appendChild(t); host.appendChild(p);
+  }
+
+  function secMatch(host) {
+    var p = panel('Current match', 'Drives Match ID (103a), Match Results (103b), VS Super (203), L-Bracket (109) and the Player In-Game frame.');
+    var g = el('div', 'grid2');
+    [['p1', 'score1', 'Player 1 (left)'], ['p2', 'score2', 'Player 2 (right)']].forEach(function (k) {
+      var box = el('div'); box.appendChild(el('div', 'hint', k[2]));
+      box.appendChild(pSelect(S.match[k[0]], function (v) { var o = {}; o[k[0]] = v; save({ match: o }); }));
+      var sr = el('div', 'row'); sr.style.marginTop = '12px';
+      var sc = el('div', 'score', S.match[k[1]]);
+      function bump(d) { var o = {}; o[k[1]] = Math.max(0, S.match[k[1]] + d); save({ match: o }); sc.textContent = o[k[1]]; }
+      sr.appendChild(btn('−', 'stop', function () { bump(-1); })); sr.appendChild(sc); sr.appendChild(btn('+', 'go', function () { bump(1); }));
+      box.appendChild(sr); g.appendChild(box);
+    });
+    p.appendChild(g);
+    var act = el('div', 'row'); act.style.marginTop = '14px';
+    act.appendChild(btn('⇄ Swap players', 'blue', function () { save({ match: { p1: S.match.p2, p2: S.match.p1, score1: S.match.score2, score2: S.match.score1 } }, true); }));
+    act.appendChild(btn('Reset score', '', function () { save({ match: { score1: 0, score2: 0 } }, true); }));
+    p.appendChild(act); host.appendChild(p);
+  }
+
+  function selList(host, title, hint, key, n) {
+    var p = panel(title, hint), g = el('div', 'grid2');
+    for (var i = 0; i < n; i++) (function (i) {
+      var r = el('div', 'row'); r.appendChild(el('label', '', '#' + (i + 1)).cloneNode(true)); r.lastChild.style.width = '40px';
+      r.appendChild(pSelect(S[key][i], function (v) { S[key][i] = v; save({ [key]: S[key] }); })); g.appendChild(r);
+    })(i);
+    p.appendChild(g); host.appendChild(p); return p;
+  }
+  function secLineups(host) {
+    [['top16', 16, '104a · Top 16'], ['top8', 8, '104b · Top 8'], ['top4', 4, '104c · Top 4']].forEach(function (t) {
+      var p = selList(host, t[2], 'Pick the players shown, in display order (left→right, top→bottom).', t[0], t[1]);
+      p.appendChild(btn('Fill from roster order', 'blue', function () { var a = []; for (var i = 0; i < t[1]; i++) a.push(i); var o = {}; o[t[0]] = a; save(o, true); }));
+    });
+  }
+
+  function secBracket(host) {
+    var p = panel('105 · Tournament Bracket', 'Left half = first 16 slots of the Round of 32, right half = last 16. Use ▲ on a slot to advance that player to the next round. Empty slots show "TBD".');
+    var br = S.bracket, rounds = [['r32', 'Round of 32', 32], ['r16', 'Round of 16', 16], ['r8', 'Quarter-finals', 8], ['r4', 'Semi-finals', 4], ['f', 'Final', 2]];
+    var next = { r32: 'r16', r16: 'r8', r8: 'r4', r4: 'f' };
+    var g = el('div', 'brk');
+    rounds.forEach(function (rd) {
+      var col = el('div'); col.appendChild(el('h4', '', rd[1]));
+      for (var i = 0; i < rd[2]; i++) (function (i) {
+        var s = el('div', 'slot'); s.appendChild(pSelect(br[rd[0]][i], function (v) { br[rd[0]][i] = v; save({ bracket: br }); }, true));
+        if (next[rd[0]]) { var up = btn('▲', 'go up', function () { var ni = Math.floor(i / 2); br[next[rd[0]]][ni] = br[rd[0]][i]; save({ bracket: br }, true); }); up.title = 'Advance to next round'; s.appendChild(up); }
+        col.appendChild(s);
+      })(i);
+      g.appendChild(col);
+    });
+    p.appendChild(g);
+    var act = el('div', 'row'); act.style.marginTop = '12px';
+    act.appendChild(btn('Fill Round of 32 from roster', 'blue', function () { br.r32 = S.players.map(function (_, i) { return i; }).slice(0, 32); save({ bracket: br }, true); }));
+    act.appendChild(btn('Clear later rounds', 'stop', function () { br.r16 = Array(16).fill(-1); br.r8 = Array(8).fill(-1); br.r4 = Array(4).fill(-1); br.f = Array(2).fill(-1); save({ bracket: br }, true); }));
+    p.appendChild(act); host.appendChild(p);
+  }
+
+  function secLeaderboard(host) {
+    var L = S.leaderboard, p = panel('108 · Leaderboard', 'Two groups of four. Columns: GP · W · L · D · GD.');
+    p.appendChild(row('Title', tInput(L.title, function (v) { save({ leaderboard: { title: v } }); })));
+    p.appendChild(row('Sub-line', tInput(L.sub, function (v) { save({ leaderboard: { sub: v } }); })));
+    [['groupA', 'Group A'], ['groupB', 'Group B']].forEach(function (g) {
+      var t = el('table'); t.innerHTML = '<tr><th colspan="2">' + g[1] + '</th><th>GP</th><th>W</th><th>L</th><th>D</th><th>GD</th></tr>';
+      L[g[0]].forEach(function (r, i) {
+        var tr = el('tr'); tr.appendChild(el('td', 'n', i + 1));
+        var a = el('td'); a.appendChild(pSelect(r.p, function (v) { L[g[0]][i].p = v; save({ leaderboard: L }); })); tr.appendChild(a);
+        ['gp', 'w', 'l', 'd', 'gd'].forEach(function (k) { var c = el('td'); c.appendChild(nInput(r[k], function (v) { L[g[0]][i][k] = v; save({ leaderboard: L }); }, 'stat')); tr.appendChild(c); });
+        t.appendChild(tr);
+      });
+      p.appendChild(t);
+    });
+    host.appendChild(p);
+  }
+
+  function secWinner(host) {
+    var p = panel('110 · Winner');
+    var r = el('div', 'row'); r.appendChild(el('label', '', 'Champion')); r.appendChild(pSelect(S.winner.p, function (v) { save({ winner: { p: v } }); })); p.appendChild(r);
+    p.appendChild(row('Sub-line', tInput(S.winner.sub, function (v) { save({ winner: { sub: v } }); }))); host.appendChild(p);
+  }
+
+  function secLayouts(host) {
+    var p = panel('Screen layouts — title plates', 'Text on the plate under each feed window.');
+    p.appendChild(el('div', 'hint', '107a · 2-Way Split'));
+    [0, 1].forEach(function (i) { p.appendChild(row(['Left', 'Right'][i], tInput(S.layouts.split2[i], function (v) { S.layouts.split2[i] = v; save({ layouts: { split2: S.layouts.split2 } }); }))); });
+    p.appendChild(el('div', 'hint', '107b · 3-Way Split'));
+    [0, 1, 2].forEach(function (i) { p.appendChild(row(['Top', 'Left', 'Right'][i], tInput(S.layouts.split3[i], function (v) { S.layouts.split3[i] = v; save({ layouts: { split3: S.layouts.split3 } }); }))); });
+    p.appendChild(el('div', 'hint', '107b · Picture in Picture'));
+    p.appendChild(row('Main feed', tInput(S.layouts.pip, function (v) { save({ layouts: { pip: v } }); })));
+    host.appendChild(p);
+  }
+
+  function secSupers(host) {
+    var U = S.supers;
+    var a = panel('201a · Super Single'); a.appendChild(row('Player', pSelect(U.single.p, function (v) { save({ supers: { single: { p: v } } }); })));
+    a.appendChild(row('Role line', tInput(U.single.role, function (v) { save({ supers: { single: { role: v } } }); }))); host.appendChild(a);
+    var b = panel('201b · Super Double'); b.appendChild(row('Left', pSelect(U.double.a, function (v) { save({ supers: { double: { a: v } } }); })));
+    b.appendChild(row('Right', pSelect(U.double.b, function (v) { save({ supers: { double: { b: v } } }); }))); host.appendChild(b);
+    var c = panel('201c · Super Triple');
+    [['a', 'Left'], ['b', 'Middle'], ['c', 'Right']].forEach(function (k) { c.appendChild(row(k[1], pSelect(U.triple[k[0]], function (v) { var o = {}; o[k[0]] = v; save({ supers: { triple: o } }); }))); });
+    host.appendChild(c);
+    var d = panel('202 · Super Free Text'); d.appendChild(row('Headline', tInput(U.free.headline, function (v) { save({ supers: { free: { headline: v } } }); })));
+    d.appendChild(row('Supporting', tInput(U.free.sub, function (v) { save({ supers: { free: { sub: v } } }); }))); host.appendChild(d);
+  }
+
+  function render() {
+    var nav = $('nav'), main = $('main'), top = main.scrollTop;
+    nav.innerHTML = ''; main.innerHTML = '';
+    SECTIONS.forEach(function (s) {
+      if (s.g) { nav.appendChild(el('div', 'grp', s.g)); return; }
+      var b = el('button', s.id === current ? 'active' : '', s.name); b.onclick = function () { current = s.id; render(); main.scrollTop = 0; }; nav.appendChild(b);
+    });
+    var sec = SECTIONS.filter(function (s) { return s.id === current; })[0];
+    var host = el('div', 'sec active'); main.appendChild(host); sec.fn(host); main.scrollTop = top;
+  }
+
+  function start() {
+    $('login-wrap').style.display = 'none'; $('app').classList.add('visible');
+    Promise.all([
+      fetch('/projects/redbull/assets/countries.json').then(function (r) { return r.json(); }),
+      fetch('/rb/state', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+    ]).then(function (res) { countries = res[0]; S = res[1]; clientAtLoad = Date.now(); sync(true); render(); clearInterval(timerPoll); timerPoll = setInterval(paintTimer, 500); })
+      .catch(function () { sync(false); });
+  }
+})();
+</script>
+</body>
+</html>

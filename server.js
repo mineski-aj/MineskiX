@@ -265,6 +265,7 @@ app.use(require('./routes/proxy'));
 app.use(require('./routes/dashboard'));
 app.use(require('./routes/overlayStyles'));
 app.use(require('./routes/projects'));
+app.use(require('./routes/redbull'));
 app.use(require('./routes/devapi'));
 
 // Debug: log unmatched routes

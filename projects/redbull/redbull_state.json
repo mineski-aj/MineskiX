@@ -1,0 +1,479 @@
+{
+  "event": {
+    "title": "RED BULL WINGS CUP",
+    "stage": ""
+  },
+  "players": [
+    {
+      "first": "Jesper",
+      "last": "Tjäder",
+      "country": "ph",
+      "photo": ""
+    },
+    {
+      "first": "Matěj",
+      "last": "Švancer",
+      "country": "al",
+      "photo": ""
+    },
+    {
+      "first": "Joel",
+      "last": "Magnusson",
+      "country": "at",
+      "photo": ""
+    },
+    {
+      "first": "Colby",
+      "last": "Stevenson",
+      "country": "dk",
+      "photo": ""
+    },
+    {
+      "first": "Mika",
+      "last": "Berg",
+      "country": "hr",
+      "photo": ""
+    },
+    {
+      "first": "Luca",
+      "last": "Rossi",
+      "country": "cz",
+      "photo": ""
+    },
+    {
+      "first": "Noah",
+      "last": "Novak",
+      "country": "es",
+      "photo": ""
+    },
+    {
+      "first": "Ivan",
+      "last": "Petrov",
+      "country": "se",
+      "photo": ""
+    },
+    {
+      "first": "Leo",
+      "last": "Silva",
+      "country": "no",
+      "photo": ""
+    },
+    {
+      "first": "Aksel",
+      "last": "Hansen",
+      "country": "fi",
+      "photo": ""
+    },
+    {
+      "first": "Dani",
+      "last": "Marin",
+      "country": "bg",
+      "photo": ""
+    },
+    {
+      "first": "Oskar",
+      "last": "Lund",
+      "country": "br",
+      "photo": ""
+    },
+    {
+      "first": "Tomas",
+      "last": "Kral",
+      "country": "it",
+      "photo": ""
+    },
+    {
+      "first": "Emil",
+      "last": "Dahl",
+      "country": "ca",
+      "photo": ""
+    },
+    {
+      "first": "Ravi",
+      "last": "Patel",
+      "country": "cm",
+      "photo": ""
+    },
+    {
+      "first": "Sami",
+      "last": "Aho",
+      "country": "is",
+      "photo": ""
+    },
+    {
+      "first": "Jesper",
+      "last": "Tjäder 1",
+      "country": "af",
+      "photo": ""
+    },
+    {
+      "first": "Matěj",
+      "last": "Švancer 2",
+      "country": "al",
+      "photo": ""
+    },
+    {
+      "first": "Joel",
+      "last": "Magnusson 3",
+      "country": "at",
+      "photo": ""
+    },
+    {
+      "first": "Colby",
+      "last": "Stevenson 4",
+      "country": "dk",
+      "photo": ""
+    },
+    {
+      "first": "Mika",
+      "last": "Berg 5",
+      "country": "hr",
+      "photo": ""
+    },
+    {
+      "first": "Luca",
+      "last": "Rossi 6",
+      "country": "cz",
+      "photo": ""
+    },
+    {
+      "first": "Noah",
+      "last": "Novak 7",
+      "country": "es",
+      "photo": ""
+    },
+    {
+      "first": "Ivan",
+      "last": "Petrov 8",
+      "country": "se",
+      "photo": ""
+    },
+    {
+      "first": "Leo",
+      "last": "Silva 9",
+      "country": "no",
+      "photo": ""
+    },
+    {
+      "first": "Aksel",
+      "last": "Hansen 10",
+      "country": "fi",
+      "photo": ""
+    },
+    {
+      "first": "Dani",
+      "last": "Marin 11",
+      "country": "bg",
+      "photo": ""
+    },
+    {
+      "first": "Oskar",
+      "last": "Lund 12",
+      "country": "br",
+      "photo": ""
+    },
+    {
+      "first": "Tomas",
+      "last": "Kral 13",
+      "country": "it",
+      "photo": ""
+    },
+    {
+      "first": "Emil",
+      "last": "Dahl 14",
+      "country": "ca",
+      "photo": ""
+    },
+    {
+      "first": "Ravi",
+      "last": "Patel 15",
+      "country": "cm",
+      "photo": ""
+    },
+    {
+      "first": "Sami",
+      "last": "Aho 16",
+      "country": "is",
+      "photo": ""
+    }
+  ],
+  "countdown": {
+    "label": "SHOW BEGINS IN",
+    "timer": {
+      "running": true,
+      "endAt": 1791976700040,
+      "remaining": 120
+    }
+  },
+  "holding": {
+    "title": "WE WILL BE RIGHT BACK",
+    "sub": "RED BULL WINGS CUP"
+  },
+  "schedule": {
+    "title": "DAYS SCHEDULE",
+    "sub": "RED BULL WINGS CUP",
+    "rows": [
+      {
+        "a": 0,
+        "b": 1,
+        "time": "09:00"
+      },
+      {
+        "a": 2,
+        "b": 3,
+        "time": "10:30"
+      },
+      {
+        "a": 4,
+        "b": 5,
+        "time": "12:00"
+      },
+      {
+        "a": 6,
+        "b": 7,
+        "time": "13:00"
+      },
+      {
+        "a": 8,
+        "b": 9,
+        "time": "15:00"
+      },
+      {
+        "a": 10,
+        "b": 11,
+        "time": "16:45"
+      },
+      {
+        "a": 12,
+        "b": 13,
+        "time": "17:30"
+      },
+      {
+        "a": 14,
+        "b": 15,
+        "time": "18:45"
+      }
+    ]
+  },
+  "match": {
+    "p1": 0,
+    "p2": 1,
+    "score1": 0,
+    "score2": 0
+  },
+  "top16": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "top8": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "top4": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "bracket": {
+    "r32": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31
+    ],
+    "r16": [
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1
+    ],
+    "r8": [
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1,
+      -1
+    ],
+    "r4": [
+      -1,
+      -1,
+      -1,
+      -1
+    ],
+    "f": [
+      -1,
+      -1
+    ]
+  },
+  "leaderboard": {
+    "title": "LEADERBOARD",
+    "sub": "RED BULL WINGS CUP",
+    "groupA": [
+      {
+        "p": 0,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 1,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 2,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 3,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      }
+    ],
+    "groupB": [
+      {
+        "p": 4,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 5,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 6,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      },
+      {
+        "p": 7,
+        "gp": 0,
+        "w": 0,
+        "l": 0,
+        "d": 0,
+        "gd": 0
+      }
+    ]
+  },
+  "winner": {
+    "p": 0,
+    "sub": "CHAMPIONSHIP WINNER"
+  },
+  "layouts": {
+    "split2": [
+      "TITLE LEFT SCREEN",
+      "TITLE RIGHT SCREEN"
+    ],
+    "split3": [
+      "TITLE TOP SCREEN",
+      "TITLE LEFT SCREEN",
+      "TITLE RIGHT SCREEN"
+    ],
+    "pip": "TITLE LEFT SCREEN"
+  },
+  "supers": {
+    "single": {
+      "p": 0,
+      "role": "PLAYER 1"
+    },
+    "double": {
+      "a": 0,
+      "b": 1
+    },
+    "triple": {
+      "a": 0,
+      "b": 1,
+      "c": 2
+    },
+    "free": {
+      "headline": "HEADLINE GOES HERE",
+      "sub": "Supporting line goes here."
+    }
+  }
+}

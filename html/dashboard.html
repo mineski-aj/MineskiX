@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <script src="/html/js/cache-bust.js"></script>
   <script src="/html/js/overlay-sse-shim.js"></script>
+  <script src="/html/redbull/rb-dashboard-config.js"></script>
   <title>MineskiX Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1326,6 +1327,16 @@
   function fileUrl(f)  { return '/html/' + f; }
 
   /* ── Tab switching ───────────────────────────────────────── */
+  /* Red Bull project: no API / no MLBB data — drop the MLBB-only tabs and swap the Match Board for the
+     Wings Cup one. Other projects never enter this branch (RB_MODE is only true when active === 'redbull'). */
+  if (window.RB_MODE) {
+    RB_DASH.hiddenTabs.forEach(function (pg) {
+      var b = document.querySelector('.tab-btn[data-page="' + pg + '"]'); if (b) b.remove();
+      var pgEl = document.getElementById('page-' + pg);
+      if (pgEl) pgEl.querySelectorAll('iframe').forEach(function (f) { f.src = 'about:blank'; });   // about:blank, never '' (see CLAUDE.md)
+    });
+    document.getElementById('matchboard-iframe').src = RB_DASH.matchBoardSrc;
+  }
   var tabBtns = document.querySelectorAll('.tab-btn');
   tabBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -1864,7 +1875,16 @@
     }
   }
 
+  /* Red Bull project: what's live is { scene, super } from /overlay/rb/state, kept fresh by the 'redbull' SSE event below. */
+  var rbLive = { scene: null, super: null };
+  function rbShown(key) { return key !== 'rb_wipe' && (rbLive.scene === key || rbLive.super === key); }
+  function loadRbLive() {
+    return fetch('/overlay/rb/state', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+      rbLive = d || rbLive; refreshFullscreenFeatureButtons();
+    }).catch(function () {});
+  }
   function fullscreenFeatureShown(key) {
+    if (window.RB_MODE && /^rb_/.test(key)) return rbShown(key);
     if (FULLSCREEN_BOOL_KEYS.indexOf(key) !== -1) return !!fullscreenSceneState[key];
     var af = FULLSCREEN_ACTIVE_FEATURE_MAP[key];
     return af ? fullscreenSceneState.activeFeature === af : false;
@@ -2108,6 +2128,13 @@
     dashboardSSE.addEventListener(name, loadFullscreenScene);
   });
 
+  if (window.RB_MODE) {
+    dashboardSSE.addEventListener('redbull', function (e) {
+      try { rbLive = JSON.parse(e.data).live || rbLive; refreshFullscreenFeatureButtons(); } catch (err) {}
+    });
+    loadRbLive();
+  }
+
   dashboardSSE.addEventListener('mapselecttag', function (e) {
     try {
       var d = JSON.parse(e.data);
@@ -2210,7 +2237,7 @@
   });
 
   /* ── Overlay definitions ──────────────────────────────────── */
-  var OVERLAYS = [
+  var MLBB_OVERLAYS = [
     {
       id: 'draft',
       name: 'Draft Overlay',
@@ -2445,6 +2472,8 @@
       url: '/bpm/status',
     },
   ];
+  /* Red Bull project swaps in its own overlay list (21 Wings Cup graphics) — see html/redbull/rb-dashboard-config.js. */
+  var OVERLAYS = window.RB_MODE ? window.RB_DASH.overlays : MLBB_OVERLAYS;
 
   /* file -> { id, name } of the OVERLAYS entry that serves it — lets the
      Edit tab (below) know which project-enabled-overlays check applies to
@@ -5214,7 +5243,14 @@
       showFn:      'showLowerThirdsForEdit',
     },
   };
+  /* Red Bull project: its own Edit registry replaces the MLBB one entirely; every other project drops the rb_ configs
+     (they only exist when RB_MODE is on, so nothing to remove there). */
   var currentConfigKey = 'ingame_scoreboard';
+  if (window.RB_MODE) {
+    Object.keys(EDIT_CONFIGS).forEach(function (k) { delete EDIT_CONFIGS[k]; });
+    Object.keys(RB_DASH.edit).forEach(function (k) { EDIT_CONFIGS[k] = RB_DASH.edit[k]; });
+    currentConfigKey = Object.keys(EDIT_CONFIGS)[0];
+  }
 
   function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
   function parseNum(s)    { return parseFloat(String(s)) || 0; }
