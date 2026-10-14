@@ -43,47 +43,59 @@
 .fit-inline { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-align: center; }
 
 /* 103a MATCH ID / 103b RESULTS */
-#mi-photo-l { left: 474px; top: 340px; width: 336px; height: 322px; }
-#mi-photo-r { left: 1112px; top: 340px; width: 336px; height: 322px; }
-#mi-bar-l { left: 176px; top: 660px; width: 650px; height: 88px; display: flex; }
-#mi-bar-r { left: 1094px; top: 660px; width: 650px; height: 88px; display: flex; }
-#mi-vs { left: 826px; top: 650px; width: 268px; height: 108px; font-size: 104px; letter-spacing: 2px; justify-content: center; }
+#mi-bar-l { left: 176px; top: 500px; width: 650px; height: 88px; display: flex; }
+#mi-bar-r { left: 1094px; top: 500px; width: 650px; height: 88px; display: flex; }
+#mi-vs { left: 826px; top: 490px; width: 268px; height: 108px; font-size: 104px; letter-spacing: 2px; justify-content: center; }
 .bar { position: absolute; display: flex; }
 .bar .rb-plate { position: relative; height: 100%; }
 .bar .ctry { width: 200px; background: var(--rb-navy-deep); gap: 14px; font-size: 40px; }
 .bar .nm   { flex: 1; background: var(--rb-navy-plate); font-size: 44px; }
 .bar .rb-flag { width: 62px; height: 42px; }
-#mr-photo-l { left: 566px; top: 380px; width: 300px; height: 290px; }
-#mr-photo-r { left: 1092px; top: 380px; width: 300px; height: 290px; }
-#mr-name-l { left: 316px; top: 666px; width: 424px; height: 84px; --sl: 26px; font-size: 40px; }
-#mr-name-r { left: 1180px; top: 666px; width: 424px; height: 84px; --sl: 26px; font-size: 40px; }
-#mr-score  { left: 740px; top: 640px; width: 440px; height: 130px; font-size: 104px; letter-spacing: 3px; color: #fff; justify-content: center; display: flex; align-items: center; text-shadow: 0 4px 18px rgba(0,0,80,.45); }
-#mr-chip-l { left: 544px; top: 756px; width: 150px; height: 40px; font-size: 28px; }
-#mr-chip-r { left: 1200px; top: 756px; width: 150px; height: 40px; font-size: 28px; }
+#mr-name-l { left: 316px; top: 486px; width: 424px; height: 84px; --sl: 26px; font-size: 40px; }
+#mr-name-r { left: 1180px; top: 486px; width: 424px; height: 84px; --sl: 26px; font-size: 40px; }
+#mr-score  { left: 740px; top: 460px; width: 440px; height: 130px; font-size: 104px; letter-spacing: 3px; color: #fff; justify-content: center; display: flex; align-items: center; text-shadow: 0 4px 18px rgba(0,0,80,.45); }
+#mr-chip-l { left: 544px; top: 576px; width: 150px; height: 40px; font-size: 28px; }
+#mr-chip-r { left: 1200px; top: 576px; width: 150px; height: 40px; font-size: 28px; }
 .rb-chip .rb-flag { width: 34px; height: 24px; }
 
 /* player cell used by Top 16/8/4 */
 .pc { position: absolute; width: var(--cw); height: var(--ch); }
-.pc .rb-photo { left: calc((var(--cw) - var(--pw)) / 2); top: 0; width: var(--pw); height: var(--ph); }
 .pc .pc-name { left: calc((var(--cw) - var(--nw)) / 2); top: var(--nt); width: var(--nw); height: var(--nh); font-size: var(--fs); --sl: calc(var(--nh) * .26); }
 .pc .rb-chip { left: calc((var(--cw) - var(--nw)) / 2 + 10px); top: var(--ct); width: var(--chw); height: var(--chh); font-size: var(--cfs); }
 .pc .rb-chip .rb-flag { width: calc(var(--chh) * 1.2); height: calc(var(--chh) * .72); }
 .grid { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
 #t16-grid, #t8-grid, #t4-grid, #br-boxes { pointer-events: auto; }
 
-/* 105 BRACKET */
+/* 105 BRACKET — 16 players, two 8-player leagues (red = University, yellow = Open) -> Grand Final -> Winner */
 #br-boxes { left: 0; top: 0; width: 1920px; height: 1080px; }
-.bx { position: absolute; height: 40px; display: flex; flex-direction: column; justify-content: center; padding: 0 9px; background: var(--rb-navy-plate); line-height: 1; overflow: hidden; white-space: nowrap; clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%); }
-.bx.rt { clip-path: polygon(7px 0, 100% 0, 100% 100%, 0 100%); }
-.bx .bf, .bx .bl { display: block; overflow: hidden; white-space: nowrap; }
-.bx .bf { font-size: 15px; opacity: .9; }
-.bx .bl { font-size: 21px; }
-.bx.won { background: linear-gradient(90deg, #1a2fd0, #2d6bff); }
+.bx { position: absolute; height: 40px; display: flex; align-items: center; justify-content: center; padding: 0 10px; line-height: 1; overflow: hidden; white-space: nowrap; font-size: 24px; text-transform: uppercase; }
+.bx.uni  { background: var(--rb-red); color: #fff; }
+.bx.open { background: var(--rb-yellow); color: var(--rb-navy); }
+.bx.empty { font-size: 22px; }
+.bx.empty > span { opacity: .8; }
+.bx > span { display: block; overflow: hidden; white-space: nowrap; }
 #br-lines { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; filter: drop-shadow(0 0 5px rgba(255,255,255,.85)) drop-shadow(0 0 10px rgba(120,200,255,.6)); }
-#br-lines path { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: square; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
+#br-lines path { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: square; stroke-dasharray: 1400; stroke-dashoffset: 1400; }
 .rb-active #br-lines path { animation: rbDraw 1.4s .3s ease-out forwards; }
 .rb-page:not(.rb-active) #br-lines path { stroke-dashoffset: 0; }
 @keyframes rbDraw { to { stroke-dashoffset: 0; } }
+.brl { font-size: 30px; letter-spacing: 1px; text-transform: uppercase; line-height: 1; }
+.brtag { font-size: 30px; letter-spacing: .5px; text-transform: uppercase; line-height: 1; padding: 0 14px; }
+.brtag.uni  { background: var(--rb-red); color: #fff; }
+.brtag.open { background: var(--rb-yellow); color: var(--rb-navy); }
+#br-r16-lbl { left: 272px; top: 378px; width: 70px; height: 300px; }
+#br-r16-lbl span { transform: rotate(-90deg); white-space: nowrap; font-size: 52px; letter-spacing: 2px; }
+#br-tag-uni  { left: 50px; top: 246px; width: 220px; height: 78px; }
+#br-tag-open { left: 50px; top: 732px; width: 220px; height: 78px; }
+#br-qf-uni  { left: 685px; top: 250px; width: 200px; height: 70px; }
+#br-qf-open { left: 685px; top: 736px; width: 200px; height: 70px; }
+#br-sf-uni  { left: 965px; top: 265px; width: 200px; height: 40px; }
+#br-sf-open { left: 965px; top: 751px; width: 200px; height: 40px; }
+#br-gf  { left: 1236px; top: 495px; width: 230px; height: 66px; }
+#br-win { left: 1520px; top: 458px; width: 360px; height: 140px; background: #fff; color: #111; font-size: 76px; padding: 0 20px; justify-content: center; }
+#br-logo { left: 1620px; top: 90px; width: 220px; height: 196px; }
+#br-fc27 { left: 1590px; top: 860px; width: 190px; height: 42px; }
+#br-ps   { left: 1610px; top: 930px; width: 150px; height: 45px; }
 
 /* 108 LEADERBOARD */
 #lb-title { left: 492px; top: 132px; width: 402px; height: 88px; --sl: 28px; font-size: 46px; letter-spacing: 1px; text-transform: uppercase; }
@@ -104,7 +116,6 @@
 .lb-stat { width: 70px; justify-content: center; background: var(--rb-silver); color: var(--rb-navy); font-family: 'RB Mono', monospace; font-weight: 800; font-size: 32px; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
 
 /* 110 WINNER */
-#wn-photo { left: 980px; top: 150px; width: 340px; height: 336px; }
 #wn-logo  { left: 500px; top: 420px; width: 290px; height: 258px; z-index: 3; }
 #wn-name  { left: 690px; top: 484px; width: 780px; height: 104px; --sl: 34px; font-size: 62px; letter-spacing: 1px; padding: 0 70px 0 130px; }
 #wn-sub   { left: 724px; top: 590px; width: 660px; height: 84px; --sl: 28px; font-size: 36px; letter-spacing: 3px; text-transform: uppercase; padding-left: 70px; }
@@ -179,7 +190,6 @@
   <!-- 103a MATCH ID -->
   <div id="mi-page" class="rb-page">
     <img id="mi-logo" class="rb-logo logo-c rb-pop">
-    <img id="mi-photo-l" class="rb-photo rb-pop" style="--d:.1s"><img id="mi-photo-r" class="rb-photo rb-pop" style="--d:.2s">
     <div id="mi-bar-l" class="bar rb-slide-l" style="--d:.2s"></div>
     <div id="mi-vs" class="rb-plate rb-apotek rb-pop" style="--d:.35s;color:#fff;text-shadow:0 4px 20px rgba(0,0,90,.5)">VS</div>
     <div id="mi-bar-r" class="bar rb-slide-r" style="--d:.2s"></div>
@@ -189,7 +199,6 @@
   <!-- 103b MATCH RESULTS -->
   <div id="mr-page" class="rb-page">
     <img id="mr-logo" class="rb-logo logo-c rb-pop">
-    <img id="mr-photo-l" class="rb-photo rb-pop" style="--d:.1s"><img id="mr-photo-r" class="rb-photo rb-pop" style="--d:.2s">
     <div id="mr-name-l" class="rb-plate rb-navy sl-r rb-name rb-slide-l" style="--d:.2s" data-fit="40,20"></div>
     <div id="mr-score" class="rb-plate rb-mono rb-pop" style="--d:.35s" data-fit="104,56"></div>
     <div id="mr-name-r" class="rb-plate rb-navy sl-l rb-name rb-slide-r" style="--d:.2s" data-fit="40,20"></div>
@@ -218,9 +227,18 @@
 
   <!-- 105 BRACKET -->
   <div id="br-page" class="rb-page">
-    <img id="br-logo" class="rb-logo" style="left:882px;top:196px;width:156px;height:139px">
+    <img id="br-logo" class="rb-logo rb-pop">
     <div id="br-boxes" class="grid"><svg id="br-lines" viewBox="0 0 1920 1080"></svg></div>
-    <img id="br-fc27" class="rb-fc27 mk-b-fc"><img id="br-ps" class="rb-ps mk-b-ps">
+    <div id="br-r16-lbl" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center"><span>ROUND OF 16</span></div>
+    <div id="br-tag-uni" class="rb-plate brtag uni rb-slide-l" data-fit="30,14"></div>
+    <div id="br-tag-open" class="rb-plate brtag open rb-slide-l" style="--d:.1s" data-fit="30,14"></div>
+    <div id="br-qf-uni" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center;text-align:center;--d:.3s">QUARTER<br>FINAL</div>
+    <div id="br-qf-open" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center;text-align:center;--d:.3s">QUARTER<br>FINAL</div>
+    <div id="br-sf-uni" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center;--d:.4s">SEMI FINAL</div>
+    <div id="br-sf-open" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center;--d:.4s">SEMI FINAL</div>
+    <div id="br-gf" class="rb-abs brl rb-pop" style="display:flex;align-items:center;justify-content:center;--d:.5s">GRAND FINAL</div>
+    <div id="br-win" class="rb-abs rb-name rb-pop" style="display:flex;align-items:center;justify-content:safe center;overflow:hidden;white-space:nowrap;text-transform:uppercase;--d:.6s" data-fit="76,28">WINNER</div>
+    <img id="br-fc27" class="rb-fc27"><img id="br-ps" class="rb-ps">
   </div>
 
   <!-- 108 LEADERBOARD -->
@@ -237,7 +255,6 @@
 
   <!-- 110 WINNER -->
   <div id="wn-page" class="rb-page">
-    <img id="wn-photo" class="rb-photo rb-pop">
     <img id="wn-logo" class="rb-logo rb-pop" style="--d:.15s">
     <div id="wn-name" class="rb-plate rb-silver sl-r rb-name rb-slide-r" style="--d:.2s" data-fit="62,28"></div>
     <div id="wn-sub" class="rb-plate rb-navy sl-r rb-slide-r" style="--d:.35s" data-fit="36,18"></div>
@@ -329,13 +346,11 @@
   }
   function applyMatchId(s) {
     var a = RB.player(s.match.p1), b = RB.player(s.match.p2);
-    $('mi-photo-l').src = a.photo; $('mi-photo-r').src = b.photo;
     $('mi-bar-l').innerHTML = bar(a, 'l'); $('mi-bar-r').innerHTML = bar(b, 'r');
   }
   function chip(pl) { return flagImg(pl) + '<span>' + RB.esc(pl.code) + '</span>'; }
   function applyResults(s) {
     var a = RB.player(s.match.p1), b = RB.player(s.match.p2);
-    $('mr-photo-l').src = a.photo; $('mr-photo-r').src = b.photo;
     $('mr-name-l').innerHTML = RB.nameHTML(a); $('mr-name-r').innerHTML = RB.nameHTML(b);
     function z(n) { n = Number(n) || 0; return (n < 10 ? '0' : '') + n; }
     $('mr-score').textContent = z(s.match.score1) + ' - ' + z(s.match.score2);
@@ -345,72 +360,69 @@
   // Player grid cell (Top 16 / 8 / 4)
   function cell(pl, x, y, v, delay) {
     var st = 'left:' + x + 'px;top:' + y + 'px;--d:' + delay + 's;' + Object.keys(v).map(function (k) { return '--' + k + ':' + v[k]; }).join(';');
-    return '<div class="pc rb-pop" style="' + st + '"><img class="rb-photo" src="' + pl.photo + '">' +
-      '<div class="rb-plate rb-navy sl-both pc-name rb-name" data-fit="' + parseFloat(v.fs) + ',12">' + RB.nameHTML(pl) + '</div>' +
+    return '<div class="pc rb-pop" style="' + st + '"><div class="rb-plate rb-navy sl-both pc-name rb-name" data-fit="' + parseFloat(v.fs) + ',12">' + RB.nameHTML(pl) + '</div>' +
       '<div class="rb-chip pc-chip">' + flagImg(pl) + '<span>' + RB.esc(pl.code) + '</span></div></div>';
   }
   function applyTop16(s) {
     var ids = s.top16, h = '';
-    var V = { cw: '246px', ch: '250px', pw: '170px', ph: '160px', nw: '216px', nh: '40px', nt: '160px', ct: '204px', chw: '84px', chh: '28px', fs: '24px', cfs: '18px' };
+    var V = { cw: '246px', ch: '96px', nw: '230px', nh: '56px', nt: '0px', ct: '62px', chw: '96px', chh: '32px', fs: '28px', cfs: '20px' };
     var rows = [[584, 830, 1076, 1326], [344, 590, 836, 1080, 1326, 1574], [344, 590, 836, 1080, 1326, 1574]];
-    var tops = [140, 430, 740], n = 0;
+    var tops = [310, 510, 710], n = 0;
     rows.forEach(function (xs, r) { xs.forEach(function (cx) { h += cell(RB.player(ids[n]), cx - 123, tops[r], V, 0.1 + n * 0.04); n++; }); });
     $('t16-grid').innerHTML = h;
   }
   function applyTop8(s) {
     var ids = s.top8, h = '';
-    var V = { cw: '300px', ch: '330px', pw: '200px', ph: '190px', nw: '270px', nh: '52px', nt: '184px', ct: '246px', chw: '100px', chh: '34px', fs: '30px', cfs: '22px' };
-    var xs = [424, 788, 1148, 1508], tops = [300, 586];
+    var V = { cw: '300px', ch: '116px', nw: '290px', nh: '68px', nt: '0px', ct: '76px', chw: '116px', chh: '38px', fs: '38px', cfs: '24px' };
+    var xs = [424, 788, 1148, 1508], tops = [400, 600];
     for (var n = 0; n < 8; n++) h += cell(RB.player(ids[n]), xs[n % 4] - 150, tops[Math.floor(n / 4)], V, 0.1 + n * 0.05);
     $('t8-grid').innerHTML = h;
   }
   function applyTop4(s) {
     var ids = s.top4, h = '';
-    var V = { cw: '420px', ch: '420px', pw: '290px', ph: '270px', nw: '380px', nh: '72px', nt: '270px', ct: '348px', chw: '120px', chh: '38px', fs: '40px', cfs: '24px' };
+    var V = { cw: '420px', ch: '150px', nw: '390px', nh: '92px', nt: '0px', ct: '100px', chw: '136px', chh: '44px', fs: '52px', cfs: '28px' };
     var xs = [364, 760, 1156, 1550];
-    for (var n = 0; n < 4; n++) h += cell(RB.player(ids[n]), xs[n] - 210, 380, V, 0.1 + n * 0.07);
+    for (var n = 0; n < 4; n++) h += cell(RB.player(ids[n]), xs[n] - 210, 470, V, 0.1 + n * 0.07);
     $('t4-grid').innerHTML = h;
   }
 
-  // Bracket geometry — 32-slot template (left half = r32[0..15], right half = r32[16..31]).
-  var COLS = [{ x: 140, w: 100 }, { x: 296, w: 112 }, { x: 462, w: 100 }, { x: 630, w: 100 }, { x: 812, w: 116 }];
+  // Bracket geometry — 16 players: two 8-player leagues, University (red) on top, Open (yellow) below,
+  // each flowing left -> right (Round of 16 -> Quarter -> Semi -> League winner) into the Grand Final / Winner box.
+  var BCOLS = [{ x: 350, w: 260 }, { x: 670, w: 230 }, { x: 960, w: 210 }, { x: 1230, w: 210 }];
+  var BG = { uni: { top: 80 }, open: { top: 566 } };           // y of the first Round-of-16 box
+  function bracketYs(top) {
+    var r16 = [], i;
+    for (i = 0; i < 8; i++) r16.push(top + 20 + 108 * Math.floor(i / 2) + (i % 2 ? 46 : 0));   // pairs 46px apart, 108px per pair
+    var mid = function (a) { var o = []; for (var k = 0; k < a.length; k += 2) o.push((a[k] + a[k + 1]) / 2); return o; };
+    var qf = mid(r16), sf = mid(qf), f = mid(sf);
+    return [r16, qf, sf, f];
+  }
   function applyBracket(s) {
-    var br = s.bracket, html = '', paths = '';
-    var rounds = [br.r32, br.r16, br.r8, br.r4, br.f];
-    function ys(col, half) {            // y centres of every box in a column of one half
-      var n = [16, 8, 4, 2, 1][col], out = [];
-      for (var i = 0; i < n; i++) {
-        if (col === 0) out.push(196 + 110 * Math.floor(i / 2) + (i % 2 ? 22 : -22));
-        else if (col === 1) out.push(196 + 110 * i);
-        else { var p = ys(col - 1, half); out.push((p[2 * i] + p[2 * i + 1]) / 2); }
-      }
-      return out;
-    }
-    function boxX(col, half) { var c = COLS[col]; return half === 0 ? c.x : 1920 - c.x - c.w; }
-    [0, 1].forEach(function (half) {
-      for (var col = 0; col < 5; col++) {
-        var Y = ys(col, half), n = Y.length, c = COLS[col];
-        for (var i = 0; i < n; i++) {
-          var slotIdx = (col === 4) ? half : (half * n + i);
-          var pl = RB.player(rounds[col][slotIdx]);
-          var cls = 'bx rb-pop' + (half ? ' rt' : '');
-          html += '<div class="' + cls + '" style="left:' + boxX(col, half) + 'px;top:' + (Y[i] - 20) + 'px;width:' + c.w + 'px;--d:' + (0.05 + col * 0.12) + 's">' +
-            (pl.empty ? '<span class="bl" style="opacity:.6">TBD</span>' :
-              '<span class="bf" data-fit="15,8">' + RB.esc(pl.first) + '</span><span class="bl" data-fit="21,10">' + RB.esc(pl.last) + '</span>') + '</div>';
-        }
-        if (col > 0) {                    // connectors from previous column into this one
-          var P = ys(col - 1, half);
-          for (var j = 0; j < n; j++) {
-            var cp = COLS[col - 1];
-            var xr = half === 0 ? cp.x + cp.w : 1920 - cp.x - cp.w;           // child's inner edge
-            var xpar = half === 0 ? c.x : (1920 - c.x);                         // parent's inner edge
-            var xmid = (xr + xpar) / 2, y1 = P[2 * j], y2 = P[2 * j + 1], ym = Y[j];
-            paths += '<path d="M' + xr + ' ' + y1 + 'H' + xmid + 'V' + y2 + 'H' + xr + 'M' + xmid + ' ' + ym + 'H' + xpar + '"/>';
-          }
+    var br = s.bracket, html = '', paths = '', ends = [];
+    ['uni', 'open'].forEach(function (lg) {
+      var g = br[lg], rounds = [g.r16, g.qf, g.sf, g.f], Y = bracketYs(BG[lg].top);
+      for (var col = 0; col < 4; col++) {
+        var c = BCOLS[col];
+        Y[col].forEach(function (yc, i) {
+          var pl = RB.player(rounds[col][i]);
+          html += '<div class="bx ' + lg + (pl.empty ? ' empty' : '') + ' rb-pop" style="left:' + c.x + 'px;top:' + (yc - 20) + 'px;width:' + c.w + 'px;--d:' + (0.05 + col * 0.12) + 's">' +
+            (pl.empty ? '<span>' + (col === 0 ? (i + 1) : '') + '</span>' :
+              '<span class="rb-name" data-fit="24,11">' + RB.nameHTML(pl) + '</span>') + '</div>';
+        });
+        if (col > 0) {                      // connectors from the previous column into this one
+          var P = Y[col - 1], pc = BCOLS[col - 1], xr = pc.x + pc.w, xmid = (xr + c.x) / 2;
+          Y[col].forEach(function (ym, j) { paths += '<path d="M' + xr + ' ' + P[2 * j] + 'H' + xmid + 'V' + P[2 * j + 1] + 'H' + xr + 'M' + xmid + ' ' + ym + 'H' + c.x + '"/>'; });
         }
       }
+      ends.push(Y[3][0]);
     });
+    // league winners -> Grand Final -> Winner box
+    var xe = BCOLS[3].x + BCOLS[3].w, xv = 1490, ym = (ends[0] + ends[1]) / 2;
+    paths += '<path d="M' + xe + ' ' + ends[0] + 'H' + xv + 'V' + ends[1] + 'H' + xe + 'M' + xv + ' ' + ym + 'H1520"/>';
     $('br-boxes').innerHTML = '<svg id="br-lines" viewBox="0 0 1920 1080">' + paths + '</svg>' + html;
+    $('br-tag-uni').textContent = br.uniLabel || ''; $('br-tag-open').textContent = br.openLabel || '';
+    var w = RB.player(br.winner);
+    $('br-win').innerHTML = w.empty ? 'WINNER' : RB.nameHTML(w);
   }
 
   function lbRows(list, host) {
@@ -429,7 +441,7 @@
   }
   function applyWinner(s) {
     var pl = RB.player(s.winner.p);
-    $('wn-photo').src = pl.photo; $('wn-name').innerHTML = RB.nameHTML(pl); $('wn-sub').textContent = s.winner.sub || '';
+    $('wn-name').innerHTML = RB.nameHTML(pl); $('wn-sub').textContent = s.winner.sub || '';
   }
   function applySplit2(s) { $('s2-title-l').textContent = s.layouts.split2[0] || ''; $('s2-title-r').textContent = s.layouts.split2[1] || ''; }
   function applySplit3(s) { var t = s.layouts.split3; $('s3-title-t').textContent = t[0] || ''; $('s3-title-l').textContent = t[1] || ''; $('s3-title-r').textContent = t[2] || ''; }

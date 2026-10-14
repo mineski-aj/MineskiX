@@ -116,7 +116,7 @@ td { padding: 3px 4px; vertical-align: middle; } td.n { width: 28px; color: #555
 
   /* ── sections ── */
   var SECTIONS = [
-    { g: 'Setup' }, { id: 'roster', name: 'Roster & Photos', fn: secRoster },
+    { g: 'Setup' }, { id: 'roster', name: 'Roster', fn: secRoster },
     { g: 'Opening / Holding' }, { id: 'countdown', name: 'Countdown · Holding', fn: secCountdown }, { id: 'schedule', name: 'Days Schedule', fn: secSchedule },
     { g: 'Match' }, { id: 'match', name: 'Current Match', fn: secMatch },
     { g: 'Tournament' }, { id: 'lineups', name: 'Top 16 / 8 / 4', fn: secLineups }, { id: 'bracket', name: 'Bracket', fn: secBracket },
@@ -126,26 +126,15 @@ td { padding: 3px 4px; vertical-align: middle; } td.n { width: 28px; color: #555
   var current = 'roster';
 
   function secRoster(host) {
-    var p = panel('Roster — 32 slots', 'Every graphic picks its players from this list. Photos should be transparent-background cut-outs (PNG/WebP), head and shoulders. Slots without a photo show a placeholder silhouette.');
-    var t = el('table'); t.innerHTML = '<tr><th></th><th>First name</th><th>Surname</th><th>Country</th><th>Photo</th></tr>';
+    var p = panel('Roster — 16 players', 'Every graphic picks its players from this list (the bracket is 16 players: 8 University League + 8 Open League). No player photos are used in this project.');
+    var t = el('table'); t.innerHTML = '<tr><th></th><th>First name</th><th>Surname</th><th>Country</th></tr>';
     S.players.forEach(function (pl, i) {
       var tr = el('tr'); tr.appendChild(el('td', 'n', i + 1));
       var td1 = el('td'); td1.appendChild(tInput(pl.first, function (v) { S.players[i].first = v; save({ players: S.players }); })); tr.appendChild(td1);
       var td2 = el('td'); td2.appendChild(tInput(pl.last, function (v) { S.players[i].last = v; save({ players: S.players }); })); tr.appendChild(td2);
       var td3 = el('td'); var sel = el('select', '', countries.map(function (c) { return '<option value="' + c.iso2 + '"' + (c.iso2 === pl.country ? ' selected' : '') + '>' + esc(c.code + ' — ' + c.name) + '</option>'; }).join(''));
       sel.onchange = function () { S.players[i].country = sel.value; save({ players: S.players }); }; td3.appendChild(sel); tr.appendChild(td3);
-      var td4 = el('td'); var wrap = el('div', 'row'); wrap.style.margin = 0;
-      var im = el('img', 'thumb'); if (pl.photo) im.src = pl.photo; wrap.appendChild(im);
-      var up = el('input'); up.type = 'file'; up.accept = 'image/png,image/webp,image/jpeg'; up.style.display = 'none';
-      up.onchange = function () {
-        if (!up.files[0]) return; var fd = new FormData(); fd.append('file', up.files[0]);
-        fetch('/api/projects/redbull/assets/players', { method: 'POST', body: fd }).then(function (r) { return r.json(); }).then(function (d) {
-          if (d.url) { S.players[i].photo = d.url; save({ players: S.players }, true); } else alert(d.error || 'Upload failed');
-        });
-      };
-      wrap.appendChild(up); wrap.appendChild(btn('Upload', 'blue', function () { up.click(); }));
-      if (pl.photo) wrap.appendChild(btn('✕', 'stop', function () { S.players[i].photo = ''; save({ players: S.players }, true); }));
-      td4.appendChild(wrap); tr.appendChild(td4); t.appendChild(tr);
+      t.appendChild(tr);
     });
     p.appendChild(t); host.appendChild(p);
   }
@@ -224,24 +213,36 @@ td { padding: 3px 4px; vertical-align: middle; } td.n { width: 28px; color: #555
   }
 
   function secBracket(host) {
-    var p = panel('105 · Tournament Bracket', 'Left half = first 16 slots of the Round of 32, right half = last 16. Use ▲ on a slot to advance that player to the next round. Empty slots show "TBD".');
-    var br = S.bracket, rounds = [['r32', 'Round of 32', 32], ['r16', 'Round of 16', 16], ['r8', 'Quarter-finals', 8], ['r4', 'Semi-finals', 4], ['f', 'Final', 2]];
-    var next = { r32: 'r16', r16: 'r8', r8: 'r4', r4: 'f' };
-    var g = el('div', 'brk');
-    rounds.forEach(function (rd) {
-      var col = el('div'); col.appendChild(el('h4', '', rd[1]));
-      for (var i = 0; i < rd[2]; i++) (function (i) {
-        var s = el('div', 'slot'); s.appendChild(pSelect(br[rd[0]][i], function (v) { br[rd[0]][i] = v; save({ bracket: br }); }, true));
-        if (next[rd[0]]) { var up = btn('▲', 'go up', function () { var ni = Math.floor(i / 2); br[next[rd[0]]][ni] = br[rd[0]][i]; save({ bracket: br }, true); }); up.title = 'Advance to next round'; s.appendChild(up); }
-        col.appendChild(s);
-      })(i);
-      g.appendChild(col);
+    var br = S.bracket;
+    var p0 = panel('105 · Tournament Bracket', '16 players in two 8-player leagues. Pick the Round of 16 players, then use ▲ on a slot to advance that player to the next round. Winners of each league meet in the Grand Final; ▲ on a league winner crowns the champion. Empty slots stay blank on air.');
+    p0.appendChild(row('Top league tag', tInput(br.uniLabel, function (v) { save({ bracket: { uniLabel: v } }); })));
+    p0.appendChild(row('Bottom league tag', tInput(br.openLabel, function (v) { save({ bracket: { openLabel: v } }); })));
+    host.appendChild(p0);
+    var rounds = [['r16', 'Round of 16', 8], ['qf', 'Quarter-finals', 4], ['sf', 'Semi-finals', 2], ['f', 'League winner', 1]];
+    var next = { r16: 'qf', qf: 'sf', sf: 'f' };
+    [['uni', 'University League (red, top)', 0], ['open', 'Open League (yellow, bottom)', 8]].forEach(function (lg) {
+      var g = br[lg[0]], p = panel(lg[1]), grid = el('div', 'brk');
+      rounds.forEach(function (rd) {
+        var col = el('div'); col.appendChild(el('h4', '', rd[1]));
+        for (var i = 0; i < rd[2]; i++) (function (i) {
+          var s = el('div', 'slot'); s.appendChild(pSelect(g[rd[0]][i], function (v) { g[rd[0]][i] = v; save({ bracket: br }); }, true));
+          var up;
+          if (next[rd[0]]) up = btn('▲', 'go up', function () { g[next[rd[0]]][Math.floor(i / 2)] = g[rd[0]][i]; save({ bracket: br }, true); });
+          else up = btn('🏆', 'go up', function () { br.winner = g.f[0]; save({ bracket: br }, true); });
+          up.title = next[rd[0]] ? 'Advance to next round' : 'Winner of the Grand Final';
+          s.appendChild(up); col.appendChild(s);
+        })(i);
+        grid.appendChild(col);
+      });
+      p.appendChild(grid);
+      var act = el('div', 'row'); act.style.marginTop = '12px';
+      act.appendChild(btn('Fill Round of 16 from roster ' + (lg[2] + 1) + '–' + (lg[2] + 8), 'blue', function () { for (var i = 0; i < 8; i++) g.r16[i] = lg[2] + i; save({ bracket: br }, true); }));
+      act.appendChild(btn('Clear later rounds', 'stop', function () { g.qf = Array(4).fill(-1); g.sf = Array(2).fill(-1); g.f = [-1]; br.winner = -1; save({ bracket: br }, true); }));
+      p.appendChild(act); host.appendChild(p);
     });
-    p.appendChild(g);
-    var act = el('div', 'row'); act.style.marginTop = '12px';
-    act.appendChild(btn('Fill Round of 32 from roster', 'blue', function () { br.r32 = S.players.map(function (_, i) { return i; }).slice(0, 32); save({ bracket: br }, true); }));
-    act.appendChild(btn('Clear later rounds', 'stop', function () { br.r16 = Array(16).fill(-1); br.r8 = Array(8).fill(-1); br.r4 = Array(4).fill(-1); br.f = Array(2).fill(-1); save({ bracket: br }, true); }));
-    p.appendChild(act); host.appendChild(p);
+    var pw = panel('Grand Final → Winner');
+    pw.appendChild(row('Champion', pSelect(br.winner, function (v) { save({ bracket: { winner: v } }); }, true)));
+    host.appendChild(pw);
   }
 
   function secLeaderboard(host) {

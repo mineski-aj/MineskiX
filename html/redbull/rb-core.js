@@ -9,18 +9,8 @@
   RB.serverOffset = 0;          // serverNow - Date.now(), for the countdown
   var listeners = [];
 
-  /* ── Placeholder art (replace via Edit tab → upload, or drop real files in) ── */
+  /* ── Placeholder art (replace via Edit tab → upload, or drop real files in). No player photos in this project. ── */
   function svgUri(svg) { return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg); }
-  RB.SILHOUETTE = svgUri(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420">' +
-    '<defs><linearGradient id="j" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a86ff"/><stop offset="1" stop-color="#1a4fc4"/></linearGradient></defs>' +
-    '<path d="M20 420 C24 330 90 290 150 276 L250 276 C310 290 376 330 380 420 Z" fill="url(#j)"/>' +
-    '<rect x="168" y="236" width="64" height="52" rx="14" fill="#d9a27f"/>' +
-    '<ellipse cx="200" cy="170" rx="62" ry="74" fill="#e8b99a"/>' +
-    '<path d="M134 150 C134 64 266 64 266 150 Z" fill="#6e8aa3"/>' +
-    '<rect x="130" y="128" width="140" height="30" rx="12" fill="#58738c"/>' +
-    '<circle cx="178" cy="176" r="6" fill="#3b2a22"/><circle cx="222" cy="176" r="6" fill="#3b2a22"/>' +
-    '<path d="M180 214 Q200 226 220 214" stroke="#a8665a" stroke-width="5" fill="none" stroke-linecap="round"/></svg>');
   RB.FC27 = svgUri(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80"><circle cx="40" cy="40" r="34" fill="#fff"/>' +
     '<text x="40" y="36" font-family="Arial" font-weight="900" font-size="15" text-anchor="middle" fill="#0F0069">EA</text>' +
@@ -38,12 +28,11 @@
   /* ── Players (index into the Match Board roster) ── */
   RB.player = function (i) {
     var p = (RB.state && RB.state.players && RB.state.players[i]) || null;
-    if (!p) return { idx: i, empty: true, first: '', last: '', code: '', iso2: '', flag: '', photo: RB.SILHOUETTE, hasPhoto: false };
+    if (!p) return { idx: i, empty: true, first: '', last: '', code: '', iso2: '', flag: '' };
     var c = RB.countries[p.country] || {};
     return {
       idx: i, empty: false, first: String(p.first || '').toUpperCase(), last: String(p.last || '').toUpperCase(),
       iso2: p.country || '', code: c.code || String(p.country || '').toUpperCase(), flag: RB.FLAG(p.country),
-      photo: p.photo || RB.SILHOUETTE, hasPhoto: !!p.photo,
     };
   };
   RB.nameHTML = function (pl) {

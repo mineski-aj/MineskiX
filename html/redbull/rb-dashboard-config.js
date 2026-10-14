@@ -374,16 +374,6 @@
         "name": "Logo"
       },
       {
-        "group": "Photo (Left)",
-        "id": "#mi-photo-l",
-        "name": "Photo (Left)"
-      },
-      {
-        "group": "Photo (Right)",
-        "id": "#mi-photo-r",
-        "name": "Photo (Right)"
-      },
-      {
         "group": "Name Bar (Left)",
         "id": "#mi-bar-l",
         "name": "Name Bar (Left)"
@@ -416,34 +406,22 @@
         "width": 280,
         "height": 249
       },
-      "#mi-photo-l": {
-        "left": 474,
-        "top": 340,
-        "width": 336,
-        "height": 322
-      },
-      "#mi-photo-r": {
-        "left": 1112,
-        "top": 340,
-        "width": 336,
-        "height": 322
-      },
       "#mi-bar-l": {
         "left": 176,
-        "top": 660,
+        "top": 500,
         "width": 650,
         "height": 88
       },
       "#mi-vs": {
         "left": 826,
-        "top": 650,
+        "top": 490,
         "width": 268,
         "height": 108,
         "fontSize": 104
       },
       "#mi-bar-r": {
         "left": 1094,
-        "top": 660,
+        "top": 500,
         "width": 650,
         "height": 88
       },
@@ -472,16 +450,6 @@
         "group": "Logo",
         "id": "#mr-logo",
         "name": "Logo"
-      },
-      {
-        "group": "Photo (Left)",
-        "id": "#mr-photo-l",
-        "name": "Photo (Left)"
-      },
-      {
-        "group": "Photo (Right)",
-        "id": "#mr-photo-r",
-        "name": "Photo (Right)"
       },
       {
         "group": "Name Plate (Left)",
@@ -526,49 +494,37 @@
         "width": 280,
         "height": 249
       },
-      "#mr-photo-l": {
-        "left": 566,
-        "top": 380,
-        "width": 300,
-        "height": 290
-      },
-      "#mr-photo-r": {
-        "left": 1092,
-        "top": 380,
-        "width": 300,
-        "height": 290
-      },
       "#mr-name-l": {
         "left": 316,
-        "top": 666,
+        "top": 486,
         "width": 424,
         "height": 84,
         "fontSize": 40
       },
       "#mr-score": {
         "left": 740,
-        "top": 640,
+        "top": 460,
         "width": 440,
         "height": 130,
         "fontSize": 104
       },
       "#mr-name-r": {
         "left": 1180,
-        "top": 666,
+        "top": 486,
         "width": 424,
         "height": 84,
         "fontSize": 40
       },
       "#mr-chip-l": {
         "left": 544,
-        "top": 756,
+        "top": 576,
         "width": 150,
         "height": 40,
         "fontSize": 28
       },
       "#mr-chip-r": {
         "left": 1200,
-        "top": 756,
+        "top": 576,
         "width": 150,
         "height": 40,
         "fontSize": 28
@@ -759,9 +715,54 @@
         "name": "Logo"
       },
       {
-        "group": "Bracket (block)",
+        "group": "Bracket Boxes (block)",
         "id": "#br-boxes",
-        "name": "Bracket (block)"
+        "name": "Bracket Boxes (block)"
+      },
+      {
+        "group": "Top League Tag",
+        "id": "#br-tag-uni",
+        "name": "Top League Tag"
+      },
+      {
+        "group": "Bottom League Tag",
+        "id": "#br-tag-open",
+        "name": "Bottom League Tag"
+      },
+      {
+        "group": "Round of 16 Label (block)",
+        "id": "#br-r16-lbl",
+        "name": "Round of 16 Label (block)"
+      },
+      {
+        "group": "Quarter Final Label (Top)",
+        "id": "#br-qf-uni",
+        "name": "Quarter Final Label (Top)"
+      },
+      {
+        "group": "Quarter Final Label (Bottom)",
+        "id": "#br-qf-open",
+        "name": "Quarter Final Label (Bottom)"
+      },
+      {
+        "group": "Semi Final Label (Top)",
+        "id": "#br-sf-uni",
+        "name": "Semi Final Label (Top)"
+      },
+      {
+        "group": "Semi Final Label (Bottom)",
+        "id": "#br-sf-open",
+        "name": "Semi Final Label (Bottom)"
+      },
+      {
+        "group": "Grand Final Label",
+        "id": "#br-gf",
+        "name": "Grand Final Label"
+      },
+      {
+        "group": "Winner Box",
+        "id": "#br-win",
+        "name": "Winner Box"
       },
       {
         "group": "FC27 Mark",
@@ -776,26 +777,86 @@
     ],
     "defaults": {
       "#br-logo": {
-        "left": 882,
-        "top": 196,
-        "width": 156,
-        "height": 139
+        "left": 1620,
+        "top": 90,
+        "width": 220,
+        "height": 196
       },
       "#br-boxes": {
         "left": 0,
         "top": 0
       },
+      "#br-tag-uni": {
+        "left": 50,
+        "top": 246,
+        "width": 220,
+        "height": 78,
+        "fontSize": 30
+      },
+      "#br-tag-open": {
+        "left": 50,
+        "top": 732,
+        "width": 220,
+        "height": 78,
+        "fontSize": 30
+      },
+      "#br-r16-lbl": {
+        "left": 272,
+        "top": 378
+      },
+      "#br-qf-uni": {
+        "left": 685,
+        "top": 250,
+        "width": 200,
+        "height": 70,
+        "fontSize": 34
+      },
+      "#br-qf-open": {
+        "left": 685,
+        "top": 736,
+        "width": 200,
+        "height": 70,
+        "fontSize": 34
+      },
+      "#br-sf-uni": {
+        "left": 965,
+        "top": 265,
+        "width": 200,
+        "height": 40,
+        "fontSize": 34
+      },
+      "#br-sf-open": {
+        "left": 965,
+        "top": 751,
+        "width": 200,
+        "height": 40,
+        "fontSize": 34
+      },
+      "#br-gf": {
+        "left": 1236,
+        "top": 495,
+        "width": 230,
+        "height": 66,
+        "fontSize": 34
+      },
+      "#br-win": {
+        "left": 1520,
+        "top": 458,
+        "width": 360,
+        "height": 140,
+        "fontSize": 76
+      },
       "#br-fc27": {
-        "left": 750,
-        "top": 914,
-        "width": 180,
-        "height": 40
+        "left": 1590,
+        "top": 860,
+        "width": 190,
+        "height": 42
       },
       "#br-ps": {
-        "left": 1004,
-        "top": 908,
-        "width": 160,
-        "height": 48
+        "left": 1610,
+        "top": 930,
+        "width": 150,
+        "height": 45
       }
     },
     "showFn": "rbEdit_bracket"
@@ -924,11 +985,6 @@
     "defaultsKey": "sb_edit_defaults_rb_winner",
     "elements": [
       {
-        "group": "Photo",
-        "id": "#wn-photo",
-        "name": "Photo"
-      },
-      {
         "group": "Logo",
         "id": "#wn-logo",
         "name": "Logo"
@@ -955,12 +1011,6 @@
       }
     ],
     "defaults": {
-      "#wn-photo": {
-        "left": 980,
-        "top": 150,
-        "width": 340,
-        "height": 336
-      },
       "#wn-logo": {
         "left": 500,
         "top": 420,
@@ -1643,16 +1693,6 @@
     "defaultsKey": "sb_edit_defaults_rb_vs_super",
     "elements": [
       {
-        "group": "Photo (Left)",
-        "id": "#sv-photo-l",
-        "name": "Photo (Left)"
-      },
-      {
-        "group": "Photo (Right)",
-        "id": "#sv-photo-r",
-        "name": "Photo (Right)"
-      },
-      {
         "group": "Country Plate (Left)",
         "id": "#sv-c1",
         "name": "Country Plate (Left)"
@@ -1704,18 +1744,6 @@
       }
     ],
     "defaults": {
-      "#sv-photo-l": {
-        "left": 490,
-        "top": 520,
-        "width": 336,
-        "height": 336
-      },
-      "#sv-photo-r": {
-        "left": 1080,
-        "top": 520,
-        "width": 336,
-        "height": 336
-      },
       "#sv-c1": {
         "left": 260,
         "top": 856,

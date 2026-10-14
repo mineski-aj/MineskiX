@@ -67,8 +67,6 @@ body { font-family: 'RB Cond', 'Arial Narrow', sans-serif; font-weight: 700; col
 .rb-logo { position: absolute; object-fit: contain; filter: drop-shadow(0 6px 18px rgba(0,10,80,.35)); }
 .rb-fc27, .rb-ps { position: absolute; object-fit: contain; }
 
-/* ── Player cell (Top 16/8/4, Match ID etc.) ── */
-.rb-photo { position: absolute; object-fit: contain; object-position: center bottom; }
 .rb-flag { display: block; object-fit: cover; flex: 0 0 auto; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
 .rb-chip { position: absolute; display: flex; align-items: center; gap: 8px; padding: 0 10px; background: var(--rb-silver);
            color: var(--rb-navy); white-space: nowrap; overflow: hidden; clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
